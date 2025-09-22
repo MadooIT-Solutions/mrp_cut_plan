@@ -1,0 +1,131 @@
+<odoo>
+    <data>
+        <record id="view_mrp_cut_plan_form" model="ir.ui.view">
+            <field name="name">mrp_cut_plan.mrp_cut_plan_form</field>
+            <field name="model">mrp_cut_plan.mrp_cut_plan</field>
+            <field name="arch" type="xml">
+                <form string="Cut Plan">
+                    <header>
+                        <button name="button_create_po" class="oe_highlight" string="Create PO" type="object"/>
+                        <button name="button_cancel" class="oe_highlight" string="Cancel" type="object"/>
+                        <field name="state" widget="statusbar"/>
+                    </header>
+                    <div class="alert alert-danger" role="alert" style="margin-botton:0px;" attrs="{'invisible': ['|','|', ('template_price_config_id', '!=', False), ('related_type', '=', 'llh'), ('related_type', '=', False)]}">
+                        <bold>Model price configuration not configured for this product: <field name="product_id" readonly="True"/></bold>
+                    </div>
+                    <sheet>
+                        <div class="oe_button_box" name="button_box" attrs="{'invisible': [('blue_po_count', '=', 0)]}">
+                            <button class="oe_stat_button" name="open_linked_po_orders"
+                                type="object" icon="fa-flask">
+                                <div class="o_stat_info">
+                                    <field name="blue_po_count" nolabel="1" widget="statinfo"/>
+                                    <span class="o_stat_text">OP</span>
+                                </div>
+                            </button>
+                        </div>
+                        <h1>
+                            <field name="name" widget="textarea"/>
+                        </h1>
+                        <group string="Production">
+                            <group>
+                                <field name="product_id_number" invisible="1"/>
+                                <field name="product_id"/>
+                                <field name="blue_qty"/>
+                                <field name="cotation_partner_id"/>
+                            </group>
+                            <group>
+                                <field name="product_uom_id"/>
+
+                                <field name="blue_bom_template_id" required='1'/>
+
+                                <field name="sale_order_id"/>
+                                <field name="related_type" invisible="True"/>
+                            </group>
+                        </group>
+
+                        <group>
+                            <group string="Dimentions">
+                                <field name="blue_I" attrs="{'invisible': ['|', ('related_type', '!=', 'llh'), ('related_type', '=', 'n')], 'required': [('related_type', '=', 'llh')]}"/>
+                                <field name="blue_II" attrs="{'invisible': ['|', ('related_type', '!=', 'llh'), ('related_type', '=', 'n')], 'required': [('related_type', '=', 'llh')]}"/>
+                                <field name="blue_h" attrs="{'invisible': ['|', ('related_type', '=', 'n'), ('related_type', '=', False)], 'required': [('related_type', '!=', 'n')]}"/>
+                                <field name="blue_advance" attrs="{'invisible': ['|', ('related_type', '!=', 'm'), ('related_type', '=', 'n')], 'required': [('related_type', '=', 'm')]}"/>
+                                <field name="blue_wall" invisible="True"/>
+                            </group>
+                            <group string="UoM">
+                                <field name="blue_I_uom" attrs="{'invisible': ['|', ('related_type', '!=', 'llh'), ('related_type', '=', 'n')], 'required': [('related_type', '=', 'llh')]}"/>
+                                <field name="blue_II_uom" attrs="{'invisible': ['|', ('related_type', '!=', 'llh'), ('related_type', '=', 'n')], 'required': [('related_type', '=', 'llh')]}"/>
+                                <field name="blue_h_uom" attrs="{'invisible': ['|', ('related_type', '=', 'n'), ('related_type', '=', False)], 'required': [('related_type', '!=', 'n')]}"/>
+                                <field name="blue_advance_uom" attrs="{'invisible': ['|', ('related_type', '!=', 'm'), ('related_type', '=', 'n')], 'required': [('related_type', '=', 'm')]}"/>
+                                <field name="blue_wall_uom" invisible="True"/>
+                            </group>
+                        </group>
+
+                        <group string="Totals">
+                            <field name="blue_m3" readonly="1"/>
+                            <field name="blue_m2" readonly="1"/>
+                            <field name="template_price_config_id" invisible="True"/>
+                        </group>
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_mrp_cut_plan_tree" model="ir.ui.view">
+            <field name="name">mrp_cut_plan.mrp_cut_plan_tree</field>
+            <field name="model">mrp_cut_plan.mrp_cut_plan</field>
+            <field name="arch" type="xml">
+                <tree string="Cut Plans">
+                    <field name="related_type"/>
+                    <field name="name" optional="show"/>
+                    <field name="product_id" optional="show"/>
+                    <field name="blue_qty" optional="show"/>
+                    <field name="blue_I" optional="show"/>
+                    <field name="blue_II" optional="show"/>
+                    <field name="blue_h" optional="show"/>
+                    <field name="blue_advance" optional="show"/>
+                    <field name="blue_wall" optional="show"/>
+                    <field name="blue_m3" optional="show"/>
+                    <field name="blue_origin" string="Pedido de Venda" optional="show"/>
+                    <field name="state" optional="show"/>
+                </tree>
+            </field>
+        </record>
+
+        <record id="view_mrp_cut_plan_search" model="ir.ui.view">
+            <field name="name">mrp.cut.plan.search</field>
+            <field name="model">mrp_cut_plan.mrp_cut_plan</field>
+            <field name="arch" type="xml">
+                <search string="Cut Plan Search">
+                    
+                    <field name="name"/>
+
+                    <field name="product_id"/>
+                    <field name="partner_id"/>
+                    <field name="sale_order_id"/>
+                    <field name="state"/>
+                    <field name="blue_origin" string="Pedido de Venda"/>
+                    
+                    <group expand="0" string="Group By">
+                        <filter name="group_by_product" string="Product" context="{'group_by': 'product_id'}"/>
+                        <filter name="group_by_partner" string="Customer" context="{'group_by': 'partner_id'}"/>
+                        <filter name="group_by_state" string="State" context="{'group_by': 'state'}"/>
+                    </group>
+                </search>
+            </field>
+        </record>
+
+
+        <record id="action_mrp_cut_plan_tree" model="ir.actions.act_window">
+            <field name="name">Cut Plans</field>
+            <field name="res_model">mrp_cut_plan.mrp_cut_plan</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="menu_mrp_cut_plan" name="Cut Plan" parent="mrp.mrp_planning_menu_root"
+                  action="action_mrp_cut_plan_tree"/>
+    </data>
+</odoo>

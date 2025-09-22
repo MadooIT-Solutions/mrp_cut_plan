@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='utf-8'?>
+<odoo>
+
+    <record id="mrp_bom_form_inherit" model="ir.ui.view">
+        <field name="name">mrp.bom.form.inherit</field>
+        <field name="model">mrp.bom</field>
+        <field name="inherit_id" ref="mrp.mrp_bom_form_view"/>
+        <field name="arch" type="xml">
+            <field name="active" position="after">
+                <field name="blue_template" widget="boolean_toggle" />
+            </field>
+            <xpath expr="//page[1]/field[1]/tree[1]/field[2]" position="after">
+                <field name="blue_multiplier" widget="boolean_toggle" />
+            </xpath>
+        </field>
+    </record>    
+
+</odoo>

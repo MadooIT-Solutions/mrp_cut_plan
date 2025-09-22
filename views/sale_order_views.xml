@@ -1,0 +1,35 @@
+<odoo>
+    <record id="sale_order_line_inherit_mrp_cut_plan" model="ir.ui.view">
+        <field name="name">sale.order.line.view.form.inherit</field>
+        <field name="model">sale.order</field>
+        <field name="inherit_id" ref="sale.view_order_form"/>
+        <field name="arch" type="xml">
+
+
+            <xpath expr="//div[@name='button_box']" position="inside">
+                    <button class="oe_stat_button" name="open_linked_po" attrs="{'invisible': [('count_po', '=', 0)]}"
+                        type="object" icon="fa-flask">
+                        <div class="o_stat_info">
+                            <field name="count_po" nolabel="1" widget="statinfo"/>
+                            <span class="o_stat_text">Plano De Corte</span>
+                        </div>
+                    </button>
+            </xpath>
+
+            <xpath expr="//notebook/page[@name='order_lines']//tree[1]/field[1]" position="after">
+                <field name="related_blue_area_calc" invisible="1"/>
+                
+                <button name="button_configure_product" 
+                    class="btn-secondary" 
+                    type="object" 
+                    string="Configure"
+                    attrs="{'invisible': ['|', ('related_blue_area_calc', '=', 'n'), ('related_blue_area_calc', '=', False)]}"
+                />
+
+            </xpath>
+        </field>
+    </record>
+
+   
+
+</odoo>

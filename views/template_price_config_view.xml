@@ -1,0 +1,70 @@
+<odoo>
+    <data>
+        <record id="view_form_template_price_config" model="ir.ui.view">
+            <field name="name">mrp_cut_plan.template_price_config</field>
+            <field name="model">mrp_cut_plan.template_price_config</field>
+            <field name="arch" type="xml">
+                <form>
+                    <sheet>
+                        <div class="oe_title">
+                            <label for="product_id" string="Produto" class="oe_edit_only"/>
+                            <h1>
+                                <field name="product_id"/>
+                            </h1>
+                        </div>
+                        <group>
+                            <group>
+                                <field name="blue_wall"/>
+                                <field name="blue_wall_uom"/>
+                                <field name="blue_eps_product_id"/>
+                                <field name="blue_eps_cost"/>
+                                <field name="blue_curve_cost"/>
+                            </group>
+                            <group>
+                                <field name="blue_tela_product_id" string="Produto Tela/Argamassa"/>
+                                <field name="blue_tela_cost"/>
+                                <field name="blue_tela_multi" string="Custo de Mão de Obra"/>
+                                <field name="blue_tela_multi2" string="Custo da Argamassa m2"/>
+                                <field name="blue_margin_percent"/>
+                                <field name="mortar_coefficient"/>
+                            </group>
+                        </group>                                 
+                    </sheet>
+                    <div class="oe_chatter">
+                        <field name="message_follower_ids"/>
+                        <field name="message_ids"/>
+                    </div>
+                </form>
+            </field>
+        </record>
+
+        <record id="view_tree_template_price_config" model="ir.ui.view">
+            <field name="name">mrp_cut_plan.template_price_config</field>
+            <field name="model">mrp_cut_plan.template_price_config</field>
+            <field name="arch" type="xml">
+                <tree>
+                    <field name="product_id" string="main product"/>
+                    <field name="blue_wall" />
+                    <field name="blue_wall_uom" />
+                    <field name="blue_eps_product_id" />
+                    <field name="blue_curve_cost" />
+                    <field name="blue_tela_product_id" />
+                    <field name="blue_tela_multi" />
+                    <field name="blue_tela_multi2" />
+                    <field name="blue_margin_percent" />
+                    <field name="blue_eps_cost" />
+                    <field name="blue_tela_cost" />
+                </tree>
+            </field>
+        </record>
+
+        <record id="action_template_price_config" model="ir.actions.act_window">
+            <field name="name">Template Price Config</field>
+            <field name="res_model">mrp_cut_plan.template_price_config</field>
+            <field name="view_mode">tree,form</field>
+        </record>
+
+        <menuitem id="menu_template_price_config" name="Template Price Config" parent="sale.menu_sale_config"
+                  action="action_template_price_config"/>
+    </data>
+</odoo>

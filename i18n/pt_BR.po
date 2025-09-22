@@ -1,0 +1,662 @@
+# Translation of Odoo Server.
+# This file contains the translation of the following modules:
+# 	* mrp_cut_plan
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Odoo Server 15.0-20240624\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2024-06-25 21:50+0000\n"
+"PO-Revision-Date: 2024-06-25 21:50+0000\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: \n"
+"Plural-Forms: \n"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
+msgid "<span class=\"o_stat_text\">OP</span>"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_inherit_mrp_cut_plan
+msgid "<span class=\"o_stat_text\">Plano De Corte</span>"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_needaction
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_needaction
+msgid "Action Needed"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_curve_cost
+msgid "Additional Cost Curve"
+msgstr "Custo Adicional Curva"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_advance
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_advance
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_advance
+msgid "Advance"
+msgstr "Avanço"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_prod_config_view_form
+msgid "Areas"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_attachment_count
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_attachment_count
+msgid "Attachment Count"
+msgstr "Contagem de anexos"
+
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_report_mrp_report_bom_structure
+msgid "BOM Structure Report"
+msgstr "Relatório de Estrutura LDM"
+
+#. module: mrp_cut_plan
+#: code:addons/mrp_cut_plan/models/mrp_production.py:0
+#, python-format
+msgid "Backorder MO"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_mrp_bom
+msgid "Bill of Material"
+msgstr "Lista de Materiais"
+
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_mrp_bom_line
+msgid "Bill of Material Line"
+msgstr "Linha da Lista de Materias"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.product_template_form_view_inherit
+msgid "Calculation"
+msgstr "Cálculo"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__related_type
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_product_product__blue_area_calc
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_product_template__blue_area_calc
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__related_blue_area_calc
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__related_type
+msgid "Calculation Type"
+msgstr "Tipo de cálculo"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_prod_config_view_form
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
+msgid "Cancel"
+msgstr "Cancelar"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__mrp_cut_plan_mrp_cut_plan__state__canceled
+msgid "Canceled"
+msgstr "Cancelado"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_tela_product_id
+msgid "Product Screen"
+msgstr "Produto Tela/Argamassa"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_tela_product_id
+msgid "Canvas/Mortar Product"
+msgstr "Produto Tela/Argamassa"
+
+#. module: mrp_cut_plan
+#: code:addons/mrp_cut_plan/models/sale_order_line.py:0
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_inherit_mrp_cut_plan
+#, python-format
+msgid "Configure"
+msgstr "Configurar"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_tela_multi2
+msgid "Cost of Mortar m2"
+msgstr "Custo da Argamassa m2"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_tela_multi2
+msgid "Multiplied Screen Cost 2"
+msgstr "Custo da Argamassa m2"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
+msgid "Create PO"
+msgstr "Criar PO"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__create_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__create_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__create_uid
+msgid "Created by"
+msgstr "Criado por"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__create_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__create_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__create_date
+msgid "Created on"
+msgstr "Criado em"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__currency_id
+msgid "Currency"
+msgstr "Moeda"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_curve_cost
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_curve_cost
+msgid "Curve Cost"
+msgstr "Custo Curvo"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__cut_plan_id
+#: model:ir.ui.menu,name:mrp_cut_plan.menu_mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
+msgid "Cut Plan"
+msgstr "Plano de Corte"
+
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_mrp_cut_plan_mrp_cut_plan
+msgid "Cut Plan Model"
+msgstr "Model Plano de Corte"
+
+#. module: mrp_cut_plan
+#: model:ir.actions.act_window,name:mrp_cut_plan.action_mrp_cut_plan_tree
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_tree
+msgid "Cut Plans"
+msgstr "Plano de Corte"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__product_uom_id
+msgid "Default unit of measure used for all stock operations."
+msgstr "Unidade de medida padrão usada para todas as operações de estoque."
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_prod_config_view_form
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
+msgid "Dimentions"
+msgstr "Dimensões"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__display_name
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__display_name
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__display_name
+msgid "Display Name"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_po_count
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order__count_po
+msgid "Documents Count"
+msgstr "Contagem de Documentos"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__mrp_cut_plan_mrp_cut_plan__state__draft
+msgid "Draft"
+msgstr "Provisório"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_eps_cost
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_eps_cost
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_eps_cost
+msgid "EPS Cost"
+msgstr "Custo EPS"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_eps_product_id
+msgid "EPS Product"
+msgstr "Produto EPS"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_follower_ids
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_follower_ids
+msgid "Followers"
+msgstr "Seguidores"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_partner_ids
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_partner_ids
+msgid "Followers (Partners)"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__has_message
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__has_message
+msgid "Has Message"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__id
+msgid "ID"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__product_id_number
+msgid "Id of Product"
+msgstr "Id do Produto"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_needaction
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_unread
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_needaction
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_unread
+msgid "If checked, new messages require your attention."
+msgstr "Se marcada, novas mensagens requerem sua atenção."
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_has_error
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_has_sms_error
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_has_error
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_has_sms_error
+msgid "If checked, some messages have a delivery error."
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_eps_cost
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_tela_cost
+msgid ""
+"In Standard Price & AVCO: value of the product (automatically computed in AVCO).\n"
+"        In FIFO: value of the next unit that will leave the stock (automatically computed).\n"
+"        Used to value the product when the purchase cost is not known (e.g. inventory adjustment).\n"
+"        Used to compute margins on sale orders."
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_is_follower
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_is_follower
+msgid "Is Follower"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__is_llh_calculation
+msgid "Is LLH Calculation"
+msgstr "É cálculo LLH"
+
+#. module: mrp_cut_plan
+#: model:ir.model.constraint,message:mrp_cut_plan.constraint_mrp_cut_plan_template_price_config_product_id
+msgid "Já existe um template configurado para esse produto"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__product_template__blue_area_calc__llh
+msgid "LLH Calculation"
+msgstr "cálculo LLH"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_tela_multi
+msgid "Multiplied Screen Cost"
+msgstr "Custo de Mão de Obra"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_tela_multi
+msgid "Labor Cost"
+msgstr "Custo de Mão de Obra"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan____last_update
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config____last_update
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config____last_update
+msgid "Last Modified on"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__write_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__write_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__write_uid
+msgid "Last Updated by"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__write_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__write_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__write_date
+msgid "Last Updated on"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_main_attachment_id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_main_attachment_id
+msgid "Main Attachment"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_margin_percent
+msgid "Marge Percentage"
+msgstr "Percentual de Margem"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_bom_template_id
+msgid "Material List Model"
+msgstr "Model Lista de Materiais"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_has_error
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_has_error
+msgid "Message Delivery error"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_ids
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_ids
+msgid "Messages"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_prod_config_view_form
+msgid "Model price configuration not configured for this product:"
+msgstr "Configuração de preço do modelo não configurada para este produto:"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__product_template__blue_area_calc__m
+msgid "Mold Calculation"
+msgstr "Cálculo de molde"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__name
+msgid "Name"
+msgstr "Nome"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_bom_line__blue_multiplier
+msgid "No Multiply"
+msgstr "Sem Multiplicar"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__product_template__blue_area_calc__n
+msgid "None"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_needaction_counter
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_needaction_counter
+msgid "Number of Actions"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_has_error_counter
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_has_error_counter
+msgid "Number of errors"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_needaction_counter
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_needaction_counter
+msgid "Number of messages which requires an action"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_has_error_counter
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_has_error_counter
+msgid "Number of messages with delivery error"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_unread_counter
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_unread_counter
+msgid "Number of unread messages"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_sale_order_line_config
+msgid "Order Line Area Calculation"
+msgstr "Cálculo de Área da Linha da Venda"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_origin
+msgid "Origin Document"
+msgstr "Pedido de Venda"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__price_unit
+msgid "Price"
+msgstr "Preço"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__price_unit_m
+msgid "Price Unit"
+msgstr "Preço Único"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__price_unit_2
+msgid "Price Unit 2"
+msgstr "Preço Único"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__price_unit_llh
+msgid "Price Unit llh"
+msgstr "Preço Único LLH"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__pricelist_id
+msgid "Pricelist"
+msgstr "Preço"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__product_id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__product_id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__product_template_id
+msgid "Product"
+msgstr "Produto"
+
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_product_template
+msgid "Product Template"
+msgstr "Modelo de Produto"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
+msgid "Production"
+msgstr "Produção"
+
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_mrp_production
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__production_order_id
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__mrp_cut_plan_mrp_cut_plan__state__prod_order
+msgid "Production Order"
+msgstr "Ordem de Produção"
+
+#. module: mrp_cut_plan
+#: code:addons/mrp_cut_plan/models/mrp_cut_plan.py:0
+#: code:addons/mrp_cut_plan/models/sale_order.py:0
+#, python-format
+msgid "Production Orders"
+msgstr "Ordem de Produção"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__product_id
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_form_template_price_config
+msgid "Produto"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_qty
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__quantity
+msgid "Quantity"
+msgstr "Quantidade"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_has_sms_error
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_has_sms_error
+msgid "SMS Delivery error"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__order_line_id
+msgid "Sale Order Line"
+msgstr "Linha do Pedido de Venda"
+
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_sale_order
+msgid "Sales Order"
+msgstr "Pedido de venda"
+
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_sale_order_line
+msgid "Sales Order Line"
+msgstr "Linha do pedido de vendas"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_prod_config_view_form
+msgid "Save"
+msgstr "Salvar"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_tela_cost
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_tela_cost
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_tela_cost
+msgid "Screen Cost"
+msgstr "Custo Tela"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_wall
+msgid "Standard Wall"
+msgstr "Parede Padrão"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__state
+msgid "State"
+msgstr "Estado"
+
+#. module: mrp_cut_plan
+#: model:ir.actions.act_window,name:mrp_cut_plan.action_template_price_config
+#: model:ir.model,name:mrp_cut_plan.model_mrp_cut_plan_template_price_config
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__template_price_config_id
+#: model:ir.ui.menu,name:mrp_cut_plan.menu_template_price_config
+msgid "Template Price Config"
+msgstr "Configuração de Preço de Molde"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_bom__blue_template
+msgid "Template?"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__price_total
+msgid "Total"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_m2
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_m2
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_m2
+msgid "Total in m²"
+msgstr "Total em m²"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_m3
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_m3
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_m3
+msgid "Total in m³"
+msgstr "Total em m³"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
+msgid "Totals"
+msgstr "Totais"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_advance_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_wall_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_wall_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_I_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_advance_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_wall_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_I_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_advance_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_wall_uom
+msgid "Udm"
+msgstr "udm"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_II_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_II_uom
+msgid "Udm "
+msgstr "Udm"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_h_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_h_uom
+msgid "Udm  "
+msgstr "Udm"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_unread
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_unread
+msgid "Unread Messages"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_unread_counter
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_unread_counter
+msgid "Unread Messages Counter"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_prod_config_view_form
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
+msgid "UoM"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__product_uom_id
+msgid "Uom"
+msgstr "Udm"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_I_uom
+msgid "Uom "
+msgstr "Udm"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_II_uom
+msgid "Uom  "
+msgstr "Udm"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_h_uom
+msgid "Uom   "
+msgstr "Udm"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__template_price_boolean
+msgid "Verificação"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_wall
+msgid "Wall"
+msgstr "Parede"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__website_message_ids
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__website_message_ids
+msgid "Website Messages"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__website_message_ids
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__website_message_ids
+msgid "Website communication history"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_tree_template_price_config
+msgid "main product"
+msgstr "Produto Principal"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_wall
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_wall
+msgid "wall"
+msgstr "Parede"
