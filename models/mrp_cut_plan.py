@@ -213,7 +213,7 @@ class MrpCutPlan(models.Model):
             'product_qty': self.blue_qty,
             'partner_id': self.partner_id.id,
             'origin': self.name,
-            'sale_order_id': self.sale_order_id.id
+            'sale_id': self.sale_order_id.id
         })
 
         # Criar movimentos manualmente a partir da BOM

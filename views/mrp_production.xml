@@ -6,33 +6,43 @@
         <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
         <field name="arch" type="xml">
 
-                <xpath expr="//div[@name='button_box']" position="inside">
-                    <button class="oe_stat_button" name="open_linked_po" attrs="{'invisible': [('count_po', '=', 0)]}"
+            <xpath expr="//div[@name='button_box']" position="inside">
+                <button class="oe_stat_button" name="open_linked_po" attrs="{'invisible': [('count_po', '=', 0)]}"
                         type="object" icon="fa-flask">
-                        <div class="o_stat_info">
-                            <field name="count_po" nolabel="1" widget="statinfo"/>
-                            <span class="o_stat_text">Plano De Corte</span>
-                        </div>
-                    </button>
+                    <div class="o_stat_info">
+                        <field name="count_po" nolabel="1" widget="statinfo"/>
+                        <span class="o_stat_text">Plano De Corte</span>
+                    </div>
+                </button>
             </xpath>
-        <xpath expr="//field[@name='user_id']" position="after">
-    <group string="Blue Measures">
-        <group>
-            <field name="blue_I" string="L"/>
-            <field name="blue_II" string="L "/>
-            <field name="blue_advance" string="Advance"/>
-            <field name="blue_h" string="H"/>
-            <field name="related_type" string="Type"/>     
-        </group>
-        <group>
-            <field name="blue_I_uom" string="Uom L"/>
-            <field name="blue_II_uom" string="Uom L "/>
-            <field name="blue_advance_uom" string="Udm Advance"/>
-            <field name="blue_h_uom" string="Uom H"/>
-        </group>
-    </group>
-</xpath>
-          
+
+            <xpath expr="//field[@name='user_id']" position="after">
+                <group string="Medidas">
+                    <field name="related_type" string="Tipo"/>
+                    <group>
+                        <field name="blue_I" string="L"/>
+                        <field name="blue_II" string="L "/>
+                        <field name="blue_advance" string="Avanço"/>
+                    </group>
+                    <group>
+                        <field name="blue_I_uom" string="Udm L"/>
+                        <field name="blue_II_uom" string="Udm L "/>
+                        <field name="blue_advance_uom" string="Udm Avanço"/>
+
+                    </group>
+
+                    <group>
+                        <field name="blue_h" string="H"/>
+
+                    </group>
+                    <group>
+                        <field name="blue_h_uom" string="Udm H"/>
+                    </group>
+
+
+                </group>
+            </xpath>
+
         </field>
-    </record>    
+    </record>
 </odoo>
