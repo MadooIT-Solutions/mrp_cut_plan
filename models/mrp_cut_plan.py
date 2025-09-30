@@ -213,33 +213,48 @@ class MrpCutPlan(models.Model):
             'product_qty': self.blue_qty,
             'partner_id': self.partner_id.id,
             'origin': self.name,
-            'sale_id': self.sale_order_id.id
+            'sale_id': self.sale_order_id.id,
+            'sale_order_id':self.sale_order_id.id
         })
 
         # Criar movimentos manualmente a partir da BOM
-        move_raw_ids = []
-        bom = self.blue_bom_template_id
+        # move_raw_ids = []
+        # bom = self.blue_bom_template_id
+        #
+        # for line in bom.bom_line_ids:
+        #     move_raw_ids.append((0, 0, {
+        #         'name': production_order.name,
+        #         'product_id': line.product_id.id,
+        #         'product_uom_qty': line.product_qty * self.blue_qty,
+        #         'product_uom': line.product_uom_id.id,
+        #         'location_id': production_order.location_src_id.id,
+        #         'location_dest_id': production_order.product_id.property_stock_production.id,
+        #         'raw_material_production_id': production_order.id,
+        #         'company_id': production_order.company_id.id,
+        #     }))
+        #
+        # production_order.write({'move_raw_ids': move_raw_ids})
 
-        for line in bom.bom_line_ids:
-            move_raw_ids.append((0, 0, {
-                'name': production_order.name,
-                'product_id': line.product_id.id,
-                'product_uom_qty': line.product_qty * self.blue_qty,
-                'product_uom': line.product_uom_id.id,
-                'location_id': production_order.location_src_id.id,
-                'location_dest_id': production_order.product_id.property_stock_production.id,
-                'raw_material_production_id': production_order.id,
-                'company_id': production_order.company_id.id,
-            }))
+        self._update_production_order_quantities(production_order)
+        # self._update_count_sale_mrp()
 
-        production_order.write({'move_raw_ids': move_raw_ids})
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'mrp.production',
             'view_mode': 'form',
             'res_id': production_order.id,
             'target': 'current',
+            'flags': {'reload': True}
         }
+
+    def _update_count_sale_mrp(self):
+        pedido = self.sale_order_id.id
+
+        mrp_production_ids = self.env['mrp.production'].search([('sale_id','=',pedido)])
+        sale = self.env['sale.order'].browse(pedido)
+        sale.mrp_production_count = len(mrp_production_ids)
+        sale.mrp_production_ids = mrp_production_ids
+
 
     def _update_production_order_quantities(self, production_order):
         """Atualizar quantidades dos componentes na ordem de produção"""
@@ -272,7 +287,7 @@ class MrpCutPlan(models.Model):
                     elif bom_line.product_id.boolean_coefficient_or_screen == 'coe':
                         template_price_config_id = self.env['mrp_cut_plan.template_price_config'].search([
                             ('product_id', '=', self.product_id.id)
-                        ])
+                        ], limit=1)
                         if template_price_config_id:
                             quantity = self.blue_m2 * template_price_config_id.mortar_coefficient
                         else:
