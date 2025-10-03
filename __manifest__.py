@@ -18,6 +18,7 @@
         'views/product_template_views.xml',
         'views/sale_order_views.xml',
         'wizards/sale_order_line_config_views.xml',
+        'wizards/transfer_wizard_view.xml',
         'views/template_price_config_view.xml',
         'report/mrp_production_template.xml',
         'report/sale_report_templates.xml',

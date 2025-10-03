@@ -218,22 +218,22 @@ class MrpCutPlan(models.Model):
         })
 
         # Criar movimentos manualmente a partir da BOM
-        # move_raw_ids = []
-        # bom = self.blue_bom_template_id
-        #
-        # for line in bom.bom_line_ids:
-        #     move_raw_ids.append((0, 0, {
-        #         'name': production_order.name,
-        #         'product_id': line.product_id.id,
-        #         'product_uom_qty': line.product_qty * self.blue_qty,
-        #         'product_uom': line.product_uom_id.id,
-        #         'location_id': production_order.location_src_id.id,
-        #         'location_dest_id': production_order.product_id.property_stock_production.id,
-        #         'raw_material_production_id': production_order.id,
-        #         'company_id': production_order.company_id.id,
-        #     }))
-        #
-        # production_order.write({'move_raw_ids': move_raw_ids})
+        move_raw_ids = []
+        bom = self.blue_bom_template_id
+
+        for line in bom.bom_line_ids:
+            move_raw_ids.append((0, 0, {
+                'name': production_order.name,
+                'product_id': line.product_id.id,
+                'product_uom_qty': line.product_qty * self.blue_qty,
+                'product_uom': line.product_uom_id.id,
+                'location_id': production_order.location_src_id.id,
+                'location_dest_id': production_order.product_id.property_stock_production.id,
+                'raw_material_production_id': production_order.id,
+                'company_id': production_order.company_id.id,
+            }))
+
+        production_order.write({'move_raw_ids': move_raw_ids})
 
         self._update_production_order_quantities(production_order)
         # self._update_count_sale_mrp()

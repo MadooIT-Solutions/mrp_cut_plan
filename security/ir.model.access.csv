@@ -2,3 +2,4 @@ id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_mrp_cut_plan_user,access.mrp.cut.plan.user,model_mrp_cut_plan_mrp_cut_plan,base.group_user,1,1,1,1
 access_sale_order_line_config_user,access.sale.order.line.config.user,model_sale_order_line_config,base.group_user,1,1,1,1
 access_mrp_cut_plan_template_price_config,mrp_cut_plan.template_price_config,model_mrp_cut_plan_template_price_config,base.group_user,1,1,1,1
+access_mrp_transfer_wizard,mrp_transfer_wizard,model_mrp_production_transfer_wizard,base.group_user,1,1,1,1
