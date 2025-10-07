@@ -497,6 +497,7 @@ class BlueMrpProduction(models.Model):
 
         return picking
 
+
     def _create_final_receipt(self, return_picking):
         """Cria recebimento final na matriz - State ASSIGNED mas bloqueado"""
         picking_type = self.env["stock.picking.type"].search([
