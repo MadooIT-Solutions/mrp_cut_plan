@@ -24,14 +24,15 @@ class StockPicking(models.Model):
                 if total_qty <= 0:
                     continue
 
+                picking_type = self.env['stock.picking.type'].search([
+                ('warehouse_id', '=', picking.location_id.warehouse_id.id),
+                ('code', '=', 'mrp_operation')
+            ], limit=1)
+
                 location_dest = self.env['stock.location'].search([
                     ('usage', '=', 'production'),
                     ('warehouse_id', '=', picking.location_dest_id.warehouse_id.id)
                 ], limit=1)
-
-                if not location_dest:
-                    raise UserError(
-                        f"Não foi possível localizar o local de produção da filial {picking.location_dest_id.complete_name}")
 
                 # Evitar criar OP duplicada
                 if not self.env['mrp.production'].search([('origin_production_id', '=', picking.origin_production_id.id),
@@ -43,7 +44,9 @@ class StockPicking(models.Model):
                         "product_uom_id": picking.origin_production_id.product_id.uom_id.id,
                         "location_src_id": picking.location_id.id,
                         "location_dest_id": location_dest.id,
+                        "picking_type_id":  picking_type.id,
                         "origin_production_id": picking.origin_production_id.id,
+
                     }
                     mo = self.env['mrp.production'].create(mo_vals)
                     picking.branch_mo_id = mo.id

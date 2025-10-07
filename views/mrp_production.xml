@@ -5,7 +5,10 @@
         <field name="model">mrp.production</field>
         <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
         <field name="arch" type="xml">
-
+            <button name="button_mark_done" position="attributes">
+            <attribute name="string" condition="related_type == 'm' and state in ['confirmed','progress']">Enviar para Filial</attribute>
+            <attribute name="string" condition="related_type != 'm' or branch_location_id or state not in ['confirmed','progress']">Concluir</attribute>
+        </button>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button class="oe_stat_button" name="open_linked_po" attrs="{'invisible': [('count_po', '=', 0)]}"
                         type="object" icon="fa-flask">
@@ -16,47 +19,7 @@
                 </button>
             </xpath>
 
-            <xpath expr="//field[@name='user_id']" position="after">
-                <group string="Medidas">
-                    <field name="related_type" string="Tipo"/>
-                    <group>
-                        <field name="blue_I" string="L"/>
-                        <field name="blue_II" string="L "/>
-                        <field name="blue_advance" string="Avanço"/>
-                    </group>
-                    <group>
-                        <field name="blue_I_uom" string="Udm L"/>
-                        <field name="blue_II_uom" string="Udm L "/>
-                        <field name="blue_advance_uom" string="Udm Avanço"/>
-
-                    </group>
-
-                    <group>
-                        <field name="blue_h" string="H"/>
-
-                    </group>
-                    <group>
-                        <field name="blue_h_uom" string="Udm H"/>
-                    </group>
-
-
-                </group>
-            </xpath>
-
-
-
-        </field>
-    </record>
-
-    <odoo>
-    <record id="view_mrp_production_form_inherit_flow" model="ir.ui.view">
-        <field name="name">mrp.production.form.inherit.flow</field>
-        <field name="model">mrp.production</field>
-        <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
-        <field name="arch" type="xml">
-
-            <!-- Botões na barra de botões -->
-            <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
+             <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
                 <button name="action_create_branch_production" type="object"
                         string="Criar OP na Filial" class="oe_stat_button"
                         attrs="{'invisible': [('branch_receipt_id', '=', False)]}">
@@ -108,8 +71,37 @@
                 </group>
             </xpath>
 
+            <xpath expr="//field[@name='user_id']" position="after">
+                <group string="Medidas">
+                    <field name="related_type" string="Tipo"/>
+                    <group>
+                        <field name="blue_I" string="L"/>
+                        <field name="blue_II" string="L "/>
+                        <field name="blue_advance" string="Avanço"/>
+                    </group>
+                    <group>
+                        <field name="blue_I_uom" string="Udm L"/>
+                        <field name="blue_II_uom" string="Udm L "/>
+                        <field name="blue_advance_uom" string="Udm Avanço"/>
+
+                    </group>
+
+                    <group>
+                        <field name="blue_h" string="H"/>
+
+                    </group>
+                    <group>
+                        <field name="blue_h_uom" string="Udm H"/>
+                    </group>
+
+
+                </group>
+            </xpath>
+
+
+
         </field>
     </record>
-</odoo>
+
 
 </odoo>

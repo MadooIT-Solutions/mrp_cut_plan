@@ -304,7 +304,6 @@ class BlueMrpProduction(models.Model):
         _logger.info(f"=== INICIANDO FASE 2 - Criando OP na filial ===")
         _logger.info(f"OP Matriz: {self.name}")
         _logger.info(f"Branch Receipt: {self.branch_receipt_id.name if self.branch_receipt_id else 'None'}")
-        _logger.info(f"Branch Receipt State: {self.branch_receipt_id.state if self.branch_receipt_id else 'None'}")
 
         if not self.branch_receipt_id:
             raise UserError("❌ Recebimento na filial não encontrado.")
@@ -315,11 +314,47 @@ class BlueMrpProduction(models.Model):
         if self.branch_production_id:
             raise UserError("❌ Ordem de produção na filial já foi criada.")
 
-        # Copiar a OP para a filial
+        # === Buscar local de produção da filial ===
+        branch_warehouse = self.branch_location_id.warehouse_id
+        if not branch_warehouse:
+            raise UserError("❌ Nenhum armazém vinculado à filial selecionada.")
+
+        branch_prod_location = self.env['stock.location'].search([
+            ('usage', '=', 'production'),
+            ('location_id', '=', self.branch_location_id.location_id.id),
+        ], limit=1)
+
+        if not branch_prod_location:
+            raise UserError(
+                f"❌ Nenhum local de produção encontrado para {branch_warehouse.name} "
+                f"(verifique se há 'CP/Produção' ou 'SG/Produção')"
+            )
+
+        # === Buscar tipo de operação de produção da filial ===
+        picking_type_branch = self.env['stock.picking.type'].search([
+            ('warehouse_id', '=', branch_warehouse.id),
+            ('code', '=', 'mrp_operation')
+        ], limit=1)
+
+        # if not picking_type_branch:
+        #     # fallback comum em instalações CE: tipo "Manufacturing"
+        #     picking_type_branch = self.env['stock.picking.type'].search([
+        #         ('warehouse_id', '=', branch_warehouse.id),
+        #         ('code', '=', 'manufacturing')
+        #     ], limit=1)
+
+        if not picking_type_branch:
+            raise UserError(
+                f"❌ Nenhum tipo de operação de produção encontrado para o armazém {branch_warehouse.name}."
+            )
+
+        # === Copiar OP com contexto da filial ===
         branch_production = self.copy({
-            'name': f"{self.name} - {self.branch_location_id.warehouse_id.name}",
-            'location_src_id': self.branch_location_id.id,
-            'location_dest_id': self.branch_location_id.id,
+            'name': f"{self.name} - {branch_warehouse.name}",
+            'company_id': branch_warehouse.company_id.id,
+            'picking_type_id': picking_type_branch.id,  # 👈 aqui está a correção principal
+            'location_src_id': self.branch_location_id.id,  # estoque da filial
+            'location_dest_id': branch_prod_location.id,  # produção da filial
             'branch_location_id': False,
             'sending_transfer_id': False,
             'branch_receipt_id': False,
@@ -329,20 +364,24 @@ class BlueMrpProduction(models.Model):
             'origin_production_id': self.id,
         })
 
+        # Confirmar OP
         branch_production.action_confirm()
-        self.branch_production_id = branch_production.id
+        # self.branch_production_id = branch_production.id
+
+        # 👇 CORREÇÃO CRÍTICA: VINCULAR A OP FILIAL À OP MATRIZ
+        self.write({
+            'branch_production_id': branch_production.id
+        })
 
         _logger.info(f"✅ OP Filial criada: {branch_production.name}")
+        _logger.info(f"✅ OP Matriz {self.name} vinculada à OP Filial {branch_production.name}")
 
-        message = f"""
-        <b>✅ Fase 2: OP criada na filial!</b><br/>
-        • <a href='/web#id={branch_production.id}&model=mrp.production'>OP {branch_production.name}</a> - PRONTA para processamento
-        <br/><br/>
-        <b>📋 Próximo passo:</b> Processe e conclua a OP na filial
-        """
-        self.message_post(body=message)
+        self.message_post(body=f"""
+            <b>✅ Fase 2: OP criada na filial {branch_warehouse.name}!</b><br/>
+            • <a href='/web#id={branch_production.id}&model=mrp.production'>OP {branch_production.name}</a><br/>
+            <b>📋 Próximo passo:</b> Processe e conclua a OP na filial.
+        """)
 
-        # Ação para abrir a OP da filial
         return {
             'name': _('Ordem de Produção - Filial'),
             'type': 'ir.actions.act_window',
@@ -375,21 +414,48 @@ class BlueMrpProduction(models.Model):
 
     def _create_return_transfer(self):
         """Cria transferência de retorno da filial para matriz - State ASSIGNED"""
-        if not self.branch_location_id.warehouse_id:
+
+        _logger.info(f"=== CRIANDO TRANSFERÊNCIA DE RETORNO ===")
+        _logger.info(f"OP Matriz: {self.name}")
+        _logger.info(f"Branch Production ID: {self.branch_production_id.id if self.branch_production_id else 'None'}")
+
+        # Verificar se temos a OP filial vinculada
+        if not self.branch_production_id:
+            _logger.error(f"❌ OP filial não encontrada para OP matriz {self.name}")
+            # Tentar buscar a OP filial através do origin_production_id
+            branch_production = self.env['mrp.production'].search([
+                ('origin_production_id', '=', self.id)
+            ], limit=1)
+
+            if branch_production:
+                _logger.info(f"✅ OP filial encontrada via busca: {branch_production.name}")
+                self.write({
+                    'branch_production_id': branch_production.id
+                })
+            else:
+                raise UserError(
+                    "❌ OP da filial não encontrada para criar retorno. Verifique se a OP foi criada corretamente na filial.")
+
+        # Buscar o warehouse da filial
+        branch_warehouse = self.branch_location_id.warehouse_id
+        if not branch_warehouse:
+            # Fallback: buscar warehouse através da localização da OP filial
+            branch_warehouse = self.branch_production_id.location_src_id.warehouse_id
+
+        if not branch_warehouse:
             raise UserError("❌ Armazém da filial não encontrado.")
 
         picking_type = self.env["stock.picking.type"].search([
             ("code", "=", "internal"),
-            ("warehouse_id", "=", self.branch_location_id.warehouse_id.id)
+            ("warehouse_id", "=", branch_warehouse.id)
         ], limit=1)
 
         if not picking_type:
-            raise UserError(
-                f"❌ Tipo de operação interna não encontrado para {self.branch_location_id.warehouse_id.name}")
+            raise UserError(f"❌ Tipo de operação interna não encontrado para {branch_warehouse.name}")
 
         move_lines = []
         for move in self.branch_production_id.move_finished_ids:
-            if move.product_id.type != 'service':
+            if move.product_id.type != 'service' and move.product_qty > 0:
                 move_lines.append((0, 0, {
                     "name": f"Retorno {move.product_id.display_name} - {self.branch_production_id.name}",
                     "product_id": move.product_id.id,
@@ -398,6 +464,22 @@ class BlueMrpProduction(models.Model):
                     "location_id": self.branch_production_id.location_dest_id.id,
                     "location_dest_id": self.location_dest_id.id,
                 }))
+
+        if not move_lines:
+            # Tentar usar os movimentos de produtos acabados se os finished não existirem
+            for move in self.branch_production_id.move_finished_ids:
+                if move.product_id.type != 'service' and move.quantity_done > 0:
+                    move_lines.append((0, 0, {
+                        "name": f"Retorno {move.product_id.display_name} - {self.branch_production_id.name}",
+                        "product_id": move.product_id.id,
+                        "product_uom_qty": move.quantity_done,
+                        "product_uom": move.product_uom.id,
+                        "location_id": self.branch_production_id.location_dest_id.id,
+                        "location_dest_id": self.location_dest_id.id,
+                    }))
+
+        if not move_lines:
+            raise UserError("❌ Nenhum movimento válido encontrado para criar retorno.")
 
         picking = self.env["stock.picking"].create({
             "picking_type_id": picking_type.id,
