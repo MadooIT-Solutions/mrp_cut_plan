@@ -19,7 +19,12 @@ class StockPicking(models.Model):
         res = super().button_validate()
         for picking in self:
             # Só agir em recebimento da filial criado pelo wizard
-            if picking.origin_production_id and picking.state == 'done' and not picking.branch_mo_id:
+            if (
+                    picking.origin_production_id
+                    and picking.state == 'done'
+                    and not picking.branch_mo_id
+                    and 'Retorno' not in (picking.origin or '')
+            ):
                 total_qty = sum(move.quantity_done for move in picking.move_ids_without_package)
                 if total_qty <= 0:
                     continue

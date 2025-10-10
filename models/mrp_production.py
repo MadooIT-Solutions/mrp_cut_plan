@@ -128,9 +128,9 @@ class BlueMrpProduction(models.Model):
         string="Recebimento Final",
         readonly=True
     )
-    is_waiting_return = fields.Boolean(
-        string="Aguardando Retorno",
-        compute="_compute_is_waiting_return"
+    message_state = fields.Char(
+        string="Status",
+        compute="_compute_message_state"
     )
 
     origin_production_id = fields.Many2one(
@@ -155,14 +155,33 @@ class BlueMrpProduction(models.Model):
         for record in self:
             record.count_po = 1 if record.cut_plan_id else 0
 
-    @api.depends('state', 'branch_location_id', 'final_receipt_id')
-    def _compute_is_waiting_return(self):
-        for record in self:
-            record.is_waiting_return = (
-                    record.state == 'progress' and
-                    record.branch_location_id and
-                    not record.final_receipt_id
-            )
+
+    def _compute_message_state(self):
+        self.message_state  = ""
+          # Caso seja OP matriz
+        if self.branch_location_id != "" and not self.final_receipt_id and self.branch_receipt_id.state == "assigned":
+            self.message_state = "Em trânsito para a filial."
+
+        if self.branch_location_id and not self.final_receipt_id and self.branch_receipt_id.state == "done" and self.branch_production_id.state == "draft":
+            self.message_state = "Recebido na filial. Aguardando inicio da produção."
+
+        if self.branch_location_id and not self.final_receipt_id and self.branch_receipt_id.state == "done" and self.branch_production_id.state == "confirmed":
+            self.message_state = "Aguardando a fabricação na filial."
+
+        if self.branch_location_id and self.branch_production_id.state == "done" and self.return_transfer_id.state == "draft":
+            self.message_state = "Fabricação na filial concluída, aguardando envio."
+
+        if self.branch_location_id  and self.return_transfer_id.state == "done" and self.final_receipt_id.state != "done":
+            self.message_state = "Em trânsito para a matriz."
+
+        if self.branch_location_id  and self.final_receipt_id.state == "done":
+            self.message_state = "Recebido na matriz."
+
+        if self.branch_location_id and not self.final_receipt_id and not self.branch_receipt_id.state:
+            self.message_state = ""
+
+
+
 
     def button_mark_done(self):
         """Override para controle do fluxo"""
@@ -173,10 +192,27 @@ class BlueMrpProduction(models.Model):
             return res
 
         # Caso seja OP matriz
-        if self.branch_location_id and not self.final_receipt_id:
+        if self.branch_location_id and not self.final_receipt_id and self.branch_receipt_id.state is not "done":
             raise UserError(
-                "Esta ordem de produção está aguardando retorno do processamento na filial. "
-                "Conclua o recebimento final antes de marcar como done."
+                "Em transito para a filial. "
+
+            )
+
+        if self.branch_location_id and not self.final_receipt_id and self.branch_receipt_id.state == "done":
+            raise UserError(
+                "Aguardando a fabricação na filial. "
+
+            )
+
+        if self.branch_location_id and not self.final_receipt_id and self.branch_production_id.state == "done":
+            raise UserError(
+                "Fabricação na filial concluída, aguardando retorno. "
+
+            )
+        if self.branch_location_id and self.final_receipt_id.state != "done" and self.branch_production_id.state == "done":
+            raise UserError(
+                "Fabricação na filial concluída, aguardando retorno. "
+
             )
 
         if not self.branch_location_id:
@@ -290,38 +326,6 @@ class BlueMrpProduction(models.Model):
         # Verificar se temos a OP filial vinculada
         if not self.branch_production_id:
             _logger.error(f"❌ OP filial não encontrada para OP matriz {self.name}")
-            # Tentar buscar a OP filial através do origin_production_id
-            # branch_production = self.env['mrp.production'].search([
-            #     ('origin_production_id', '=', self.id)
-            # ], limit=1)
-
-
-
-            # if branch_production:
-            #     _logger.info(f"✅ OP filial encontrada via busca: {branch_production.name}")
-            #     self.write({
-            #         'branch_production_id': branch_production.id
-            #     })
-            # else:
-            #     raise UserError(
-            #         "❌ OP da filial não encontrada para criar retorno. Verifique se a OP foi criada corretamente na filial.")
-
-        # # Buscar o warehouse da filial
-        # branch_warehouse = self.branch_location_id.warehouse_id
-        # if not branch_warehouse:
-        #     # Fallback: buscar warehouse através da localização da OP filial
-        #     branch_warehouse = self.branch_production_id.location_src_id.warehouse_id
-        #
-        # if not branch_warehouse:
-        #     raise UserError("❌ Armazém da filial não encontrado.")
-        #
-        # picking_type = self.env["stock.picking.type"].search([
-        #     ("code", "=", "internal"),
-        #     ("warehouse_id", "=", branch_warehouse.id)
-        # ], limit=1)
-        #
-        # if not picking_type:
-        #     raise UserError(f"❌ Tipo de operação interna não encontrado para {branch_warehouse.name}")
 
         move_lines = []
         for move in self.move_finished_ids:
@@ -356,8 +360,12 @@ class BlueMrpProduction(models.Model):
             # "picking_type_id": picking_type.id,
             "location_id": self.location_dest_id.id,
             "location_dest_id": self.location_dest_id.id,
-            "origin": f"{self.name} - Retorno para Matriz",
+            "origin": f"{self.branch_production_id.name} - Retorno para Matriz",
             "move_ids_without_package": move_lines,
+            "picking_type_id": self.env['stock.picking.type'].search([
+                ('warehouse_id', '=', self.location_dest_id.warehouse_id.id),
+                ('code', '=', 'internal')
+            ], limit=1).id,
             "note": f"Retorno do processamento na filial. OP origem: {self.name}",
         })
 
@@ -406,12 +414,9 @@ class BlueMrpProduction(models.Model):
 
         picking.action_confirm()
         picking.action_assign()
+        picking.state = 'assigned'
 
-        # Bloquear a validação até que o retorno seja confirmado
-        picking.write({
-            'show_validate': False,
-            'custom_block_validate': True,
-        })
+
 
         _logger.info(f"✅ Recebimento final criado: {picking.name}")
 
