@@ -450,6 +450,7 @@ class BlueMrpProduction(models.Model):
         result = super()._post_inventory(cancel_backorder=cancel_backorder)
         return result
 
+
     def _get_picking_type_for_warehouse(self, warehouse, operation_type='internal'):
         """Busca o tipo de operação para um warehouse específico"""
         picking_type = self.env["stock.picking.type"].search([
