@@ -52,6 +52,9 @@ class StockPicking(models.Model):
                     picking.branch_mo_id = mo.id
                     picking.message_post(body=f"OP da filial criada automaticamente: {mo.name}")
 
+                    po_origin = self.env['mrp.production'].browse(picking.origin_production_id.id)
+                    po_origin.write({'branch_production_id':mo.id})
+
         return res
 
     @api.depends('move_ids')

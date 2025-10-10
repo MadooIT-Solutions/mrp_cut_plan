@@ -19,32 +19,6 @@
                 </button>
             </xpath>
 
-             <xpath expr="//div[hasclass('oe_button_box')]" position="inside">
-                <button name="action_create_branch_production" type="object"
-                        string="Criar OP na Filial" class="oe_stat_button"
-                        attrs="{'invisible': [('branch_receipt_id', '=', False)]}">
-                    <div class="o_form_field o_stat_info">
-                        <span class="o_stat_text">OP Filial</span>
-                    </div>
-                </button>
-
-                <button name="action_create_return_flow" type="object"
-                        string="Criar Retorno" class="oe_stat_button"
-                        attrs="{'invisible': [('branch_production_id', '=', False)]}">
-                    <div class="o_form_field o_stat_info">
-                        <span class="o_stat_text">Retorno</span>
-                    </div>
-                </button>
-
-                <button name="action_finalize_production" type="object"
-                        string="Concluir OP" class="oe_stat_button"
-                        attrs="{'invisible': [('final_receipt_id', '=', False)]}">
-                    <div class="o_form_field o_stat_info">
-                        <span class="o_stat_text">Finalizar</span>
-                    </div>
-                </button>
-            </xpath>
-
             <!-- Mensagem de alerta após o campo state -->
             <xpath expr="//field[@name='state']" position="after">
                 <field name="is_waiting_return" invisible="1"/>
