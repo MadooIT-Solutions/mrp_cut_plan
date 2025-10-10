@@ -20,12 +20,15 @@
             </xpath>
 
             <!-- Mensagem de alerta após o campo state -->
-            <xpath expr="//field[@name='name']" position="after">
-                <div class="alert alert-info mb-3" style="font-size: 14px !important; width: auto !important; display: block !important; float: right; clear: none;" attrs="{'invisible': [('message_state', '=', False)]}">
-                    <i class="fa fa-info-circle mr-2"/>            <field name="message_state" nolabel="1" class="oe_inline" style="font-weight: bold; font-size: 14px !important; width: 90% !important; display: inline-block !important;" readonly="1"/>
 
-                </div>
-            </xpath>
+            <xpath expr="//field[@name='name']" position="after">
+    <div style="float: right; width: 100%; margin-top: -10px;">
+        <div class="alert alert-info mb-3" style="font-size: 14px !important; display: inline-flex !important; align-items: center; white-space: nowrap; padding: 6px 350px;" attrs="{'invisible': [('message_state', '=', False)]}">
+            <i class="fa fa-info-circle mr-2"/>
+            <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 50;" readonly="1"/>
+        </div>
+    </div>
+</xpath>
             <!-- Seção do fluxo filial no final do sheet -->
             <!-- Inserir Fluxo Filial abaixo dos campos de quantidade -->
 <!--<xpath expr="//div[field[@name='qty_producing']]" position="after">-->
