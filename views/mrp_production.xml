@@ -22,12 +22,59 @@
             <!-- Mensagem de alerta após o campo state -->
 
             <xpath expr="//field[@name='name']" position="after">
-    <div style="float: right; width: 100%; margin-top: -10px;">
-        <div class="alert alert-info mb-3" style="font-size: 14px !important; display: inline-flex !important; align-items: center; white-space: nowrap; padding: 6px 350px;" attrs="{'invisible': [('message_state', '=', False)]}">
-            <i class="fa fa-info-circle mr-2"/>
-            <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 50;" readonly="1"/>
-        </div>
+    <div style="float: right; width: 100%; margin-top: -28px; margin-left: 530px">
+
+
+    <!-- Em trânsito para a filial - VERMELHO -->
+    <div class="alert alert-danger mb-2" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 300px;"
+         attrs="{'invisible': [('message_state', '!=', 'Em trânsito para a filial.')]}">
+       <i class="fa fa-truck mr-2" style="margin-right: 10px;" />    <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
     </div>
+
+    <!-- Recebido na filial. Aguardando inicio da produção. - AMARELO -->
+    <div class="alert alert-warning mb-2" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 300px;"
+         attrs="{'invisible': [('message_state', '!=', 'Recebido na filial. Aguardando inicio da produção.')]}">
+        <i class="fa fa-check-o mr-2" style="margin-right: 10px;" />
+        <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
+    </div>
+
+    <!-- Aguardando a fabricação na filial. - AZUL -->
+    <div class="alert alert-info mb-2" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 300px;"
+         attrs="{'invisible': [('message_state', '!=', 'Aguardando a fabricação na filial.')]}">
+        <i class="fa fa-cogs mr-2" style="margin-right: 10px;" />
+        <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
+    </div>
+
+    <!-- Fabricação na filial concluída, aguardando envio. - AZUL -->
+    <div class="alert alert-info mb-2" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 300px;"
+         attrs="{'invisible': [('message_state', '!=', 'Fabricação na filial concluída, aguardando envio.')]}">
+        <i class="fa fa-suitcase mr-2" style="margin-right: 10px;" />
+        <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
+    </div>
+
+    <!-- Em trânsito para a matriz. - AMARELO -->
+    <div class="alert alert-warning mb-2" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 300px;"
+         attrs="{'invisible': [('message_state', '!=', 'Em trânsito para a matriz.')]}">
+        <i class="fa fa-truck mr-2" style="margin-right: 10px;" />
+        <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
+    </div>
+
+    <!-- Recebido na matriz. - VERDE -->
+    <div class="alert alert-success mb-2" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 300px;"
+         attrs="{'invisible': [('message_state', '!=', 'Recebido na matriz.')]}">
+        <i class="fa fa-check mr-2" style="margin-right: 10px;" />
+        <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
+    </div>
+
+    <!-- Default para outros valores - AZUL -->
+    <div class="alert alert-info mb-2" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 300px;"
+         attrs="{'invisible': [('message_state', 'in', ['Em trânsito para a filial.', 'Recebido na filial. Aguardando inicio da produção.', 'Aguardando a fabricação na filial.', 'Fabricação na filial concluída, aguardando envio.', 'Em trânsito para a matriz.', 'Recebido na matriz.'])]}">
+
+        <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
+    </div>
+</div>
+
+
 </xpath>
             <!-- Seção do fluxo filial no final do sheet -->
             <!-- Inserir Fluxo Filial abaixo dos campos de quantidade -->
