@@ -38,7 +38,7 @@
 
     <!-- Recebido na filial. Aguardando inicio da produção. - AMARELO -->
     <div class="alert alert-warning mb-2" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 150px;"
-         attrs="{'invisible': [('message_state', '!=', 'Recebido na filial. Aguardando inicio da produção.')]}">
+         attrs="{'invisible': [('message_state', '!=', 'Recebido na filial. Aguardando início da produção.')]}">
         <i class="fa fa-check mr-2" style="margin-right: 10px;" />
         <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
     </div>

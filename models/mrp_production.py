@@ -201,6 +201,7 @@ class BlueMrpProduction(models.Model):
 
             elif (
                     record.branch_location_id
+                    and record.final_receipt_id
                     and record.branch_production_id.state == "done"
                     and record.return_transfer_id.state == "draft"
             ):
@@ -218,6 +219,14 @@ class BlueMrpProduction(models.Model):
                     and record.final_receipt_id.state == "done"
             ):
                 msg = "Recebido na matriz."
+
+            elif (
+                    record.branch_location_id
+                    and record.final_receipt_id.state == "done"
+                    and record.state == "done"
+
+            ):
+                msg = "Produção Concluída. Aguardando envio para o cliente."
 
             record.message_state = msg
 
