@@ -8,7 +8,6 @@
         'sale_management',
         'mrp',
         'stock',
-        # 'bi_product_secondary_uom',
     ],
     'data': [
         'security/ir.model.access.csv',
