@@ -9,4 +9,4 @@ from . import product_template
 from . import mrp_report_bom_structure
 from . import template_price_config
 from . import production_sale_order
-from . import mrp_production_2
+# from . import mrp_production_2

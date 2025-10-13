@@ -67,6 +67,7 @@ class BlueMrpProduction(models.Model):
     sale_order_id = fields.Many2one(
         comodel_name="sale.order",
         string="Pedido",
+        tracking=True
     )
 
     blue_advance = fields.Float(
@@ -155,33 +156,70 @@ class BlueMrpProduction(models.Model):
         for record in self:
             record.count_po = 1 if record.cut_plan_id else 0
 
-
+    @api.depends(
+        "branch_location_id",
+        "branch_receipt_id.state",
+        "sending_transfer_id.state",
+        "branch_production_id.state",
+        "return_transfer_id.state",
+        "final_receipt_id.state",
+    )
     def _compute_message_state(self):
-        self.message_state  = ""
-          # Caso seja OP matriz
-        if self.branch_location_id != "" and not self.final_receipt_id and self.branch_receipt_id.state == "assigned":
-            self.message_state = "Em trânsito para a filial."
+        for record in self:
+            msg = ""
+            if (
+                    record.branch_location_id
+                    and not record.final_receipt_id
+                    and record.branch_receipt_id.state == "assigned"
+                    and record.sending_transfer_id.state == "assigned"
+            ):
+                msg = "Aguardando envio para filial."
 
-        if self.branch_location_id and not self.final_receipt_id and self.branch_receipt_id.state == "done" and self.branch_production_id.state == "draft":
-            self.message_state = "Recebido na filial. Aguardando inicio da produção."
+            elif (
+                    record.branch_location_id
+                    and not record.final_receipt_id
+                    and record.branch_receipt_id.state == "assigned"
+                    and record.sending_transfer_id.state == "done"
+            ):
+                msg = "Em trânsito para a filial."
 
-        if self.branch_location_id and not self.final_receipt_id and self.branch_receipt_id.state == "done" and self.branch_production_id.state == "confirmed":
-            self.message_state = "Aguardando a fabricação na filial."
+            elif (
+                    record.branch_location_id
+                    and not record.final_receipt_id
+                    and record.branch_receipt_id.state == "done"
+                    and record.branch_production_id.state == "draft"
+            ):
+                msg = "Recebido na filial. Aguardando início da produção."
 
-        if self.branch_location_id and self.branch_production_id.state == "done" and self.return_transfer_id.state == "draft":
-            self.message_state = "Fabricação na filial concluída, aguardando envio."
+            elif (
+                    record.branch_location_id
+                    and not record.final_receipt_id
+                    and record.branch_receipt_id.state == "done"
+                    and record.branch_production_id.state == "confirmed"
+            ):
+                msg = "Aguardando a fabricação na filial."
 
-        if self.branch_location_id  and self.return_transfer_id.state == "done" and self.final_receipt_id.state != "done":
-            self.message_state = "Em trânsito para a matriz."
+            elif (
+                    record.branch_location_id
+                    and record.branch_production_id.state == "done"
+                    and record.return_transfer_id.state == "draft"
+            ):
+                msg = "Fabricação na filial concluída, aguardando envio."
 
-        if self.branch_location_id  and self.final_receipt_id.state == "done":
-            self.message_state = "Recebido na matriz."
+            elif (
+                    record.branch_location_id
+                    and record.return_transfer_id.state == "done"
+                    and record.final_receipt_id.state != "done"
+            ):
+                msg = "Em trânsito para a matriz."
 
-        if self.branch_location_id and not self.final_receipt_id and not self.branch_receipt_id.state:
-            self.message_state = ""
+            elif (
+                    record.branch_location_id
+                    and record.final_receipt_id.state == "done"
+            ):
+                msg = "Recebido na matriz."
 
-
-
+            record.message_state = msg
 
     def button_mark_done(self):
         """Override para controle do fluxo"""

@@ -6,8 +6,8 @@
         <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
         <field name="arch" type="xml">
             <button name="button_mark_done" position="attributes">
-                <attribute name="string" condition="related_type == 'm' and state in ['confirmed']">Enviar para Filial</attribute>
-                <attribute name="string" condition="related_type != 'm' or branch_location_id or state not in ['confirmed','progress']">Concluir</attribute>
+                <attribute name="string" condition="related_type == 'Mold Calculation' and state in ['confirmed']">Enviar para Filial</attribute>
+                <attribute name="string" condition="related_type != 'Mold Calculation' or state not in ['confirmed','progress']">Concluir</attribute>
             </button>
             <xpath expr="//div[@name='button_box']" position="inside">
                 <button class="oe_stat_button" name="open_linked_po" attrs="{'invisible': [('count_po', '=', 0)]}"
@@ -22,10 +22,16 @@
             <!-- Mensagem de alerta após o campo state -->
 
             <xpath expr="//field[@name='name']" position="after">
-    <div style="width: 100%; margin-top: -29px; margin-right: -680px">
+    <div style="width: 100%; margin-top: -29px; margin-right: -550px">
 
-    <!-- Em trânsito para a filial - VERMELHO -->
-    <div class="alert alert-danger mb-2" style="font-size: 14px !important; display: inline-flex !important; align-items: right; position: absolute; right: 5; white-space: nowrap; padding: 6px 150px;"
+<!-- Aguardando envio para filial-->
+      <div class="alert alert-danger mb-2" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 150px;"
+         attrs="{'invisible': [('message_state', '!=', 'Aguardando envio para filial.')]}">
+       <i class="fa fa-truck mr-2" style="margin-right: 10px;" />    <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
+    </div>
+
+        <!-- Em trânsito para a filial - VERMELHO -->
+    <div class="alert alert-danger mb-2" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 150px;"
          attrs="{'invisible': [('message_state', '!=', 'Em trânsito para a filial.')]}">
        <i class="fa fa-truck mr-2" style="margin-right: 10px;" />    <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
     </div>
@@ -65,12 +71,12 @@
         <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0; right: 10;" readonly="1"/>
     </div>
 
-    <!-- Default para outros valores - AZUL -->
-    <div class="alert alert-info mb-2" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 150px;"
-         attrs="{'invisible': [('message_state', 'in', ['Em trânsito para a filial.', 'Recebido na filial. Aguardando inicio da produção.', 'Aguardando a fabricação na filial.', 'Fabricação na filial concluída, aguardando envio.', 'Em trânsito para a matriz.', 'Recebido na matriz.'])]}">
+<!--    &lt;!&ndash; Default para outros valores - AZUL &ndash;&gt;-->
+<!--    <div class="alert alert-info mb-2" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 150px;"-->
+<!--         attrs="{'invisible': [('message_state', 'in', ['Em trânsito para a filial.', 'Recebido na filial. Aguardando inicio da produção.', 'Aguardando a fabricação na filial.', 'Fabricação na filial concluída, aguardando envio.', 'Em trânsito para a matriz.', 'Recebido na matriz.', ''])]}">-->
 
-        <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
-    </div>
+<!--        <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>-->
+<!--    </div>-->
 </div>
 
 
@@ -123,6 +129,18 @@
                 </group>
             </xpath>
 
+        </field>
+    </record>
+
+    <record id="mrp_cut_production_tree" model="ir.ui.view">
+        <field name="name">mrp.production.cut.production.tree</field>
+        <field name="model">mrp.production</field>
+        <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
+        <field name="arch" type="xml">
+
+        <field name="state" position="before">
+            <field name="message_state"/>
+        </field>
         </field>
     </record>
 

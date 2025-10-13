@@ -203,7 +203,7 @@ class MrpCutPlan(models.Model):
         #     return self._process_mto_strategy()
 
         self.state = 'prod_order'
-
+        venda = self.sale_order_id.procurement_group_id
         # Criar a ordem de produção
         production_order = self.env['mrp.production'].create({
             'cut_plan_id': self.id,
@@ -213,8 +213,8 @@ class MrpCutPlan(models.Model):
             'product_qty': self.blue_qty,
             'partner_id': self.partner_id.id,
             'origin': self.name,
-            'sale_id': self.sale_order_id.id,
-            'sale_order_id':self.sale_order_id.id
+            'source_procurement_group_id': venda.id,
+
         })
 
         # Criar movimentos manualmente a partir da BOM
