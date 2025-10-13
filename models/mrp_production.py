@@ -140,6 +140,8 @@ class BlueMrpProduction(models.Model):
         "state",
     )
     def _compute_message_state(self):
+        msg = ''
+        filial = False
         for record in self:
             # log para depuração
             _logger.debug(f"_compute_message_state rodando para OP {record.name} (id={record.id})")
