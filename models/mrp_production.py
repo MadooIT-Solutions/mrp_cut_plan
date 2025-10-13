@@ -218,10 +218,10 @@ class BlueMrpProduction(models.Model):
                 and record.state == "done"
             ):
                 msg = "Produção Concluída. Aguardando envio para o cliente."
-
-            record.message_state = msg
-            if filial:
-                record.origin_production_id.message_state = msg
+            if msg:
+                record.message_state = msg
+                if filial:
+                    record.origin_production_id.message_state = msg
 
     def button_mark_done(self):
         """Override para controle do fluxo"""
