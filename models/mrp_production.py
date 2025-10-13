@@ -222,6 +222,9 @@ class BlueMrpProduction(models.Model):
                 record.message_state = msg
                 if filial:
                     record.origin_production_id.message_state = msg
+            else:
+                exit()
+
 
     def button_mark_done(self):
         """Override para controle do fluxo"""
