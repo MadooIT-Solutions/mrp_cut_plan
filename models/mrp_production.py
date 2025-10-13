@@ -99,46 +99,20 @@ class BlueMrpProduction(models.Model):
     )
 
     # Campos para controle do fluxo
-    branch_location_id = fields.Many2one(
-        "stock.location",
-        string="Armazém de Processamento",
-        readonly=True
-    )
-    sending_transfer_id = fields.Many2one(
-        "stock.picking",
-        string="Transferência de Envio",
-        readonly=True
-    )
-    branch_receipt_id = fields.Many2one(
-        "stock.picking",
-        string="Recebimento na Filial",
-        readonly=True
-    )
-    branch_production_id = fields.Many2one(
-        "mrp.production",
-        string="OP da Filial",
-        readonly=True
-    )
-    return_transfer_id = fields.Many2one(
-        "stock.picking",
-        string="Retorno da Filial",
-        readonly=True
-    )
-    final_receipt_id = fields.Many2one(
-        "stock.picking",
-        string="Recebimento Final",
-        readonly=True
-    )
-    message_state = fields.Char(
-        string="Status",
-        compute="_compute_message_state"
-    )
+    branch_location_id = fields.Many2one("stock.location", string="Armazém de Processamento", readonly=True)
+    sending_transfer_id = fields.Many2one("stock.picking", string="Transferência de Envio", readonly=True)
+    branch_receipt_id = fields.Many2one("stock.picking", string="Recebimento na Filial", readonly=True)
+    branch_production_id = fields.Many2one("mrp.production", string="OP da Filial", readonly=True)
+    return_transfer_id = fields.Many2one("stock.picking", string="Retorno da Filial", readonly=True)
+    final_receipt_id = fields.Many2one("stock.picking", string="Recebimento Final", readonly=True)
 
-    origin_production_id = fields.Many2one(
-        "mrp.production",
-        string="OP de Origem",
-        readonly=True
-    )
+    message_state = fields.Char(string="Status", compute="_compute_message_state", store=True)
+
+    origin_production_id = fields.Many2one("mrp.production", string="OP de Origem", readonly=True)
+
+    # ------------------------------------------------------------
+    # MÉTODOS
+    # ------------------------------------------------------------
 
     def open_linked_po(self):
         if not self.cut_plan_id:
@@ -163,292 +137,221 @@ class BlueMrpProduction(models.Model):
         "branch_production_id.state",
         "return_transfer_id.state",
         "final_receipt_id.state",
+        "state",
     )
     def _compute_message_state(self):
         for record in self:
-            msg = ""
+            # log para depuração
+            _logger.debug(f"_compute_message_state rodando para OP {record.name} (id={record.id})")
+
             if (
-                    record.branch_location_id
-                    and not record.final_receipt_id
-                    and record.branch_receipt_id.state == "assigned"
-                    and record.sending_transfer_id.state == "assigned"
+                record.branch_location_id
+                and not record.final_receipt_id
+                and record.branch_receipt_id
+                and record.branch_receipt_id.state == "assigned"
+                and record.sending_transfer_id
+                and record.sending_transfer_id.state == "assigned"
             ):
                 msg = "Aguardando envio para filial."
 
             elif (
-                    record.branch_location_id
-                    and not record.final_receipt_id
-                    and record.branch_receipt_id.state == "assigned"
-                    and record.sending_transfer_id.state == "done"
+                record.branch_location_id
+                and not record.final_receipt_id
+                and record.branch_receipt_id
+                and record.branch_receipt_id.state == "assigned"
+                and record.sending_transfer_id
+                and record.sending_transfer_id.state == "done"
             ):
                 msg = "Em trânsito para a filial."
 
             elif (
-                    record.branch_location_id
-                    and not record.final_receipt_id
-                    and record.branch_receipt_id.state == "done"
-                    and record.branch_production_id.state == "draft"
+                record.branch_location_id
+                and not record.final_receipt_id
+                and record.branch_receipt_id
+                and record.branch_receipt_id.state == "done"
+                and record.branch_production_id
+                and record.branch_production_id.state == "draft"
             ):
                 msg = "Recebido na filial. Aguardando início da produção."
 
             elif (
-                    record.branch_location_id
-                    and not record.final_receipt_id
-                    and record.branch_receipt_id.state == "done"
-                    and record.branch_production_id.state == "confirmed"
+                record.branch_location_id
+                and not record.final_receipt_id
+                and not record.return_transfer_id
+                and record.branch_receipt_id
+                and record.branch_receipt_id.state == "done"
+                and record.branch_production_id
+                and record.branch_production_id.state == "confirmed"
             ):
                 msg = "Aguardando a fabricação na filial."
 
             elif (
-                    record.branch_location_id
-                    and record.final_receipt_id
-                    and record.branch_production_id.state == "done"
-                    and record.return_transfer_id.state == "draft"
+                record.final_receipt_id
+                and record.state == "done"
+                and record.return_transfer_id
+                and record.return_transfer_id.state == "assigned"
             ):
                 msg = "Fabricação na filial concluída, aguardando envio."
+                filial = True
 
             elif (
-                    record.branch_location_id
-                    and record.return_transfer_id.state == "done"
-                    and record.final_receipt_id.state != "done"
+                record.branch_location_id
+                and record.return_transfer_id
+                and record.return_transfer_id.state == "done"
+                and record.final_receipt_id
+                and record.final_receipt_id.state != "done"
             ):
                 msg = "Em trânsito para a matriz."
+                filial = True
 
             elif (
-                    record.branch_location_id
-                    and record.final_receipt_id.state == "done"
+                record.branch_location_id
+                and record.final_receipt_id
+                and record.final_receipt_id.state == "done"
             ):
                 msg = "Recebido na matriz."
 
             elif (
-                    record.branch_location_id
-                    and record.final_receipt_id.state == "done"
-                    and record.state == "done"
-
+                record.branch_location_id
+                and record.final_receipt_id
+                and record.final_receipt_id.state == "done"
+                and record.state == "done"
             ):
                 msg = "Produção Concluída. Aguardando envio para o cliente."
 
             record.message_state = msg
+            if filial:
+                record.origin_production_id.message_state = msg
 
     def button_mark_done(self):
         """Override para controle do fluxo"""
-        # Se for OP filial (tem origem), ao concluir cria retorno automático
-        if self.origin_production_id:
-            res = super().button_mark_done()
-            self._create_return_flow_automatically()
-            return res
+        for record in self:
+            if record.origin_production_id:
+                res = super(BlueMrpProduction, record).button_mark_done()
+                # se for OP filial, após super, cria o fluxo de retorno automaticamente
+                record._create_return_flow_automatically()
+                return res
 
-        # Caso seja OP matriz
-        if self.branch_location_id and not self.final_receipt_id and self.branch_receipt_id.state is not "done":
-            raise UserError(
-                "Em transito para a filial. "
+            if record.branch_location_id and not record.final_receipt_id and record.branch_receipt_id and record.branch_receipt_id.state != "done":
+                raise UserError("Em trânsito para a filial.")
 
-            )
+            if record.branch_location_id and not record.final_receipt_id and record.branch_receipt_id and record.branch_receipt_id.state == "done":
+                raise UserError("Aguardando a fabricação na filial.")
 
-        if self.branch_location_id and not self.final_receipt_id and self.branch_receipt_id.state == "done":
-            raise UserError(
-                "Aguardando a fabricação na filial. "
+            if record.branch_location_id and record.branch_production_id and record.branch_production_id.state == "done" and not record.final_receipt_id:
+                raise UserError("Fabricação na filial concluída, aguardando retorno.")
 
-            )
+            if not record.branch_location_id:
+                return {
+                    'name': 'Selecionar Armazém para Processamento',
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'mrp.production.transfer.wizard',
+                    'view_mode': 'form',
+                    'target': 'new',
+                    'context': {'default_production_id': record.id}
+                }
 
-        if self.branch_location_id and not self.final_receipt_id and self.branch_production_id.state == "done":
-            raise UserError(
-                "Fabricação na filial concluída, aguardando retorno. "
+            if record.final_receipt_id and record.final_receipt_id.state != 'done':
+                raise UserError("O recebimento final precisa ser confirmado antes de concluir a OP matriz.")
 
-            )
-        if self.branch_location_id and self.final_receipt_id.state != "done" and self.branch_production_id.state == "done":
-            raise UserError(
-                "Fabricação na filial concluída, aguardando retorno. "
+            return super(BlueMrpProduction, record).button_mark_done()
 
-            )
-
-        if not self.branch_location_id:
-            return {
-                'name': 'Selecionar Armazém para Processamento',
-                'type': 'ir.actions.act_window',
-                'res_model': 'mrp.production.transfer.wizard',
-                'view_mode': 'form',
-                'target': 'new',
-                'context': {'default_production_id': self.id}
-            }
-
-        if self.final_receipt_id and self.final_receipt_id.state != 'done':
-            raise UserError(
-                "O recebimento final precisa ser confirmado antes de concluir a OP matriz."
-            )
-
-        return super().button_mark_done()
-
-    def _release_delivery_order(self):
-        """Libera ordem de entrega para o cliente quando OP é concluída"""
-        try:
-            # Buscar ordens de entrega relacionadas a esta OP
-            delivery_orders = self.env['stock.picking'].search([
-                ('origin', 'ilike', self.name),
-                ('picking_type_id.code', '=', 'outgoing'),
-                ('state', 'in', ['assigned', 'confirmed'])
-            ])
-
-            for delivery in delivery_orders:
-                # Se a entrega estava esperando a produção, liberar para processamento
-                if delivery.state in ['assigned', 'confirmed']:
-                    delivery.message_post(
-                        body=f"✅ Produção concluída. Ordem de entrega liberada para processamento."
-                    )
-                    _logger.info(f"✅ Ordem de entrega liberada: {delivery.name}")
-
-            if delivery_orders:
-                self.message_post(
-                    body=f"<b>📦 Ordens de entrega liberadas:</b><br/>" +
-                         "".join([f"• <a href='/web#id={do.id}&model=stock.picking'>{do.name}</a><br/>" for do in
-                                  delivery_orders])
-                )
-
-        except Exception as e:
-            _logger.error(f"❌ Erro ao liberar ordens de entrega: {str(e)}")
+    # ------------------------------------------------------------
+    # MÉTODOS AUXILIARES
+    # ------------------------------------------------------------
 
     def _create_return_flow_automatically(self):
         """Cria fluxo de retorno automaticamente quando OP filial é concluída"""
-        try:
-            # 1. Criar transferência de retorno (Filial → Matriz) - state = assigned
-            return_picking = self._create_return_transfer()
+        for record in self:
+            if not record.origin_production_id:
+                continue  # só faz sentido para OPs filiais
 
-            # 2. Criar recebimento final na matriz - state = assigned mas bloqueado
-            final_receipt = self._create_final_receipt(return_picking)
+            # Evita duplicado
+            if record.return_transfer_id or record.final_receipt_id:
+                _logger.warning(f"⚠️ OP {record.name} já possui retorno criado.")
+                continue
 
-            # Vincular
-            return_picking.final_receipt_id = final_receipt.id
-            final_receipt.return_transfer_id = return_picking.id
+            try:
+                return_picking = record._create_return_transfer()
+                final_receipt = record._create_final_receipt(return_picking)
 
-            # Atualizar OP filial
-            self.write({
-                'return_transfer_id': return_picking.id,
-                'final_receipt_id': final_receipt.id,
-            })
+                record.write({
+                    'return_transfer_id': return_picking.id,
+                    'final_receipt_id': final_receipt.id,
+                })
 
-            # Atualizar OP matriz
-            self.origin_production_id.write({
-                'return_transfer_id': return_picking.id,
-                'final_receipt_id': final_receipt.id,
-            })
+                # também atualiza a OP de origem (matriz)
+                record.origin_production_id.write({
+                    'return_transfer_id': return_picking.id,
+                    'final_receipt_id': final_receipt.id,
+                })
 
-            _logger.info(f"✅ Retorno automático criado: {return_picking.name}")
-            _logger.info(f"✅ Recebimento final criado: {final_receipt.name}")
+                # Forçar recálculo e persistência do campo armazenado message_state
+                # (evita dependências indiretas que o ORM pode não detectar)
+                record._compute_message_state()
+                record.origin_production_id._compute_message_state()
+                record.write({'message_state': record.message_state})
+                record.origin_production_id.write({'message_state': record.origin_production_id.message_state})
 
-            # Mensagem na OP filial
-            self.message_post(
-                body=f"""
-                <b>✅ Retorno automático criado!</b><br/>
-                • <a href='/web#id={return_picking.id}&model=stock.picking'>Envio para Matriz</a> - PRONTO para processar<br/>
-                • <a href='/web#id={final_receipt.id}&model=stock.picking'>Recebimento Final</a> - AGUARDANDO envio
-                """
-            )
+                _logger.info(f"✅ Retorno automático criado: {return_picking.name}")
+                _logger.info(f"✅ Recebimento final criado: {final_receipt.name}")
 
-            # Mensagem na OP matriz
-            self.origin_production_id.message_post(
-                body=f"""
-                <b>✅ Retorno automático criado da filial!</b><br/>
-                • <a href='/web#id={return_picking.id}&model=stock.picking'>Envio da Filial</a> - PRONTO para processar<br/>
-                • <a href='/web#id={final_receipt.id}&model=stock.picking'>Recebimento Final</a> - AGUARDANDO envio
-                <br/><br/>
-                <b>📋 Próximos passos:</b><br/>
-                1. Processe e confirme o envio da filial<br/>
-                2. Após confirmação, o recebimento final ficará disponível<br/>
-                3. Confirme o recebimento final<br/>
-                4. A OP será concluída automaticamente
-                """
-            )
-
-        except Exception as e:
-            _logger.error(f"❌ Erro ao criar retorno automático: {str(e)}")
-            raise UserError(f"Erro ao criar retorno automático: {str(e)}")
+            except Exception as e:
+                _logger.error(f"❌ Erro ao criar retorno automático: {str(e)}")
+                raise UserError(f"Erro ao criar retorno automático: {str(e)}")
 
     def _create_return_transfer(self):
-        """Cria transferência de retorno da filial para matriz - State ASSIGNED"""
-
-        _logger.info(f"=== CRIANDO TRANSFERÊNCIA DE RETORNO ===")
-        _logger.info(f"OP Filial: {self.name}")
-        _logger.info(f"OP Matriz: {self.branch_production_id.id if self.branch_production_id else 'None'}")
-
-        # Verificar se temos a OP filial vinculada
-        if not self.branch_production_id:
-            _logger.error(f"❌ OP filial não encontrada para OP matriz {self.name}")
-
+        self.ensure_one()
+        """Cria transferência de retorno da filial para matriz"""
         move_lines = []
         for move in self.move_finished_ids:
             if move.product_id.type != 'service' and move.product_qty > 0:
                 move_lines.append((0, 0, {
-                    "name": f"Retorno {move.product_id.display_name} - {self.branch_production_id.name}",
+                    "name": f"Retorno {move.product_id.display_name}",
                     "product_id": move.product_id.id,
                     "product_uom_qty": move.product_qty,
                     "product_uom": move.product_uom.id,
                     "location_id": self.location_dest_id.id,
                     "location_dest_id": self.location_dest_id.id,
-
                 }))
-
-        if not move_lines:
-            # Tentar usar os movimentos de produtos acabados se os finished não existirem
-            for move in self.branch_production_id.move_finished_ids:
-                if move.product_id.type != 'service' and move.quantity_done > 0:
-                    move_lines.append((0, 0, {
-                        "name": f"Retorno {move.product_id.display_name} - {self.branch_production_id.name}",
-                        "product_id": move.product_id.id,
-                        "product_uom_qty": move.quantity_done,
-                        "product_uom": move.product_uom.id,
-                        "location_id": self.location_dest_id.id,
-                        "location_dest_id": self.location_dest_id.id,
-                    }))
 
         if not move_lines:
             raise UserError("❌ Nenhum movimento válido encontrado para criar retorno.")
 
         picking = self.env["stock.picking"].create({
-            # "picking_type_id": picking_type.id,
             "location_id": self.location_dest_id.id,
             "location_dest_id": self.location_dest_id.id,
-            "origin": f"{self.branch_production_id.name} - Retorno para Matriz",
+            "origin": f"{self.name} - Retorno para Matriz",
             "move_ids_without_package": move_lines,
             "picking_type_id": self.env['stock.picking.type'].search([
                 ('warehouse_id', '=', self.location_dest_id.warehouse_id.id),
                 ('code', '=', 'internal')
             ], limit=1).id,
-            "note": f"Retorno do processamento na filial. OP origem: {self.name}",
         })
 
         picking.action_confirm()
         picking.action_assign()
-
-        _logger.info(f"✅ Transferência de retorno criada: {picking.name}")
-
         return picking
 
     def _create_final_receipt(self, return_picking):
-        """Cria recebimento final na matriz - State ASSIGNED mas bloqueado"""
+        self.ensure_one()
+        """Cria recebimento final na matriz"""
         picking_type = self.env["stock.picking.type"].search([
             ("code", "=", "incoming"),
             ("warehouse_id.name", "=", "Polispan")
         ], limit=1)
 
         if not picking_type:
-            picking_type = self.env["stock.picking.type"].search([
-                ("code", "=", "internal"),
-                ("warehouse_id.name", "=", "Polispan")
-            ], limit=1)
-
-        if not picking_type:
             raise UserError("❌ Tipo de operação de recebimento não encontrado para Polispan")
 
-        move_lines = []
-        for move in return_picking.move_ids_without_package:
-            move_lines.append((0, 0, {
-                "name": f"Recebimento Final {move.product_id.display_name} - {self.name}",
-                "product_id": move.product_id.id,
-                "product_uom_qty": move.product_uom_qty,
-                "product_uom": move.product_uom.id,
-                "location_id": return_picking.location_id.id,
-                "location_dest_id": return_picking.location_dest_id.id,
-            }))
+        move_lines = [(0, 0, {
+            "name": f"Recebimento Final {move.product_id.display_name}",
+            "product_id": move.product_id.id,
+            "product_uom_qty": move.product_uom_qty,
+            "product_uom": move.product_uom.id,
+            "location_id": move.location_id.id,
+            "location_dest_id": move.location_dest_id.id,
+        }) for move in return_picking.move_ids_without_package]
 
         picking = self.env["stock.picking"].create({
             "picking_type_id": picking_type.id,
@@ -456,24 +359,18 @@ class BlueMrpProduction(models.Model):
             "location_dest_id": return_picking.location_dest_id.id,
             "origin": f"{self.name} - Recebimento Final",
             "move_ids_without_package": move_lines,
-            "note": f"Recebimento final do processamento na filial. Aguardando confirmação do retorno.",
         })
 
         picking.action_confirm()
         picking.action_assign()
-        picking.state = 'assigned'
-
-
-
-        _logger.info(f"✅ Recebimento final criado: {picking.name}")
-
         return picking
 
+    @api.depends('cut_plan_id')
     def _compute_cut_plan_fields(self):
         """Calcular campos relacionados ao cut_plan"""
         for record in self:
-            if record.cut_plan_id:
-                cut_plan = record.cut_plan_id
+            cut_plan = record.cut_plan_id
+            if cut_plan:
                 record.blue_I = cut_plan.blue_I
                 record.blue_II = cut_plan.blue_II
                 record.blue_h = cut_plan.blue_h
@@ -484,7 +381,6 @@ class BlueMrpProduction(models.Model):
                 record.blue_advance_uom = cut_plan.blue_advance_uom
                 record.related_type = cut_plan.related_type
             else:
-                # Reset para valores padrão
                 record.update({
                     'blue_I': 0.0,
                     'blue_II': 0.0,
@@ -496,25 +392,3 @@ class BlueMrpProduction(models.Model):
                     'blue_advance_uom': False,
                     'related_type': False,
                 })
-
-    def _post_inventory(self, cancel_backorder=False):
-        """Override do método _post_inventory se necessário"""
-        result = super()._post_inventory(cancel_backorder=cancel_backorder)
-        return result
-
-
-    def _get_picking_type_for_warehouse(self, warehouse, operation_type='internal'):
-        """Busca o tipo de operação para um warehouse específico"""
-        picking_type = self.env["stock.picking.type"].search([
-            ("warehouse_id", "=", warehouse.id),
-            ("code", "=", operation_type)
-        ], limit=1)
-
-        # Fallback: se não encontrar o tipo específico
-        if not picking_type and operation_type == 'incoming':
-            picking_type = self.env["stock.picking.type"].search([
-                ("code", "=", "internal"),
-                ("warehouse_id", "=", warehouse.id)
-            ], limit=1)
-
-        return picking_type

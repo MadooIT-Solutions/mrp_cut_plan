@@ -43,6 +43,7 @@ class StockPicking(models.Model):
                 if not self.env['mrp.production'].search([('origin_production_id', '=', picking.origin_production_id.id),
                                                           ('location_src_id', '=', picking.location_id.id),
                                                           ('location_dest_id', '=', location_dest.id)], limit=1):
+                    procurement = picking.origin_production_id.sale_order_id.procurement_group_id.id
                     mo_vals = {
                         "product_id": picking.origin_production_id.product_id.id,
                         "product_qty": total_qty,
@@ -51,6 +52,8 @@ class StockPicking(models.Model):
                         "location_dest_id": location_dest.id,
                         "picking_type_id":  picking_type.id,
                         "origin_production_id": picking.origin_production_id.id,
+                        "origin": picking.origin_production_id.name,
+                        "source_procurement_group_id": procurement,
 
                     }
                     mo = self.env['mrp.production'].create(mo_vals)
