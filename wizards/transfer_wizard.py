@@ -137,7 +137,7 @@ class MrpProductionTransferWizard(models.TransientModel):
             'picking_type_id': picking_type.id,
             'location_id': sending.location_dest_id.id,
             'location_dest_id': self.location_dest_id.id,
-            'partner_id': self.company_id.partner_id.id,
+            'partner_id': sending.company_id.partner_id.id,
 
         })
 
