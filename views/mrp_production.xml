@@ -33,7 +33,7 @@
                 type="object"
                 class="oe_highlight"
                 string="Validate"
-                attrs="{'invisible': ['|', ('state','not in',('progress','to_close')), ('move_raw_ids','=',[]),('related_type','=','m'), ('state','=','confirmed')]}"
+                attrs="{'invisible': ['|', ('state','not in',('progress','to_close')), ('move_raw_ids','=',[]),('related_type','=','m'), ('return_transfer_id','=','')]}"
                 confirm="There are no components to consume. Are you sure you want to continue?"/>
 
         <button name="action_confirm"

@@ -229,7 +229,7 @@ class BlueMrpProduction(models.Model):
     def button_send_to_branch(self):
         """Botão que envia OP para a filial"""
         for record in self:
-            if record.related_type == 'm':
+            if record.related_type != 'm':
                 raise UserError("Este botão só pode ser usado para Mold Calculation.")
 
             if not record.branch_location_id:
