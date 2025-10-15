@@ -110,6 +110,7 @@ class BlueMrpProduction(models.Model):
 
     origin_production_id = fields.Many2one("mrp.production", string="OP de Origem", readonly=True)
 
+
     # ------------------------------------------------------------
     # MÉTODOS
     # ------------------------------------------------------------
@@ -225,11 +226,28 @@ class BlueMrpProduction(models.Model):
                 if filial:
                     record.origin_production_id.message_state = msg
 
+    def button_send_to_branch(self):
+        """Botão que envia OP para a filial"""
+        for record in self:
+            if record.related_type == 'm':
+                raise UserError("Este botão só pode ser usado para Mold Calculation.")
+
+            if not record.branch_location_id:
+                return {
+                    'name': 'Selecionar Armazém para Processamento',
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'mrp.production.transfer.wizard',
+                    'view_mode': 'form',
+                    'target': 'new',
+                    'context': {'default_production_id': record.id}
+                }
+
+            raise UserError("A OP já está em processamento ou não pode ser enviada.")
 
     def button_mark_done(self):
         """Override para controle do fluxo"""
         for record in self:
-            if record.origin_production_id:
+            if record.branch_production_id:
                 res = super(BlueMrpProduction, record).button_mark_done()
                 # se for OP filial, após super, cria o fluxo de retorno automaticamente
                 record._create_return_flow_automatically()
@@ -287,6 +305,7 @@ class BlueMrpProduction(models.Model):
                 record.origin_production_id.write({
                     'return_transfer_id': return_picking.id,
                     'final_receipt_id': final_receipt.id,
+
                 })
 
                 # Forçar recálculo e persistência do campo armazenado message_state
@@ -303,6 +322,8 @@ class BlueMrpProduction(models.Model):
                 _logger.error(f"❌ Erro ao criar retorno automático: {str(e)}")
                 raise UserError(f"Erro ao criar retorno automático: {str(e)}")
 
+
+    # Retorno Filial para Matriz #######
     def _create_return_transfer(self):
         self.ensure_one()
         """Cria transferência de retorno da filial para matriz"""
@@ -328,7 +349,7 @@ class BlueMrpProduction(models.Model):
             "move_ids_without_package": move_lines,
             "picking_type_id": self.env['stock.picking.type'].search([
                 ('warehouse_id', '=', self.location_dest_id.warehouse_id.id),
-                ('code', '=', 'internal')
+                ('code', '=', 'outgoing')
             ], limit=1).id,
         })
 
@@ -336,6 +357,7 @@ class BlueMrpProduction(models.Model):
         picking.action_assign()
         return picking
 
+    # Recebimento Final #####
     def _create_final_receipt(self, return_picking):
         self.ensure_one()
         """Cria recebimento final na matriz"""

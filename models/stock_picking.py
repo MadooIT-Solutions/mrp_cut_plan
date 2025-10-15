@@ -53,15 +53,17 @@ class StockPicking(models.Model):
                         "picking_type_id":  picking_type.id,
                         "origin_production_id": picking.origin_production_id.id,
                         "origin": picking.origin_production_id.name,
-                        "source_procurement_group_id": procurement,
+
 
                     }
                     mo = self.env['mrp.production'].create(mo_vals)
-                    picking.branch_mo_id = mo.id
-                    picking.message_post(body=f"OP da filial criada automaticamente: {mo.name}")
-
                     po_origin = self.env['mrp.production'].browse(picking.origin_production_id.id)
                     po_origin.write({'branch_production_id':mo.id})
+
+                    mo.branch_production_id = mo.id
+                    mo.sending_transfer_id = po_origin.sending_transfer_id
+                    mo.source_procurement_group_id = po_origin.procurement_group_id.id
+                    picking.message_post(body=f"OP da filial criada automaticamente: {mo.name}")
 
         return res
 

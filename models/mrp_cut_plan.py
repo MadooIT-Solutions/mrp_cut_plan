@@ -1,7 +1,9 @@
 from odoo import models, fields, api, _
 from odoo.exceptions import UserError
 import json
+import logging
 
+_logger = logging.getLogger(__name__)
 
 class MrpCutPlan(models.Model):
     _name = 'mrp_cut_plan.mrp_cut_plan'
@@ -197,56 +199,6 @@ class MrpCutPlan(models.Model):
             else:
                 record.blue_mto_strategy = False
 
-    def button_create_po(self):
-        # Verificar se é estratégia MTO
-        # if self.blue_mto_strategy:
-        #     return self._process_mto_strategy()
-
-        self.state = 'prod_order'
-        venda = self.sale_order_id.procurement_group_id
-        # Criar a ordem de produção
-        production_order = self.env['mrp.production'].create({
-            'cut_plan_id': self.id,
-            'product_id': self.product_id.id,
-            'product_uom_id': self.product_id.uom_id.id,
-            'bom_id': self.blue_bom_template_id.id,
-            'product_qty': self.blue_qty,
-            'partner_id': self.partner_id.id,
-            'origin': self.name,
-            'source_procurement_group_id': venda.id,
-
-        })
-
-        # Criar movimentos manualmente a partir da BOM
-        move_raw_ids = []
-        bom = self.blue_bom_template_id
-
-        for line in bom.bom_line_ids:
-            move_raw_ids.append((0, 0, {
-                'name': production_order.name,
-                'product_id': line.product_id.id,
-                'product_uom_qty': line.product_qty * self.blue_qty,
-                'product_uom': line.product_uom_id.id,
-                'location_id': production_order.location_src_id.id,
-                'location_dest_id': production_order.product_id.property_stock_production.id,
-                'raw_material_production_id': production_order.id,
-                'company_id': production_order.company_id.id,
-            }))
-
-        production_order.write({'move_raw_ids': move_raw_ids})
-
-        self._update_production_order_quantities(production_order)
-        # self._update_count_sale_mrp()
-
-        return {
-            'type': 'ir.actions.act_window',
-            'res_model': 'mrp.production',
-            'view_mode': 'form',
-            'res_id': production_order.id,
-            'target': 'current',
-            'flags': {'reload': True}
-        }
-
     def _update_count_sale_mrp(self):
         pedido = self.sale_order_id.id
 
@@ -254,130 +206,6 @@ class MrpCutPlan(models.Model):
         sale = self.env['sale.order'].browse(pedido)
         sale.mrp_production_count = len(mrp_production_ids)
         sale.mrp_production_ids = mrp_production_ids
-
-
-    def _update_production_order_quantities(self, production_order):
-        """Atualizar quantidades dos componentes na ordem de produção"""
-        if not self.blue_bom_template_id:
-            return
-
-        for bom_line in self.blue_bom_template_id.bom_line_ids:
-            # Encontrar o movimento correspondente ao componente
-            move = production_order.move_raw_ids.filtered(
-                lambda m: m.product_id == bom_line.product_id
-            )
-
-            if move:
-                # Calcular a quantidade baseada no tipo de cálculo
-                if bom_line.product_id.blue_area_calc in ['llh', 'm']:
-                    if bom_line.blue_multiplier:
-                        quantity = bom_line.product_qty
-                    else:
-                        quantity = self.blue_m3
-                else:
-                    if bom_line.blue_multiplier:
-                        quantity = bom_line.product_qty
-                    else:
-                        quantity = (self.blue_qty / self.blue_bom_template_id.product_qty) * bom_line.product_qty
-
-                # Ajustes específicos para cálculo tipo 'm'
-                if self.related_type == 'm':
-                    if bom_line.product_id.boolean_coefficient_or_screen == 'tl':
-                        quantity = self.blue_m2
-                    elif bom_line.product_id.boolean_coefficient_or_screen == 'coe':
-                        template_price_config_id = self.env['mrp_cut_plan.template_price_config'].search([
-                            ('product_id', '=', self.product_id.id)
-                        ], limit=1)
-                        if template_price_config_id:
-                            quantity = self.blue_m2 * template_price_config_id.mortar_coefficient
-                        else:
-                            quantity = self.blue_m2 * 0
-
-                # Atualizar a quantidade do movimento
-                move.write({'product_uom_qty': quantity})
-
-    def _process_mto_strategy(self):
-        """Process MTO strategy - update stock moves without creating production orders"""
-        try:
-            # Atualizar o estado para produção sem criar ordem de produção
-            self.state = 'draft'
-
-            # Criar movimentos de estoque diretamente
-            stock_moves = self._create_mto_stock_moves()
-
-            # Atualizar quantidades baseadas no BOM
-            self._update_mto_quantities(stock_moves)
-
-            # Confirmar os movimentos
-            stock_moves._action_confirm()
-
-            # Adicionar mensagem de log
-            self.message_post(body=_('MTO strategy applied: Stock moves created without production order'))
-
-            return {
-                'type': 'ir.actions.client',
-                'tag': 'display_notification',
-                'params': {
-                    'title': _('MTO Strategy Applied'),
-                    'message': _('Quantities updated using MTO strategy without creating production orders.'),
-                    'type': 'success',
-                    'sticky': False,
-                }
-            }
-
-        except Exception as e:
-            raise UserError(_('Error processing MTO strategy: %s') % str(e))
-
-    def _create_mto_stock_moves(self):
-        """Create stock moves for MTO strategy"""
-        moves = self.env['stock.move']
-
-        if not self.blue_bom_template_id:
-            raise UserError(_('No BOM template defined for MTO strategy'))
-
-        # Localizações padrão
-        stock_location = self.env.ref('stock.stock_location_stock')
-        production_location = self.env['stock.location'].search([
-            ('usage', '=', 'production')
-        ], limit=1)
-
-        if not production_location:
-            raise UserError("Nenhum local de produção configurado!")
-        # production_location = self.env.ref('stock.stock_location_production')
-        customer_location = self.env.ref('stock.stock_location_customers')
-
-        # Criar movimento para o produto final (venda -> cliente)
-        finished_move_vals = {
-            'name': self.name,
-            'product_id': self.product_id.id,
-            'product_uom': self.product_id.uom_id.id,
-            'product_uom_qty': self.blue_qty,
-            'location_id': stock_location.id,
-            'location_dest_id': customer_location.id,
-            'state': 'draft',
-            'origin': self.name,
-            'company_id': self.env.company.id,
-        }
-        moves |= self.env['stock.move'].create(finished_move_vals)
-
-        # Criar movimentos para componentes do BOM (estoque -> produção)
-        for bom_line in self.blue_bom_template_id.bom_line_ids:
-            component_qty = self._calculate_component_quantity(bom_line)
-
-            move_vals = {
-                'name': f"{self.name} - {bom_line.product_id.name}",
-                'product_id': bom_line.product_id.id,
-                'product_uom': bom_line.product_uom_id.id,
-                'product_uom_qty': component_qty,
-                'location_id': stock_location.id,
-                'location_dest_id': production_location.id,
-                'state': 'draft',
-                'origin': self.name,
-                'company_id': self.env.company.id,
-            }
-            moves |= self.env['stock.move'].create(move_vals)
-
-        return moves
 
     def _calculate_component_quantity(self, bom_line):
         """Calculate component quantity based on BOM line and cut plan"""
@@ -392,19 +220,128 @@ class MrpCutPlan(models.Model):
             else:
                 return (self.blue_qty / self.blue_bom_template_id.product_qty) * bom_line.product_qty
 
-    def _update_mto_quantities(self, moves):
-        """Update quantities for MTO strategy"""
-        for move in moves:
-            if move.product_id == self.product_id:
-                # Produto final
-                move.product_uom_qty = self.blue_qty
+    # ------------------------------
+    # Botão "Enviar para Filial"
+    # ------------------------------
+    def button_send_to_branch(self):
+        """Botão que envia OP para a filial, só aparece para related_type='m'"""
+        for record in self:
+            if record.related_type != 'm':
+                raise UserError("Este botão só pode ser usado para Mold Calculation.")
+
+            if not record.branch_location_id:
+                return {
+                    'name': 'Selecionar Armazém para Processamento',
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'mrp.production.transfer.wizard',
+                    'view_mode': 'form',
+                    'target': 'new',
+                    'context': {'default_production_id': record.id}
+                }
+
+            raise UserError("A OP já está em processamento ou não pode ser enviada.")
+
+        # ------------------------------
+        # Botão "Marcar como Concluído"
+        # ------------------------------
+        def button_mark_done_custom(self):
+            """Botão que conclui OP, só aparece quando não é Mold Calculation"""
+            for record in self:
+                if record.related_type == 'm':
+                    raise UserError("Este botão não está disponível para Mold Calculation.")
+
+                return super(BlueMrpProduction, record).button_mark_done()
+
+    def button_create_po(self):
+        self.state = 'prod_order'
+        venda = self.sale_order_id.procurement_group_id
+        data_plan = self.sale_order_id.commitment_date
+
+        # Cria a ordem de produção
+        production_order = self.env['mrp.production'].create({
+            'cut_plan_id': self.id,
+            'product_id': self.product_id.id,
+            'product_uom_id': self.product_id.uom_id.id,
+            'bom_id': self.blue_bom_template_id.id,
+            'product_qty': self.blue_qty,
+            'partner_id': self.partner_id.id,
+            'origin': self.name,
+            'source_procurement_group_id': venda.id,
+            'date_planned_start': data_plan,
+        })
+
+        # Gera automaticamente os movimentos (padrão Odoo)
+        production_order.action_confirm()
+
+
+        # --- DIAGNÓSTICO: info detalhada das linhas da BOM e dos movimentos gerados ---
+        for line in self.blue_bom_template_id.bom_line_ids:
+            prod = line.product_id
+            _logger.warning(
+                "BOM LINE: id=%s | name=%s | area_calc=%s | display_type=%s | uom=%s | product_type=%s | product_active=%s | bom_line_qty=%s",
+                prod.id if prod else None,
+                prod.display_name if prod else 'NO_PRODUCT',
+                getattr(prod, 'blue_area_calc', None),
+                getattr(line, 'display_type', None),
+                line.product_uom_id.name if line.product_uom_id else None,
+                prod.type if prod else None,
+                prod.active if prod else None,
+                line.product_qty
+            )
+        for move in production_order.move_raw_ids:
+            _logger.warning(
+                "MOVE GENERATED: id=%s | product=%s | qty=%s | uom=%s",
+                move.id,
+                move.product_id.display_name,
+                move.product_uom_qty,
+                move.product_uom.name if move.product_uom else None
+            )
+        # --- fim diagnóstico ---
+        # Agora ajusta apenas as quantidades conforme suas regras
+        for bom_line in self.blue_bom_template_id.bom_line_ids:
+            move = production_order.move_raw_ids.filtered(lambda m: m.product_id.id == bom_line.product_id.id)
+            if not move:
+                continue  # produto não presente no movimento
+
+            move = move[0]
+            product = bom_line.product_id
+            qty = move.product_uom_qty  # quantidade padrão como base
+
+            # 🧮 Regras personalizadas
+            if product.blue_area_calc in ('llh', 'm'):
+                qty = bom_line.product_qty if bom_line.blue_multiplier else self.blue_m3
             else:
-                # Componentes - encontrar a linha do BOM correspondente
-                bom_line = self.blue_bom_template_id.bom_line_ids.filtered(
-                    lambda l: l.product_id == move.product_id
-                )
-                if bom_line:
-                    move.product_uom_qty = self._calculate_component_quantity(bom_line[0])
+                if bom_line.blue_multiplier:
+                    qty = bom_line.product_qty
+                else:
+                    qty = (self.blue_qty / self.blue_bom_template_id.product_qty) * bom_line.product_qty
+
+            # ⚙️ Ajustes extras para tipo "m"
+            if self.related_type == 'm':
+                if product.boolean_coefficient_or_screen == 'tl':
+                    qty = self.blue_m2
+                elif product.boolean_coefficient_or_screen == 'coe':
+                    config = self.env['mrp_cut_plan.template_price_config'].search(
+                        [('product_id', '=', self.product_id.id)], limit=1
+                    )
+                    qty = self.blue_m2 * config.mortar_coefficient if config else 0
+
+            # Atualiza a linha
+            move.product_uom_qty = qty
+
+        # Atualiza contador da integração com vendas
+        self._update_count_sale_mrp()
+
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'mrp.production',
+            'view_mode': 'form',
+            'res_id': production_order.id,
+            'target': 'current',
+            'flags': {'reload': True}
+        }
+
+
 
     def button_cancel(self):
         self.state = 'canceled'
@@ -545,26 +482,26 @@ class MrpCutPlan(models.Model):
 
 
         # Para matérias-primas
-        @api.onchange('move_raw_ids')
-        def _onchange_move_raw_ids(self):
-            """
-            Onchange para matérias-primas - Odoo 16
-            """
-            if self.move_raw_ids:
-                # Recalcula quantidades disponíveis
-                self._action_compute()
-                # Atualiza a disponibilidade
-                self.move_raw_ids._action_assign()
+        # @api.onchange('move_raw_ids')
+        # def _onchange_move_raw_ids(self):
+        #     """
+        #     Onchange para matérias-primas - Odoo 16
+        #     """
+        #     if self.move_raw_ids:
+        #         # Recalcula quantidades disponíveis
+        #         self._action_compute()
+        #         # Atualiza a disponibilidade
+        #         self.move_raw_ids._action_assign()
 
     # Para produtos acabados
-    @api.onchange('move_finished_ids')
-    def _onchange_move_finished_ids(self):
-        """
-        Onchange para produtos acabados - Odoo 16
-        """
-        if self.move_finished_ids:
-            # Recalcula quantidades e atualiza estado
-            self._action_compute()
+    # @api.onchange('move_finished_ids')
+    # def _onchange_move_finished_ids(self):
+    #     """
+    #     Onchange para produtos acabados - Odoo 16
+    #     """
+    #     if self.move_finished_ids:
+    #         # Recalcula quantidades e atualiza estado
+    #         self._action_compute()
             # Para produtos acabados, geralmente não fazemos action_assign
             # pois são produtos que serão produzidos
 

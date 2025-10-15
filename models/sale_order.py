@@ -20,7 +20,7 @@ class SaleOrder(models.Model):
     def open_linked_po(self):
         domain = [('blue_origin', '=', self.name)]
         return {
-            'name': _('Production Orders'),
+            'name': _('Cut Plan'),
             'domain': domain,
             'type': 'ir.actions.act_window',
             'res_model': 'mrp_cut_plan.mrp_cut_plan',

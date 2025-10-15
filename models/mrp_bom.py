@@ -7,9 +7,5 @@ class BlueMrpBom(models.Model):
         string="Template?"
     )
 
-    @api.onchange('blue_template')
-    def _onchange_blue_template(self):
-        for record in self:
-            self.blue_template = record.blue_template
-            record.active = False if record.blue_template else True
+
             

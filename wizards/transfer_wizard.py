@@ -70,6 +70,7 @@ class MrpProductionTransferWizard(models.TransientModel):
             'branch_location_id': self.location_dest_id.id,
             'sending_transfer_id': sending.id,
             'branch_receipt_id': receiving.id,
+            'origin_production_id': self.production_id.id,
             'state': 'progress',
         })
 
@@ -126,7 +127,7 @@ class MrpProductionTransferWizard(models.TransientModel):
         warehouse = self.location_dest_id.warehouse_id
         picking_type = self.env['stock.picking.type'].search([
             ('warehouse_id', '=', warehouse.id),
-            ('code', '=', 'internal')
+            ('code', '=', 'incoming')
         ], limit=1)
         if not picking_type:
             raise UserError(f"Tipo de operação de recebimento não encontrado para {warehouse.name}")
@@ -136,6 +137,7 @@ class MrpProductionTransferWizard(models.TransientModel):
             'picking_type_id': picking_type.id,
             'location_id': sending.location_dest_id.id,
             'location_dest_id': self.location_dest_id.id,
+            'partner_id': self.company_id.partner_id.id,
 
         })
 
