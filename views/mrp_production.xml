@@ -27,13 +27,13 @@
                 type="object"
                 class="oe_highlight"
                 string="Mark as Done"
-                attrs="{'invisible': [('related_type','!=','m'), ('state','!=','confirmed')]}"/>
+                attrs="{'invisible': [('related_type','=','m'), ('state','=','confirmed')]}"/>
 
         <button name="button_mark_done"
                 type="object"
                 class="oe_highlight"
                 string="Validate"
-                attrs="{'invisible': ['|', ('state','not in',('progress','to_close')), ('move_raw_ids','=',[])]}"
+                attrs="{'invisible': ['|', ('state','not in',('progress','to_close')), ('move_raw_ids','=',[]),('related_type','=','m'), ('state','=','confirmed')]}"
                 confirm="There are no components to consume. Are you sure you want to continue?"/>
 
         <button name="action_confirm"
