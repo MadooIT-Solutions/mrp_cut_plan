@@ -258,8 +258,7 @@ class MrpCutPlan(models.Model):
         data_plan = self.sale_order_id.commitment_date
 
         # Cria a ordem de produção
-        production_order = self.env['mrp.production'].create({
-            'cut_plan_id': self.id,
+        production_data = { 'cut_plan_id': self.id,
             'product_id': self.product_id.id,
             'product_uom_id': self.product_id.uom_id.id,
             'bom_id': self.blue_bom_template_id.id,
@@ -267,8 +266,11 @@ class MrpCutPlan(models.Model):
             'partner_id': self.partner_id.id,
             'origin': self.name,
             'source_procurement_group_id': venda.id,
-            'date_planned_start': data_plan,
-        })
+            }
+        if data_plan:
+            production_data['date_planned_start'] = data_plan
+
+        production_order = self.env['mrp.production'].create(production_data)
 
         # Gera automaticamente os movimentos (padrão Odoo)
         production_order.action_confirm()
