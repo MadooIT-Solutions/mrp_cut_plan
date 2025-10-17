@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<odoo>
+    <data>
+
+        <template id="os_web_external_layout_boxed" inherit_id="web.external_layout_boxed">
+            <xpath expr="//t[@t-name='web.external_layout_boxed']" position="replace">
+                <t t-name="web.external_layout_boxed">
+        <div t-attf-class="header o_company_#{company.id}_layout" t-att-style="report_header_style">
+            <div class="o_boxed_header">
+            <div class="row mb8">
+                <div class="col-6">
+                    <img t-if="company.logo" t-att-src="image_data_uri(company.logo)" alt="Logo"/>
+                </div>
+                <div class="col-6 text-end mb4">
+                    <h4 class="mt0" t-field="company.report_header"/>
+                    <div name="company_address" class="float-right mb4">
+                        <span class="company_address" t-field="company.partner_id" t-options="{&quot;widget&quot;: &quot;contact&quot;, &quot;fields&quot;: [&quot;address&quot;, &quot;name&quot;], &quot;no_marker&quot;: true}"/>
+                    </div>
+                </div>
+            </div>
+            </div>
+        </div>
+
+        <div t-attf-class="article o_report_layout_boxed o_company_#{company.id}_layout" t-att-data-oe-model="o and o._name" t-att-data-oe-id="o and o.id" t-att-data-oe-lang="o and o.env.context.get('lang')">
+            <div class="pt-1">
+                <!-- This div ensures that the address is not cropped by the header. -->
+                <t t-call="web.address_layout"/>
+            </div>
+            <t t-raw="0"/>
+        </div>
+
+        <div t-attf-class="footer o_boxed_footer o_company_#{company.id}_layout">
+            <div class="text-center">
+                <ul class="list-inline">
+                    <span>Telefone: </span><li t-if="company.phone" class="list-inline-item"><span class="o_force_ltr" t-field="company.phone"/> - </li>
+                    <span>Celular/Whatsapp: </span><li t-if="company.mobile" class="list-inline-item"><span class="o_force_ltr" t-field="company.mobile"/> - </li>
+                    <span>E-mail: </span><li t-if="company.email" class="list-inline-item"><span t-field="company.email"/></li>
+                    </ul>
+                    <ul class="list-inline">
+                    <li t-if="company.cnpj_cpf" class="list-inline-item">CNPJ: <span t-field="company.cnpj_cpf"/></li>
+                    <li t-if="company.inscr_est" class="list-inline-item">I.E.: <span t-field="company.inscr_est"/></li>
+                    <li t-if="company.inscr_mun" class="list-inline-item">I. Mun.: <span t-field="company.inscr_mun"/></li>
+                    </ul>
+                    <ul class="list-inline">
+                    <li t-if="company.website" class="list-inline-item"><span t-field="company.website"/></li>
+                </ul>
+                <!--<div t-field="company.report_footer"/>-->
+                <div t-if="report_type == 'pdf'"><p align="right ">
+                    Page: <span class="page"/> / <span class="topage"/></p>
+                </div>
+            </div>
+        </div>
+    </t>
+            </xpath>
+        </template>
+    </data>
+</odoo>
