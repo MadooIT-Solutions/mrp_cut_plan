@@ -21,7 +21,6 @@
         'views/template_price_config_view.xml',
         'report/external_layout_boxed.xml',
         'report/mrp_production_template.xml',
-        'report/sale_report_templates.xml',
         'report/sale.xml',
         'report/purchase.xml',
         'views/mrp_production.xml',
