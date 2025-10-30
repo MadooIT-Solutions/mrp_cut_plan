@@ -40,12 +40,24 @@ class SaleOrder(models.Model):
 
         cut_plan_map = {}  # product_id → cut_plan
 
+
         for record in self.order_line:
             if record.product_id.blue_area_calc in ['llh', 'm']:
                 bom_ids = self.env['mrp.bom'].search([
                     ('product_tmpl_id', '=', record.product_id.product_tmpl_id.id)
                     # ('active', '=', False)
                 ])
+                if not bom_ids:
+                    raise UserError(
+                        f'Por gentileza, revise e ajuste a lista de materiais conforme necessário do produto: {record.product_id.name}'
+                    )
+                if record.product_id.blue_area_calc == 'llh':
+                    if record.blue_m3 == 0:
+                        raise UserError(f'Preencha todas as dimensões do produto:{record.product_id.name}')
+
+                if record.product_id.blue_area_calc == 'm':
+                    if record.blue_m2 == 0:
+                        raise UserError(f'Preencha todas as dimensões do produto:{record.product_id.name}')
 
                 pl = CutPlan.create({
                     'blue_origin': record.order_id.name,
@@ -69,13 +81,7 @@ class SaleOrder(models.Model):
 
                 cut_plan_map[record.product_id.id] = pl  # guarda o vínculo
 
-                try:
-                    if bom_ids:
-                        pl.write({'blue_bom_template_id': bom_ids[0].id})
-                except Exception:
-                    raise UserError(
-                        f'Por gentileza, revise e ajuste a lista de materiais conforme necessário do produto: {record.product_id.name}'
-                    )
+
 
                 pl.message_post(body=f'Plano de corte criado a partir da cotação: {record.order_id.name}')
 

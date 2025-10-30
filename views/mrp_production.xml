@@ -8,95 +8,103 @@
         <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
         <field name="arch" type="xml">
 
-        <xpath expr="//header" position="replace">
-    <header>
-        <!-- Campos necessários para os attrs -->
-        <field name="show_lock" invisible="1" string="Show Lock"/>
-        <field name="is_locked" invisible="1" string="Is Locked"/>
-        <field name="confirm_cancel" invisible="1" string="Confirm Cancel"/>
-        <field name="show_serial_mass_produce" invisible="1" string="Show Serial Mass Produce"/>
+            <xpath expr="//header" position="replace">
+                <header>
+                    <!-- Campos necessários para os attrs -->
+                    <field name="show_lock" invisible="1" string="Show Lock"/>
+                    <field name="is_locked" invisible="1" string="Is Locked"/>
+                    <field name="confirm_cancel" invisible="1" string="Confirm Cancel"/>
+                    <field name="show_serial_mass_produce" invisible="1" string="Show Serial Mass Produce"/>
 
-        <!-- Buttons -->
-            <button name="button_send_to_branch"
-                    type="object"
-                    class="oe_highlight"
-                    string="Send to Branch"
-                    attrs="{'invisible': ['|', ('related_type','!=','m'), ('state','!=','confirmed'), ('state','!=','draft')]}"/>
+                    <!-- Buttons -->
+                    <button name="button_send_to_branch"
+                            type="object"
+                            class="oe_highlight"
+                            string="Send to Branch"
+                            attrs="{'invisible': ['|',('related_type','!=','m'), ('state','not in',('confirmed','done','to_close')), ('sending_transfer_id','!=',''), ('branch_production_id','!=','')]}"/>
 
-        <button name="button_mark_done" type="object" class="oe_highlight" string="Mark as Done" attrs="{'invisible': ['|', ('related_type','=','m'), '|', ('state','=','confirmed'), ('state','=','draft')]}"/>
 
-        <button name="button_mark_done"
-                type="object"
-                class="oe_highlight"
-                string="Validate"
-                attrs="{'invisible': ['|', ('state','not in',('progress','to_close')), ('move_raw_ids','=',[]),('related_type','=','m'), ('return_transfer_id','=',''),'|', ('state','=','confirmed'), ('state','=','draft')]}"
-                confirm="There are no components to consume. Are you sure you want to continue?"/>
 
-        <button name="action_confirm"
-                type="object"
-                class="oe_highlight"
-                string="Confirm"
-                attrs="{'invisible': [('state','!=','draft')]}"/>
+                    <button name="action_confirm"
+                            type="object"
+                            class="oe_highlight"
+                            string="Confirm"
+                            attrs="{'invisible': [('state','!=','draft')]}"/>
 
-        <button name="button_plan"
-                type="object"
-                class="oe_highlight"
-                string="Plan"
-                attrs="{'invisible': ['|', '|', ('state','not in',('confirmed','progress','to_close')), ('workorder_ids','=' ,[]), ('is_planned','=',True)]}"/>
-        <button name="button_unplan"
-                type="object"
-                class="oe_highlight"
-                string="Unplan"
-                attrs="{'invisible': ['|', ('is_planned','=',False), ('state','=','cancel')]}"/>
 
-        <button name="action_assign"
-                type="object"
-                string="Check Availability"
-                attrs="{'invisible': ['|', ('state','in',('draft','done','cancel')), ('reserve_visible','=',False)]}"/>
-        <button name="do_unreserve"
-                type="object"
-                string="Unreserve"
-                attrs="{'invisible':[('unreserve_visible','=',False)]}"/>
+                    <button name="button_mark_done" type="object" class="oe_highlight" string="Mark as Done" attrs="{'invisible': ['|', ('related_type','=','m'), '|', ('state','=','confirmed'), ('state','=','draft')]}"/>
 
-        <button name="button_scrap"
-                type="object"
-                string="Scrap"
-                attrs="{'invisible':[('state','in',('cancel','draft'))]}"/>
 
-        <button name="action_toggle_is_locked"
-                type="object"
-                string="Unlock"
-                groups="mrp.group_mrp_manager"
-                attrs="{'invisible':['|',('show_lock','=',False),('is_locked','=',False)]}"/>
-        <button name="action_toggle_is_locked"
-                type="object"
-                string="Lock"
-                groups="mrp.group_mrp_manager"
-                attrs="{'invisible':['|',('show_lock','=',False),('is_locked','=',True)]}"/>
 
-        <button name="action_serial_mass_produce_wizard"
-                type="object"
-                string="Mass Produce"
-                attrs="{'invisible':[('show_serial_mass_produce','=',False)]}"/>
 
-        <button name="action_cancel"
-                type="object"
-                string="Cancel"
-                attrs="{'invisible':['|','|',('id','=',False),('state','in',('done','cancel')),('confirm_cancel','=',True)]}"/>
-        <button name="action_cancel"
-                type="object"
-                string="Cancel"
-                attrs="{'invisible':['|','|',('id','=',False),('state','in',('done','cancel')),('confirm_cancel','=',False)]}"
-                confirm="Some product moves have already been confirmed, this manufacturing order can't be completely cancelled. Are you sure you want to process?"/>
-        <button name="button_unbuild"
-                type="object"
-                string="Unbuild"
-                attrs="{'invisible':[('state','!=','done')]}"/>
+                    <button name="button_mark_done"
+                            type="object"
+                            class="oe_highlight"
+                            string="Validate"
+                            attrs="{'invisible': ['|', ('state','not in',('progress','to_close')), ('move_raw_ids','=',[]),('related_type','!=','m'), ('return_transfer_id','=',''),'|', ('state','=','confirmed'), ('state','=','draft')]}"
+                            confirm="There are no components to consume. Are you sure you want to continue?"/>
 
-        <!-- Statusbar -->
-        <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,progress,done"/>
-    </header>
-</xpath>
+
+
+                    <button name="button_plan"
+                            type="object"
+                            class="oe_highlight"
+                            string="Plan"
+                            attrs="{'invisible': ['|', '|', ('state','not in',('confirmed','progress','to_close')), ('workorder_ids','=' ,[]), ('is_planned','=',True)]}"/>
+                    <button name="button_unplan"
+                            type="object"
+                            class="oe_highlight"
+                            string="Unplan"
+                            attrs="{'invisible': ['|', ('is_planned','=',False), ('state','=','cancel')]}"/>
+
+                    <button name="action_assign"
+                            type="object"
+                            string="Check Availability"
+                            attrs="{'invisible': ['|', ('state','in',('draft','done','cancel')), ('reserve_visible','=',False)]}"/>
+                    <button name="do_unreserve"
+                            type="object"
+                            string="Unreserve"
+                            attrs="{'invisible':[('unreserve_visible','=',False)]}"/>
+
+                    <button name="button_scrap"
+                            type="object"
+                            string="Scrap"
+                            attrs="{'invisible':[('state','in',('cancel','draft'))]}"/>
+
+                    <button name="action_toggle_is_locked"
+                            type="object"
+                            string="Unlock"
+                            groups="mrp.group_mrp_manager"
+                            attrs="{'invisible':['|',('show_lock','=',False),('is_locked','=',False)]}"/>
+                    <button name="action_toggle_is_locked"
+                            type="object"
+                            string="Lock"
+                            groups="mrp.group_mrp_manager"
+                            attrs="{'invisible':['|',('show_lock','=',False),('is_locked','=',True)]}"/>
+
+                    <button name="action_serial_mass_produce_wizard"
+                            type="object"
+                            string="Mass Produce"
+                            attrs="{'invisible':[('show_serial_mass_produce','=',False)]}"/>
+
+                    <button name="action_cancel"
+                            type="object"
+                            string="Cancel"
+                            attrs="{'invisible':['|','|',('id','=',False),('state','in',('done','cancel')),('confirm_cancel','=',True)]}"/>
+                    <button name="action_cancel"
+                            type="object"
+                            string="Cancel"
+                            attrs="{'invisible':['|','|',('id','=',False),('state','in',('done','cancel')),('confirm_cancel','=',False)]}"
+                            confirm="Some product moves have already been confirmed, this manufacturing order can't be completely cancelled. Are you sure you want to process?"/>
+                    <button name="button_unbuild"
+                            type="object"
+                            string="Unbuild"
+                            attrs="{'invisible':[('state','!=','done')]}"/>
+
+                    <!-- Statusbar -->
+                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,progress,done"/>
+                </header>
+            </xpath>
 
 
             <xpath expr="//div[@name='button_box']" position="inside">
@@ -179,11 +187,11 @@
                 <!--    <group string="Fluxo Filial" attrs="{'invisible': [('branch_location_id', '=', False)]}" >-->
                 <separator string="Fluxo Filial"/>
                 <field name="origin_production_id" readonly="1"/>
-                <field name="sending_transfer_id" readonly="1"/>
-                <field name="branch_receipt_id" readonly="1"/>
-                <field name="branch_production_id" readonly="1"/>
-                <field name="return_transfer_id" readonly="1"/>
-                <field name="final_receipt_id" readonly="1"/>
+                <field name="sending_transfer_id" widget="many2many_tags" readonly="1"/>
+                <field name="branch_receipt_id" widget="many2many_tags" readonly="1"/>
+                <field name="branch_production_id" widget="many2many_tags" readonly="1"/>
+                <field name="return_transfer_id" widget="many2many_tags" readonly="1"/>
+                <field name="final_receipt_id" widget="many2many_tags" readonly="1"/>
 
                 <!--            </group>-->
 
@@ -200,21 +208,24 @@
                     <group>
                         <field name="blue_I" string="L"/>
                         <field name="blue_II" string="L "/>
-                        <field name="blue_advance" string="Avanço"/>
-                    </group>
-                    <group>
-                        <field name="blue_I_uom" string="Udm L"/>
-                        <field name="blue_II_uom" string="Udm L "/>
-                        <field name="blue_advance_uom" string="Udm Avanço"/>
-
-                    </group>
-
-                    <group>
                         <field name="blue_h" string="H"/>
 
                     </group>
                     <group>
+                        <field name="blue_I_uom" string="Udm L"/>
+                        <field name="blue_II_uom" string="Udm L "/>
                         <field name="blue_h_uom" string="Udm H"/>
+
+                    </group>
+
+                    <group>
+                        <field name="blue_advance" string="Avanço"/>
+
+
+                    </group>
+                    <group>
+
+                        <field name="blue_advance_uom" string="Udm Avanço"/>
                     </group>
 
 

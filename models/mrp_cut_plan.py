@@ -253,85 +253,55 @@ class MrpCutPlan(models.Model):
                 return super(BlueMrpProduction, record).button_mark_done()
 
     def button_create_po(self):
+        self.ensure_one()
         self.state = 'prod_order'
-        venda = self.sale_order_id.procurement_group_id
-        data_plan = self.sale_order_id.commitment_date
+        venda = self.sale_order_id.procurement_group_id if self.sale_order_id else False
+        data_plan = self.sale_order_id.commitment_date if self.sale_order_id else False
 
-        # Cria a ordem de produção
-        production_data = { 'cut_plan_id': self.id,
+        production_data = {
+            'cut_plan_id': self.id,
             'product_id': self.product_id.id,
             'product_uom_id': self.product_id.uom_id.id,
             'bom_id': self.blue_bom_template_id.id,
             'product_qty': self.blue_qty,
             'partner_id': self.partner_id.id,
             'origin': self.name,
-            'source_procurement_group_id': venda.id,
-            }
+            'source_procurement_group_id': venda.id if venda else False,
+            'related_type': self.product_id.blue_area_calc,
+        }
         if data_plan:
             production_data['date_planned_start'] = data_plan
 
         production_order = self.env['mrp.production'].create(production_data)
-
-        # Gera automaticamente os movimentos (padrão Odoo)
         production_order.action_confirm()
+        production_order.state = 'draft'
+        # # ---------- CRIA MOVES MANUALMENTE ----------
+        # # Matérias-primas
+        # if production_order.bom_id and not production_order.move_raw_ids:
+        #     raw_vals = production_order._get_moves_raw_values()
+        #     for vals in raw_vals:
+        #         # Ajusta qty conforme cut plan
+        #         bom_line = self.env['mrp.bom.line'].browse(vals['bom_line_id'])
+        #         product = bom_line.product_id
+        #         if product.blue_area_calc in ('llh', 'm'):
+        #             qty = bom_line.product_qty if bom_line.blue_multiplier else self.blue_m3
+        #         else:
+        #             bom_qty = production_order.bom_id.product_qty or 1.0
+        #             qty = (self.blue_qty / bom_qty) * bom_line.product_qty
+        #         vals['product_uom_qty'] = qty
+        #         self.env['stock.move'].create(vals)
+        #
+        # # Produtos acabados
+        # if production_order.bom_id and not production_order.move_finished_ids:
+        #     finished_vals = production_order._get_move_finished_values()
+        #     for vals in finished_vals:
+        #         vals['product_uom_qty'] = production_order.product_qty
+        #         self.env['stock.move'].create(vals)
+        #
+        # # Confirma os movimentos
+        # production_order.move_raw_ids._action_confirm()
+        # production_order.move_finished_ids._action_confirm()
 
-
-        # --- DIAGNÓSTICO: info detalhada das linhas da BOM e dos movimentos gerados ---
-        for line in self.blue_bom_template_id.bom_line_ids:
-            prod = line.product_id
-            _logger.warning(
-                "BOM LINE: id=%s | name=%s | area_calc=%s | display_type=%s | uom=%s | product_type=%s | product_active=%s | bom_line_qty=%s",
-                prod.id if prod else None,
-                prod.display_name if prod else 'NO_PRODUCT',
-                getattr(prod, 'blue_area_calc', None),
-                getattr(line, 'display_type', None),
-                line.product_uom_id.name if line.product_uom_id else None,
-                prod.type if prod else None,
-                prod.active if prod else None,
-                line.product_qty
-            )
-        for move in production_order.move_raw_ids:
-            _logger.warning(
-                "MOVE GENERATED: id=%s | product=%s | qty=%s | uom=%s",
-                move.id,
-                move.product_id.display_name,
-                move.product_uom_qty,
-                move.product_uom.name if move.product_uom else None
-            )
-        # --- fim diagnóstico ---
-        # Agora ajusta apenas as quantidades conforme suas regras
-        for bom_line in self.blue_bom_template_id.bom_line_ids:
-            move = production_order.move_raw_ids.filtered(lambda m: m.product_id.id == bom_line.product_id.id)
-            if not move:
-                continue  # produto não presente no movimento
-
-            move = move[0]
-            product = bom_line.product_id
-            qty = move.product_uom_qty  # quantidade padrão como base
-
-            # 🧮 Regras personalizadas
-            if product.blue_area_calc in ('llh', 'm'):
-                qty = bom_line.product_qty if bom_line.blue_multiplier else self.blue_m3
-            else:
-                if bom_line.blue_multiplier:
-                    qty = bom_line.product_qty
-                else:
-                    qty = (self.blue_qty / self.blue_bom_template_id.product_qty) * bom_line.product_qty
-
-            # ⚙️ Ajustes extras para tipo "m"
-            if self.related_type == 'm':
-                if product.boolean_coefficient_or_screen == 'tl':
-                    qty = self.blue_m2
-                elif product.boolean_coefficient_or_screen == 'coe':
-                    config = self.env['mrp_cut_plan.template_price_config'].search(
-                        [('product_id', '=', self.product_id.id)], limit=1
-                    )
-                    qty = self.blue_m2 * config.mortar_coefficient if config else 0
-
-            # Atualiza a linha
-            move.product_uom_qty = qty
-
-        # Atualiza contador da integração com vendas
         self._update_count_sale_mrp()
 
         return {
@@ -340,10 +310,75 @@ class MrpCutPlan(models.Model):
             'view_mode': 'form',
             'res_id': production_order.id,
             'target': 'current',
-            'flags': {'reload': True}
+            'flags': {'reload': True},
         }
 
+    def _force_generate_moves(self, production_order):
+        """Garante que a MO terá moves raw e finished"""
+        if not production_order.bom_id:
+            _logger.warning("MO %s não possui BOM, pulando geração de movimentos", production_order.name)
+            return
 
+        # -----------------------------
+        # 1) Cria os moves raw
+        # -----------------------------
+        if not production_order.move_raw_ids:
+            raw_vals_list = production_order._get_moves_raw_values()
+            if raw_vals_list:
+                raw_moves = self.env['stock.move'].create(raw_vals_list)
+                raw_moves._action_confirm()
+                _logger.warning("Criados %s raw moves manualmente para MO %s", len(raw_moves), production_order.name)
+
+        # -----------------------------
+        # 2) Cria os moves finished
+        # -----------------------------
+        if not production_order.move_finished_ids:
+            finished_vals_list = production_order._get_move_finished_values()
+            if finished_vals_list:
+                finished_moves = self.env['stock.move'].create(finished_vals_list)
+                finished_moves._action_confirm()
+                _logger.warning("Criado finished move para MO %s", production_order.name)
+
+        # -----------------------------
+        # 3) Ajusta quantidade dos moves raw conforme Cut Plan
+        # -----------------------------
+        bom = production_order.bom_id
+        for bom_line in bom.bom_line_ids:
+            product = bom_line.product_id
+            if not product:
+                continue
+
+            # Calcula qty conforme regras Cut Plan
+            if product.blue_area_calc in ('llh', 'm'):
+                qty = bom_line.product_qty if bom_line.blue_multiplier else self.blue_m3
+            else:
+                bom_qty = bom.product_qty or 1.0
+                qty = (
+                                  self.blue_qty / bom_qty) * bom_line.product_qty if not bom_line.blue_multiplier else bom_line.product_qty
+
+            # Ajustes extras para tipo 'm'
+            if self.related_type == 'm':
+                if product.boolean_coefficient_or_screen == 'tl':
+                    qty = self.blue_m2
+                elif product.boolean_coefficient_or_screen == 'coe':
+                    config = self.env['mrp_cut_plan.template_price_config'].search(
+                        [('product_id', '=', self.product_id.id)], limit=1
+                    )
+                    qty = (self.blue_m2 * config.mortar_coefficient) if config else 0
+
+            if qty <= 0:
+                continue
+
+            moves = production_order.move_raw_ids.filtered(lambda m: m.product_id == product)
+            for mv in moves:
+                mv.product_uom_qty = qty
+                if hasattr(mv, 'product_qty'):
+                    try:
+                        mv.product_qty = qty
+                    except Exception:
+                        pass
+
+        _logger.warning("Geração de moves completa para MO %s", production_order.name)
 
     def button_cancel(self):
         self.state = 'canceled'

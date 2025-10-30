@@ -41,4 +41,6 @@
         <field name="target">new</field>
         <field name="context">{'search_default_production_id': active_id}</field>
     </record>
+
+
 </odoo>
