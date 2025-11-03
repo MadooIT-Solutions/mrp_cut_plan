@@ -21,7 +21,7 @@
                             type="object"
                             class="oe_highlight"
                             string="Send to Branch"
-                            attrs="{'invisible': ['|',('related_type','!=','m'), ('state','not in',('confirmed','done','to_close')), ('sending_transfer_id','!=',''), ('branch_production_id','!=','')]}"/>
+                            attrs="{'invisible': [('related_type','!=','m'), ('state','not in',('confirmed','done','to_close')), ('sending_transfer_id','!=',''), ('branch_production_id','!=','')]}"/>
 
 
 

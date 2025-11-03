@@ -474,7 +474,7 @@ class BlueMrpProduction(models.Model):
         mo.action_confirm()
         mo.write({'branch_production_id': [(4,mo.id)]})
 
-        self.origin_production_id.branch_production_id = mo.id
+        self.origin_production_id.branch_production_id = [(4,mo.id)]
 
         # Vincular a OP ao picking
         picking.write({'branch_mo_id': mo.id, 'branch_production_id': [(4, mo.id)]})
