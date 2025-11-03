@@ -241,9 +241,17 @@ class BlueMrpProduction(models.Model):
                 production_states = record.branch_production_id.mapped('state')
                 if all(s != 'done' for s in production_states):
                     msg = "Aguardando fabricação na filial (OPs pendentes)."
+
+                # Antes do elif de OPs filiais
+                if any(p.state not in ['done', 'cancel'] for p in
+                       record.sending_transfer_id.filtered(lambda p: 'Backorder' in (p.origin or ''))):
+                    msg = "Aguardando processamento de backorder na matriz/filial."
+
+
                 elif any(s == 'done' for s in production_states) and not record.return_transfer_id:
                     msg = "Fabricação na filial concluída, aguardando retorno."
                     filial_flag = True
+
 
             # 3️⃣ Em trânsito de retorno
             elif record.return_transfer_id and any(r.state != 'done' for r in record.return_transfer_id):
@@ -480,6 +488,14 @@ class BlueMrpProduction(models.Model):
         picking.write({'branch_mo_id': mo.id, 'branch_production_id': [(4, mo.id)]})
 
         _logger.info(f"✅ OP filial criada: {mo.name} para quantidade {qty} com BoM {bom.display_name}")
+
+        # Atualizar estado e mensagens da OP matriz
+        if self.origin_production_id:
+            self.origin_production_id._compute_message_state()
+            self.origin_production_id.message_post(
+                body=f"⚙️ Nova OP criada na filial: <a href='/web#id={mo.id}&model=mrp.production'>{mo.name}</a> "
+                     f"para {qty} unidades."
+            )
 
         return mo
 

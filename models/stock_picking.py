@@ -56,6 +56,14 @@ class StockPicking(models.Model):
                     raise UserError(
                         "Não é possível validar este recebimento enquanto o envio matriz → filial não estiver concluído."
                     )
+        # Bloqueio: não permitir validar recebimento na matriz se envio da filial ainda não foi concluído
+                if (picking.picking_type_code == 'incoming' and picking.origin_production_id
+                        and picking.origin_production_id.return_transfer_id):
+                    pending_returns = picking.origin_production_id.return_transfer_id.filtered(lambda r: r.state != 'done')
+                    if pending_returns:
+                        raise UserError(
+                            "Não é possível validar o recebimento na matriz enquanto o envio da filial ainda não estiver concluído."
+                        )
 
         res = super(StockPicking, self).button_validate()
 
@@ -84,6 +92,10 @@ class StockPicking(models.Model):
             if (picking.picking_type_code == 'internal' and picking.state == 'done' and
                     picking.origin_production_id and picking.location_dest_id.usage == 'internal'):
                 self._process_partial_branch_receipt(picking)
+
+            # Atualiza quantidade total recebida na OP matriz após recebimento final
+            if picking.picking_type_code == 'incoming' and picking.state == 'done' and picking.origin_production_id:
+                picking.origin_production_id._compute_total_qty_received()
 
         return res
 
