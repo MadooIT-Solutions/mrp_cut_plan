@@ -103,6 +103,7 @@ class MrpProductionTransferWizard(models.TransientModel):
         })
 
         picking.action_confirm()
+        picking.state = "assigned"
         try:
             picking.action_assign()
         except Exception as e:

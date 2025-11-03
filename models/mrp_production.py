@@ -461,7 +461,9 @@ class BlueMrpProduction(models.Model):
             "location_src_id": picking.location_dest_id.id,  # componentes saem do estoque da filial
             "location_dest_id": production_loc.id,  # produção na filial
             "picking_type_id": picking_type.id,
-            "origin": f"{self.name} - Filial",
+            "sending_transfer_id": self.sending_transfer_id,
+            "branch_receipt_id": self.branch_receipt_id,
+            "origin": f"{self.name} - Matriz",
             "origin_production_id": self.id,
         }
 
@@ -470,10 +472,12 @@ class BlueMrpProduction(models.Model):
 
         # Confirmar a OP para gerar os movimentos automaticamente
         mo.action_confirm()
+        mo.write({'branch_production_id': [(4,mo.id)]})
+
+        self.origin_production_id.branch_production_id = mo.id
 
         # Vincular a OP ao picking
-        picking.write({'branch_mo_id': mo.id})
-        self.write({'branch_production_id': [(4, mo.id)]})
+        picking.write({'branch_mo_id': mo.id, 'branch_production_id': [(4, mo.id)]})
 
         _logger.info(f"✅ OP filial criada: {mo.name} para quantidade {qty} com BoM {bom.display_name}")
 
@@ -565,7 +569,7 @@ class BlueMrpProduction(models.Model):
                     "product_id": move.product_id.id,
                     "product_uom_qty": move.product_qty,
                     "product_uom": move.product_uom.id,
-                    "location_id": self.branch_location_id.id,
+                    "location_id": self.origin_production_id.branch_location_id.id,
                     "location_dest_id": self.location_dest_id.id,
                 }))
 
@@ -577,7 +581,7 @@ class BlueMrpProduction(models.Model):
             raise UserError("Tipo de operação de retorno interno não encontrado.")
 
         picking = self.env['stock.picking'].create({
-            "location_id": self.branch_location_id.id,
+            "location_id": self.origin_production_id.branch_location_id.id,
             "location_dest_id": self.location_dest_id.id,
             "origin": f"{self.name} - Retorno para Matriz",
             "move_ids_without_package": move_lines,
