@@ -148,3 +148,22 @@ class MrpProductionTransferWizard(models.TransientModel):
         })
 
         return receiving
+
+class ConsumptionRecalcWizard(models.TransientModel):
+    _name = "consumption.recalc.wizard"
+    _description = "Recalcular Consumos"
+
+    production_id = fields.Many2one("mrp.production", required=True)
+
+    def action_recalculate_consumption(self):
+        self.production_id._compute_matrix_consumed_qty()
+        self.production_id._compute_branch_consumed_qty()
+        self.production_id._compute_total_components_consumed()
+
+        return {
+            'type': 'ir.actions.act_window',
+            'res_model': 'mrp.production',
+            'res_id': self.production_id.id,
+            'view_mode': 'form',
+            'target': 'current',
+        }

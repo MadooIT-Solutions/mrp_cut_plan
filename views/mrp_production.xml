@@ -1,7 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
-
-
     <record id="mrp_production_inherit" model="ir.ui.view">
         <field name="name">mrp.production.inherit</field>
         <field name="model">mrp.production</field>
@@ -11,115 +9,125 @@
             <xpath expr="//header" position="replace">
                 <header>
                     <!-- Campos necessários para os attrs -->
-                    <field name="show_lock" invisible="1" string="Show Lock"/>
-                    <field name="is_locked" invisible="1" string="Is Locked"/>
-                    <field name="confirm_cancel" invisible="1" string="Confirm Cancel"/>
-                    <field name="show_serial_mass_produce" invisible="1" string="Show Serial Mass Produce"/>
+                    <field name="show_lock" invisible="1"/>
+                    <field name="is_locked" invisible="1"/>
+                    <field name="confirm_cancel" invisible="1"/>
+                    <field name="show_serial_mass_produce" invisible="1"/>
 
-                    <!-- Buttons -->
+                    <!-- CAMPOS ADICIONAIS PARA CONTROLE DO FLUXO (INVISÍVEIS) -->
+                    <field name="branch_location_id" invisible="1"/>
+                    <field name="sending_transfer_id" invisible="1"/>
+                    <field name="total_qty_received" invisible="1"/>
+                    <field name="final_receipt_id" invisible="1"/>
+                    <field name="product_qty" invisible="1"/>
+                    <field name="related_type" invisible="1"/>
+                    <field name="move_raw_ids" invisible="1"/>
+                    <field name="state" invisible="1"/>
+
+                    <!-- Botão Enviar para Filial - APENAS para OP matriz sem filial definida e estado confirmed -->
                     <button name="button_send_to_branch"
                             type="object"
                             class="oe_highlight"
                             string="Send to Branch"
-                            attrs="{'invisible': [('related_type','!=','m'), ('state','not in',('confirmed','done','to_close')), ('sending_transfer_id','!=',''), ('branch_production_id','!=','')]}"/>
-
-
+                            attrs="{'invisible': ['|', '|', ('related_type', '!=', 'm'), ('state', '!=', 'confirmed'), ('branch_location_id', '!=', False)]}"/>
 
                     <button name="action_confirm"
                             type="object"
                             class="oe_highlight"
                             string="Confirm"
-                            attrs="{'invisible': [('state','!=','draft')]}"/>
+                            attrs="{'invisible': [('state', '!=', 'draft')]}"/>
 
-
-                    <button name="button_mark_done" type="object" class="oe_highlight" string="Mark as Done" attrs="{'invisible': ['|', ('related_type','=','m'), '|', ('state','=','confirmed'), ('state','=','draft')]}"/>
-
-
-
-
+                    <!-- Botão Validar - Lógica simplificada -->
                     <button name="button_mark_done"
                             type="object"
                             class="oe_highlight"
                             string="Validate"
-                            attrs="{'invisible': ['|', ('state','not in',('progress','to_close')), ('move_raw_ids','=',[]),('related_type','!=','m'), ('return_transfer_id','=',''),'|', ('state','=','confirmed'), ('state','=','draft')]}"
-                            confirm="There are no components to consume. Are you sure you want to continue?"/>
-
-
+                            attrs="{'invisible': [('state', 'not in', ['progress', 'to_close'])]}"/>
 
                     <button name="button_plan"
                             type="object"
                             class="oe_highlight"
                             string="Plan"
-                            attrs="{'invisible': ['|', '|', ('state','not in',('confirmed','progress','to_close')), ('workorder_ids','=' ,[]), ('is_planned','=',True)]}"/>
+                            attrs="{'invisible': [('state', 'not in', ['confirmed', 'progress', 'to_close']), ('workorder_ids', '=', []), ('is_planned', '=', True)]}"/>
                     <button name="button_unplan"
                             type="object"
                             class="oe_highlight"
                             string="Unplan"
-                            attrs="{'invisible': ['|', ('is_planned','=',False), ('state','=','cancel')]}"/>
+                            attrs="{'invisible': [('is_planned', '=', False), ('state', '=', 'cancel')]}"/>
 
                     <button name="action_assign"
                             type="object"
                             string="Check Availability"
-                            attrs="{'invisible': ['|', ('state','in',('draft','done','cancel')), ('reserve_visible','=',False)]}"/>
+                            attrs="{'invisible': [('state', 'in', ['draft', 'done', 'cancel']), ('reserve_visible', '=', False)]}"/>
                     <button name="do_unreserve"
                             type="object"
                             string="Unreserve"
-                            attrs="{'invisible':[('unreserve_visible','=',False)]}"/>
+                            attrs="{'invisible': [('unreserve_visible', '=', False)]}"/>
 
                     <button name="button_scrap"
                             type="object"
                             string="Scrap"
-                            attrs="{'invisible':[('state','in',('cancel','draft'))]}"/>
+                            attrs="{'invisible': [('state', 'in', ['cancel', 'draft'])]}"/>
 
                     <button name="action_toggle_is_locked"
                             type="object"
                             string="Unlock"
                             groups="mrp.group_mrp_manager"
-                            attrs="{'invisible':['|',('show_lock','=',False),('is_locked','=',False)]}"/>
+                            attrs="{'invisible': [('show_lock', '=', False), ('is_locked', '=', False)]}"/>
                     <button name="action_toggle_is_locked"
                             type="object"
                             string="Lock"
                             groups="mrp.group_mrp_manager"
-                            attrs="{'invisible':['|',('show_lock','=',False),('is_locked','=',True)]}"/>
+                            attrs="{'invisible': [('show_lock', '=', False), ('is_locked', '=', True)]}"/>
 
                     <button name="action_serial_mass_produce_wizard"
                             type="object"
                             string="Mass Produce"
-                            attrs="{'invisible':[('show_serial_mass_produce','=',False)]}"/>
+                            attrs="{'invisible': [('show_serial_mass_produce', '=', False)]}"/>
 
                     <button name="action_cancel"
                             type="object"
                             string="Cancel"
-                            attrs="{'invisible':['|','|',('id','=',False),('state','in',('done','cancel')),('confirm_cancel','=',True)]}"/>
+                            attrs="{'invisible': [('id', '=', False), ('state', 'in', ['done', 'cancel']), ('confirm_cancel', '=', True)]}"/>
                     <button name="action_cancel"
                             type="object"
                             string="Cancel"
-                            attrs="{'invisible':['|','|',('id','=',False),('state','in',('done','cancel')),('confirm_cancel','=',False)]}"
+                            attrs="{'invisible': [('id', '=', False), ('state', 'in', ['done', 'cancel']), ('confirm_cancel', '=', False)]}"
                             confirm="Some product moves have already been confirmed, this manufacturing order can't be completely cancelled. Are you sure you want to process?"/>
+
                     <button name="button_unbuild"
                             type="object"
                             string="Unbuild"
-                            attrs="{'invisible':[('state','!=','done')]}"/>
+                            attrs="{'invisible': [('state', '!=', 'done')]}"/>
 
                     <!-- Statusbar -->
                     <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,progress,done"/>
                 </header>
             </xpath>
 
-
             <xpath expr="//div[@name='button_box']" position="inside">
-                <button class="oe_stat_button" name="open_linked_po" attrs="{'invisible': [('count_po', '=', 0)]}"
-                        type="object" icon="fa-flask">
+                <button class="oe_stat_button" name="open_linked_po"
+                        type="object"
+                        icon="fa-flask"
+                        attrs="{'invisible': [('count_po', '=', 0)]}">
                     <div class="o_stat_info">
                         <field name="count_po" nolabel="1" widget="statinfo"/>
                         <span class="o_stat_text">Plano De Corte</span>
                     </div>
                 </button>
+
+                <!-- Botão para verificar status do fluxo - APENAS SE O MÉTODO EXISTIR -->
+                <!-- <button class="oe_stat_button" name="action_check_flow_status"
+                        type="object"
+                        icon="fa-info"
+                        attrs="{'invisible': [('branch_location_id', '=', False)]}">
+                    <div class="o_stat_info">
+                        <span class="o_stat_text">Status Fluxo</span>
+                    </div>
+                </button> -->
             </xpath>
 
-
             <!-- Mensagem de alerta após o campo state -->
-
             <xpath expr="//field[@name='name']" position="after">
                 <div style="width: 100%; margin-top: -29px; margin-right: -550px">
 
@@ -169,22 +177,11 @@
                         <i class="fa fa-check mr-2" style="margin-right: 10px;" />
                         <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0; right: 10;" readonly="1"/>
                     </div>
-
-                    <!--    &lt;!&ndash; Default para outros valores - AZUL &ndash;&gt;-->
-                    <!--    <div class="alert alert-info mb-2" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 150px;"-->
-                    <!--         attrs="{'invisible': [('message_state', 'in', ['Em trânsito para a filial.', 'Recebido na filial. Aguardando inicio da produção.', 'Aguardando a fabricação na filial.', 'Fabricação na filial concluída, aguardando envio.', 'Em trânsito para a matriz.', 'Recebido na matriz.', ''])]}">-->
-
-                    <!--        <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>-->
-                    <!--    </div>-->
                 </div>
-
-
             </xpath>
-            <!-- Seção do fluxo filial no final do sheet -->
-            <!-- Inserir Fluxo Filial abaixo dos campos de quantidade -->
 
+            <!-- Seção do fluxo filial - POSIÇÃO ORIGINAL DENTRO DO GRUPO DO PRODUTO -->
             <xpath expr="//group[field[@name='product_id']]" position="inside">
-                <!--    <group string="Fluxo Filial" attrs="{'invisible': [('branch_location_id', '=', False)]}" >-->
                 <separator string="Fluxo Filial"/>
                 <field name="origin_production_id" readonly="1"/>
                 <field name="sending_transfer_id" widget="many2many_tags" readonly="1"/>
@@ -192,15 +189,10 @@
                 <field name="branch_production_id" widget="many2many_tags" readonly="1"/>
                 <field name="return_transfer_id" widget="many2many_tags" readonly="1"/>
                 <field name="final_receipt_id" widget="many2many_tags" readonly="1"/>
-
-                <!--            </group>-->
-
-
+                <field name="total_qty_received" readonly="1"/>
             </xpath>
 
-
-
-
+            <!-- Seção Medidas - POSIÇÃO ORIGINAL APÓS user_id -->
             <xpath expr="//field[@name='user_id']" position="after">
                 <group string="Medidas">
                     <field name="related_type" string="Tipo"/>
@@ -209,29 +201,20 @@
                         <field name="blue_I" string="L"/>
                         <field name="blue_II" string="L "/>
                         <field name="blue_h" string="H"/>
-
                     </group>
                     <group>
                         <field name="blue_I_uom" string="Udm L"/>
                         <field name="blue_II_uom" string="Udm L "/>
                         <field name="blue_h_uom" string="Udm H"/>
-
                     </group>
-
                     <group>
                         <field name="blue_advance" string="Avanço"/>
-
-
                     </group>
                     <group>
-
                         <field name="blue_advance_uom" string="Udm Avanço"/>
                     </group>
-
-
                 </group>
             </xpath>
-
 
         </field>
     </record>
@@ -241,12 +224,9 @@
         <field name="model">mrp.production</field>
         <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
         <field name="arch" type="xml">
-
             <field name="state" position="before">
                 <field name="message_state"/>
             </field>
         </field>
     </record>
-
-
 </odoo>
