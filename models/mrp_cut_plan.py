@@ -255,9 +255,11 @@ class MrpCutPlan(models.Model):
     def button_create_po(self):
         self.ensure_one()
         self.state = 'prod_order'
+
         venda = self.sale_order_id.procurement_group_id if self.sale_order_id else False
         data_plan = self.sale_order_id.commitment_date if self.sale_order_id else False
 
+        # 🔹 Criação da OP
         production_data = {
             'cut_plan_id': self.id,
             'product_id': self.product_id.id,
@@ -269,41 +271,51 @@ class MrpCutPlan(models.Model):
             'source_procurement_group_id': venda.id if venda else False,
             'related_type': self.product_id.blue_area_calc,
         }
+
         if data_plan:
             production_data['date_planned_start'] = data_plan
 
         production_order = self.env['mrp.production'].create(production_data)
-        production_order.action_confirm()
-        production_order.state = 'draft'
-        # # ---------- CRIA MOVES MANUALMENTE ----------
-        # # Matérias-primas
-        # if production_order.bom_id and not production_order.move_raw_ids:
-        #     raw_vals = production_order._get_moves_raw_values()
-        #     for vals in raw_vals:
-        #         # Ajusta qty conforme cut plan
-        #         bom_line = self.env['mrp.bom.line'].browse(vals['bom_line_id'])
-        #         product = bom_line.product_id
-        #         if product.blue_area_calc in ('llh', 'm'):
-        #             qty = bom_line.product_qty if bom_line.blue_multiplier else self.blue_m3
-        #         else:
-        #             bom_qty = production_order.bom_id.product_qty or 1.0
-        #             qty = (self.blue_qty / bom_qty) * bom_line.product_qty
-        #         vals['product_uom_qty'] = qty
-        #         self.env['stock.move'].create(vals)
-        #
-        # # Produtos acabados
-        # if production_order.bom_id and not production_order.move_finished_ids:
-        #     finished_vals = production_order._get_move_finished_values()
-        #     for vals in finished_vals:
-        #         vals['product_uom_qty'] = production_order.product_qty
-        #         self.env['stock.move'].create(vals)
-        #
-        # # Confirma os movimentos
-        # production_order.move_raw_ids._action_confirm()
-        # production_order.move_finished_ids._action_confirm()
 
+        # 🔹 Gera os movimentos (substitui os antigos onchange)
+        production_order.action_confirm()
+
+        # 🔹 Ajusta manualmente as quantidades conforme lógica do Odoo 15
+        for bom_line in self.blue_bom_template_id.bom_line_ids:
+            for move in production_order.move_raw_ids:
+                if move.product_id == bom_line.product_id:
+                    if move.product_id.blue_area_calc in ['llh', 'm']:
+                        if bom_line.blue_multiplier:
+                            move.product_uom_qty = bom_line.product_qty
+                        else:
+                            move.product_uom_qty = self.blue_m3
+                    else:
+                        if bom_line.blue_multiplier:
+                            move.product_uom_qty = bom_line.product_qty
+                        else:
+                            move.product_uom_qty = (
+                                    (self.blue_qty / self.blue_bom_template_id.product_qty) * bom_line.product_qty
+                            )
+
+                    if self.related_type == 'm':
+                        if move.product_id.boolean_coefficient_or_screen == 'tl':
+                            move.product_uom_qty = self.blue_m2
+                        elif move.product_id.boolean_coefficient_or_screen == 'coe':
+                            template_price_config_id = self.env['mrp_cut_plan.template_price_config'].search([
+                                ('product_id', '=', self.product_id.id)
+                            ], limit=1)
+                            if template_price_config_id:
+                                move.product_uom_qty = self.blue_m2 * template_price_config_id.mortar_coefficient
+                            else:
+                                move.product_uom_qty = self.blue_m2 * 0
+
+        # 🔹 Refaz as reservas conforme as novas quantidades
+        production_order.move_raw_ids._action_assign()
+
+        # 🔹 Atualiza contador de OPs
         self._update_count_sale_mrp()
 
+        # 🔹 Abre a OP criada
         return {
             'type': 'ir.actions.act_window',
             'res_model': 'mrp.production',
