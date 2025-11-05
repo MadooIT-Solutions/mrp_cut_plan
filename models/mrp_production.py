@@ -198,6 +198,21 @@ class BlueMrpProduction(models.Model):
         compute="_compute_is_branch_flow"
     )
 
+    hide_check_availability = fields.Boolean(
+        string="Ocultar Verificar Disponibilidade",
+        compute='_compute_hide_check_availability',
+        store=False
+    )
+
+    @api.depends('related_type', 'branch_location_id')
+    def _compute_hide_check_availability(self):
+        for record in self:
+            # Ocultar quando for molde OU tiver filial definida
+            record.hide_check_availability = (
+                    record.related_type == 'm' or
+                    record.branch_location_id
+            )
+
     # ------------------------------------------------------------
     # MÉTODOS COMPUTE
     # ------------------------------------------------------------
