@@ -1,8 +1,8 @@
 {
     'name': "Plano de Corte Polispan",
-    'version': '16.0.1.0.0+auto1',
+    'version': '16.0.1.0.2',
     'description': """Plano de Corte Polispan""",
-    'author': "Madureira Ind. e Com. Ltda.",
+    'author': "Rodrigo Abrão Madureira.",
     'depends': [
         'sale',
         'sale_management',
