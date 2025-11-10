@@ -43,26 +43,21 @@
                             string="Confirm"
                             attrs="{'invisible': ['|', ('state', '!=', 'draft'), '&amp;', ('origin_production_id', '!=', False), ('state', '!=', 'draft')]}"/>
 
-                    <!-- Botão Validar - Lógica simplificada -->
+                    <!-- Botão Validar - Aparece para OP filial após confirmação (state='confirmed') -->
                     <button name="button_mark_done"
                             type="object"
                             class="oe_highlight"
                             string="Validate"
-                            attrs="{'invisible': [('state', 'not in', ['progress', 'to_close'])]}"/>
+                            attrs="{'invisible': [('state', 'not in', ['progress', 'to_close', 'confirmed'])]}"/>
 
-                    <!-- Botão Plan/Confirmar para OP filial - Muda para Confirmar e depois some -->
-                    <button name="button_plan"
-                            type="object"
-                            class="oe_highlight"
-                            string="Confirmar"
-                            attrs="{'invisible': ['|', '|', ('state', 'not in', ['draft']), ('origin_production_id', '=', False), ('is_planned', '=', True)]}"/>
+                    <!-- REMOVIDO: Botão Plan/Confirmar para OP filial - Não é mais necessário -->
 
-                    <!-- Botão Plan normal para OPs sem filial -->
+                    <!-- Botão Plan normal para OPs sem filial - OCULTO para OPs com filial -->
                     <button name="button_plan"
                             type="object"
                             class="oe_highlight"
                             string="Plan"
-                            attrs="{'invisible': ['|', '|', ('state', 'not in', ['confirmed', 'progress', 'to_close']), ('workorder_ids', '=', []), ('is_planned', '=', True)]}"/>
+                            attrs="{'invisible': ['|', '|', '|', ('state', 'not in', ['confirmed', 'progress', 'to_close']), ('workorder_ids', '=', []), ('is_planned', '=', True), ('origin_production_id', '!=', False)]}"/>
 
                     <!-- Botão Unplan - OCULTO para OPs com filial E para produtos do tipo molde (related_type = 'm') -->
                     <button name="button_unplan"
@@ -237,14 +232,7 @@
                 <field name="show_validate" invisible="1"/>
                 <field name="picking_type_code" invisible="1"/>
                 <field name="branch_mo_id" invisible="1"/>
-                <field name="is_branch_flow" invisible="1"/>
-                <field name="is_mold_product" invisible="1"/>
             </xpath>
-
-            <!-- Ocultar Check Availability para pickings do fluxo filial E para produtos molde -->
-            <button name="action_assign" position="attributes">
-                <attribute name="attrs">{'invisible': ['|', ('is_branch_flow', '=', True), ('is_mold_product', '=', True)]}</attribute>
-            </button>
 
             <!-- Ocultar Validate para pickings bloqueados -->
             <button name="button_validate" position="attributes">

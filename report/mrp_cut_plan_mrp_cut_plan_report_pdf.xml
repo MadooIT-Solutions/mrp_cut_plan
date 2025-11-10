@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" standalone="no"?>
+<odoo>
+    <record id="report_mrp_cut_plan_mrp_cut_plan_pdf" model="ir.actions.report">
+        <field name="name">PDF Report</field>
+        <field name="model">mrp_cut_plan.mrp_cut_plan</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">mrp_cut_plan_mrp_cut_plan.report_mrp_cut_plan_mrp_cut_plan_document_pdf</field>
+        <field name="report_file">mrp_cut_plan_mrp_cut_plan.report_mrp_cut_plan_mrp_cut_plan_document_pdf</field>
+        <field name="print_report_name">'%s' % 'Report - ' + str(object.id)</field>
+        <field name="binding_model_id" ref="model_mrp_cut_plan_mrp_cut_plan"/>
+        <field name="binding_type">report</field>
+    </record>
+    <template id="report_mrp_cut_plan_mrp_cut_plan_document_pdf">
+        <t t-call="web.html_container">
+            <t t-as="doc" t-foreach="docs">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <div class="oe_structure"/>
+                        <!-- Header section with partner details -->
+                        <div class="row mt-4 mb-4">
+                            <div class="col-6"/>
+                            <div class="col-6"/>
+                        </div>
+                        <!-- Document Title with dynamic field -->
+                        <h2 class="mt-4 mb-3" style="font-size: 1.8rem;">
+                            <strong>
+                                <span t-field="doc.name"/>
+                            </strong>
+                        </h2>
+                        <div class="report-wrapping-flexbox clearfix" id="informations">
+                            <div class="row">
+                                <div class="col-6">
+                                    <div>
+                                        <div class="fw-bold mb-1">Product id number</div>
+                                        <div>
+                                            <span t-field="doc.product_id_number"/>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-6">
+                                    <div>
+                                        <div class="fw-bold mb-1">Blue qty</div>
+                                        <div>
+                                            <span t-field="doc.blue_qty"/>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div style="height: 20px;"/>
+                        </div>
+                        <div class="oe_structure"/>
+                        <table class="table o_main_table table-borderless">
+                            <thead style="display: table-row-group;">
+                                <tr>
+                                    <th class="text-start fw-bold" scope="col" style="width: 15%">Cancel Inventory Moves</th>
+                                    <th class="text-end text-nowrap fw-bold" scope="col" style="width: 15%">Cancel Workorder</th>
+                                    <th class="text-end text-nowrap fw-bold" scope="col" style="width: 15%">Is Lot Number Propagated</th>
+                                    <th class="text-end text-nowrap fw-bold" scope="col" style="width: 15%">Propagated Lot Producing</th>
+                                    <th class="text-end fw-bold" scope="col" style="width: 15%">Breakages Count</th>
+                                </tr>
+                            </thead>
+                            <tbody class="sale_tbody">
+                                <t t-as="line" t-foreach="doc.production_order_id">
+                                    <tr class="o_line_section">
+                                        <td class="text-start align-top">
+                                            <span t-esc="line.cancel_inventory_moves"/>
+                                        </td>
+                                        <td class="text-end text-nowrap align-top">
+                                            <span t-esc="line.cancel_workorder"/>
+                                        </td>
+                                        <td class="text-end text-nowrap align-top">
+                                            <span t-esc="line.is_lot_number_propagated"/>
+                                        </td>
+                                        <td class="text-end text-nowrap align-top">
+                                            <span t-esc="line.propagated_lot_producing"/>
+                                        </td>
+                                        <td class="text-end align-top">
+                                            <span t-esc="line.breakages_count"/>
+                                        </td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

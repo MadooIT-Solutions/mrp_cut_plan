@@ -11,209 +11,258 @@ class StockPicking(models.Model):
     custom_block_validate = fields.Boolean(string="Bloquear Validação")
     show_validate = fields.Boolean(string="Exibir Botão de Validação", default=True)
 
-    # ✅ CORRIGIDO: Relações Many2many com nomes de colunas válidos
     sending_transfer_id = fields.Many2many(
         "stock.picking",
         "stock_picking_sending_rel",
-        "picking_receipt_id",  # Este picking (recebimento)
-        "picking_sending_id",  # Picking de envio relacionado
+        "picking_receipt_id",
+        "picking_sending_id",
         string="Transferência de Envio"
     )
 
     branch_receipt_id = fields.Many2many(
         "stock.picking",
         "stock_picking_branch_receipt_rel",
-        "picking_sending_id",  # Este picking (envio)
-        "picking_receipt_id",  # Picking de recebimento na filial
+        "picking_sending_id",
+        "picking_receipt_id",
         string="Recebimento na Filial"
     )
 
-    # ✅ CORRIGIDO: Para múltiplos retornos da filial
     branch_return_id = fields.Many2many(
         "stock.picking",
         "stock_picking_branch_return_rel",
-        "production_id",  # OP relacionada
-        "return_picking_id",  # Picking de retorno
+        "production_id",
+        "return_picking_id",
         string="Retorno da Filial"
     )
 
-    # ✅ CORRIGIDO: Para múltiplos recebimentos finais
     final_receipt_id = fields.Many2many(
         "stock.picking",
         "stock_picking_final_receipt_rel",
-        "production_id",  # OP relacionada
-        "final_receipt_picking_id",  # Picking de recebimento final
+        "production_id",
+        "final_receipt_picking_id",
         string="Recebimento Final"
     )
 
     origin_production_id = fields.Many2one("mrp.production", string="Ordem de Produção de Origem")
 
-    # ✅ CORRIGIDO: Many2many para múltiplas OPs filiais
     branch_mo_id = fields.Many2many(
         "mrp.production",
         "stock_picking_branch_mo_rel",
-        "picking_id",  # Este picking
-        "production_id",  # OP filial relacionada
+        "picking_id",
+        "production_id",
         string="Ordens de Produção da Filial"
     )
 
     branch_backorder_id = fields.Many2one("stock.picking", string="Backorder Vinculado")
-    is_branch_flow = fields.Boolean(
-        string="É Fluxo Filial",
-        compute='_compute_is_branch_flow',
-        store=False
-    )
-
-    is_mold_product = fields.Boolean(
-        string="É Produto Molde",
-        compute='_compute_is_mold_product',
-        store=False
-    )
 
     # -------------------------------------------------------------------------
-    # Validação de picking - MANTIDO
+    # Validação de picking
     # -------------------------------------------------------------------------
     def button_validate(self):
         for picking in self:
-            # Bloqueio: não permitir validar filial se envio da matriz não concluído
-            if picking.custom_block_validate and picking.sending_transfer_id:
-                pending = picking.sending_transfer_id.filtered(lambda p: p.state != 'done')
-                if pending:
+            # Bloqueio 1: não permitir validar recebimento na filial se envio da matriz não concluído
+            if (picking.picking_type_code == 'incoming' and
+                    picking.sending_transfer_id and
+                    picking.custom_block_validate):
+                pending_sendings = picking.sending_transfer_id.filtered(lambda p: p.state != 'done')
+                if pending_sendings:
                     raise UserError(
                         "Não é possível validar este recebimento enquanto o envio matriz → filial não estiver concluído."
                     )
 
-            # Bloqueio: não permitir validar recebimento na matriz se envio da filial ainda não foi concluído
-            if (picking.picking_type_code == 'incoming' and picking.origin_production_id
-                    and picking.origin_production_id.return_transfer_id):
-                pending_returns = picking.origin_production_id.return_transfer_id.filtered(lambda r: r.state != 'done')
-                if pending_returns:
-                    raise UserError(
-                        "Não é possível validar o recebimento na matriz enquanto o envio da filial ainda não estiver concluído."
-                    )
-
+        # Executa validação padrão do Odoo
         res = super(StockPicking, self).button_validate()
 
-        # Processar após validação
+        # PROCESSAMENTO APÓS VALIDAÇÃO
         for picking in self:
-            # Após validação da matriz, libera filial
-            if picking.picking_type_code == 'internal' and picking.state == 'done':
+            _logger.info(f"🔍 Pós-validação: {picking.name} | Tipo={picking.picking_type_code} | State={picking.state}")
+
+            # 1️⃣ Após validação de envio (matriz → filial): libera recebimento na filial
+            if (picking.picking_type_code == 'outgoing' and
+                    picking.state == 'done' and
+                    picking.branch_receipt_id):
+
                 for receipt in picking.branch_receipt_id:
-                    receipt.write({'custom_block_validate': False, 'show_validate': True})
+                    receipt.write({
+                        'custom_block_validate': False,
+                        'show_validate': True
+                    })
                     receipt.message_post(
                         body=f"✅ Recebimento liberado: envio {picking.name} concluído."
                     )
+                    _logger.info(f"✅ Recebimento {receipt.name} liberado após envio {picking.name}")
 
-            # Após validação do recebimento final, verificar se pode concluir OP matriz
-            if picking.picking_type_code == 'incoming' and picking.state == 'done':
-                origin_mo = picking.origin_production_id
-                if origin_mo and origin_mo.branch_location_id:
-                    # Verificar se quantidade total recebida é suficiente
-                    if origin_mo.total_qty_received >= origin_mo.product_qty:
-                        origin_mo.message_post(
-                            body=f"✅ Quantidade total recebida ({origin_mo.total_qty_received}) atingiu a quantidade planejada ({origin_mo.product_qty}). "
-                                 f"OP pode ser concluída."
+            # 2️⃣ Após validação de recebimento na FILIAL: criar OP filial
+            # ⚠️ ADICIONAR VERIFICAÇÃO PARA EVITAR RECEBIMENTOS FINAIS
+            if (picking.picking_type_code == 'incoming' and
+                    picking.state == 'done' and
+                    picking.origin_production_id and
+                    not picking.branch_mo_id and
+                    not picking.final_receipt_id and  # ⚠️ EVITA RECEBIMENTOS FINAIS
+                    'Recebimento Final' not in picking.origin):  # ⚠️ VERIFICA A ORIGEM
+
+                _logger.info(f"✅ Recebimento na filial confirmado ({picking.name}), criando OP filial...")
+
+                try:
+                    # Busca a OP matriz através do origin_production_id
+                    origin_mo = picking.origin_production_id
+                    if not origin_mo:
+                        _logger.warning(f"⚠️ Recebimento {picking.name} sem OP matriz vinculada")
+                        continue
+
+                    # Calcula quantidade recebida
+                    qty_received = sum(
+                        move.quantity_done for move in picking.move_ids_without_package
+                        if move.product_id == origin_mo.product_id
+                    )
+
+                    if qty_received > 0:
+                        # Cria OP filial usando o método da OP matriz
+                        branch_mo = origin_mo._create_mo_from_receipt(
+                            qty=qty_received,
+                            receipt_picking=picking
                         )
 
-            # Se é um recebimento na filial que foi parcialmente validado (criou backorder)
-            if (picking.picking_type_code == 'internal' and picking.state == 'done' and
-                    picking.origin_production_id and picking.location_dest_id.usage == 'internal'):
-                self._process_partial_branch_receipt(picking)
+                        if branch_mo:
+                            # Vincula a OP filial ao recebimento
+                            picking.write({
+                                'branch_mo_id': [(4, branch_mo.id)]
+                            })
+                            _logger.info(f"✅ OP filial criada: {branch_mo.name} para {qty_received} unidades")
 
-            # Atualiza quantidade total recebida na OP matriz após recebimento final
-            if picking.picking_type_code == 'incoming' and picking.state == 'done' and picking.origin_production_id:
+                            # Atualiza estado da OP matriz
+                            origin_mo._compute_message_state()
+                except Exception as e:
+                    _logger.error(f"❌ Erro ao criar OP filial para {picking.name}: {str(e)}")
+
+            # 3️⃣ Após validação de OP FILIAL: criar envio de retorno
+            if (picking.picking_type_code == 'mrp_operation' and
+                    picking.state == 'done' and
+                    picking.origin_production_id):
+
+                branch_mo = picking
+                origin_mo = branch_mo.origin_production_id
+
+                _logger.info(f"✅ OP filial concluída ({branch_mo.name}), criando retorno...")
+
+                try:
+                    # Verifica se já existe retorno criado
+                    if not branch_mo.return_transfer_id:
+                        return_picking = branch_mo._create_return_transfer()
+                        final_receipt = branch_mo._create_final_receipt(return_picking)
+
+                        # Vincula os pickings
+                        branch_mo.write({
+                            'return_transfer_id': [(4, return_picking.id)],
+                            'final_receipt_id': [(4, final_receipt.id)]
+                        })
+
+                        origin_mo.write({
+                            'return_transfer_id': [(4, return_picking.id)],
+                            'final_receipt_id': [(4, final_receipt.id)]
+                        })
+
+                        _logger.info(f"✅ Retorno criado: {return_picking.name}")
+
+                except Exception as e:
+                    _logger.error(f"❌ Erro ao criar retorno da filial: {str(e)}")
+
+            # 4️⃣ Após validação de envio da FILIAL: libera recebimento na matriz
+            if (picking.picking_type_code == 'outgoing' and
+                    picking.state == 'done' and
+                    picking.final_receipt_id):
+
+                for final_receipt in picking.final_receipt_id:
+                    final_receipt.write({
+                        'custom_block_validate': False,
+                        'show_validate': True
+                    })
+                    _logger.info(f"✅ Recebimento final {final_receipt.name} liberado")
+
+            # 5️⃣ Atualiza quantidade total recebida após recebimento final na matriz
+            # ⚠️ MODIFICADO: Só atualiza se for um recebimento final válido
+            if (picking.picking_type_code == 'incoming' and
+                    picking.state == 'done' and
+                    picking.origin_production_id and
+                    'Recebimento Final' in (picking.origin or '')):
                 picking.origin_production_id._compute_total_qty_received()
+                _logger.info(f"📦 Quantidade recebida atualizada para OP matriz {picking.origin_production_id.name}")
 
         return res
 
     def _process_partial_branch_receipt(self, picking):
-        """Processa recebimento parcial na filial - cria transferência e OP para quantidade recebida"""
+        """Processa recebimento na filial - cria/atualiza OP somente se recebimento validado"""
         try:
-            origin_mo = picking.origin_production_id
-            if not origin_mo or not origin_mo.branch_location_id:
+            # ⚠️ VERIFICA SE É UM RECEBIMENTO FINAL
+            if 'Recebimento Final' in (picking.origin or ''):
+                _logger.info(f"⏸️ Ignorando processamento: é um recebimento final {picking.name}")
                 return
 
-            # Calcular quantidade recebida (feita) - usar o produto da OP
-            qty_received = 0
-            for move in picking.move_ids_without_package:
-                if move.product_id == origin_mo.product_id and move.quantity_done > 0:
-                    qty_received += move.quantity_done
+            origin_mo = picking.origin_production_id
+            if not origin_mo or not origin_mo.branch_location_id:
+                _logger.info("Ignorando processamento parcial: sem origin_mo ou sem branch_location_id.")
+                return
+
+            # Garante que o recebimento foi validado e não está bloqueado
+            if picking.custom_block_validate or picking.state != 'done':
+                _logger.info(f"⏳ Recebimento {picking.name} ainda bloqueado ou não finalizado. Ignorando.")
+                return
+
+            # Quantidade recebida do produto da OP
+            qty_received = sum(
+                move.quantity_done for move in picking.move_ids_without_package
+                if move.product_id == origin_mo.product_id and move.quantity_done > 0
+            )
 
             _logger.info(
-                f"📦 Recebimento detectado: {qty_received} recebido do produto {origin_mo.product_id.display_name}")
+                f"📦 Recebimento detectado ({picking.name}): {qty_received} x {origin_mo.product_id.display_name}")
 
-            # Encontrar o backorder criado para este picking
-            backorder = self.search([
-                ('backorder_id', '=', picking.id),
-                ('state', 'not in', ['done', 'cancel'])
-            ], limit=1)
+            if qty_received <= 0:
+                return
 
+            # Verificar se já existe OP filial vinculada (não criar duplicada)
+            existing_mos = picking.branch_mo_id.filtered(lambda mo: mo.state not in ['done', 'cancel'])
+            if existing_mos:
+                mo_to_update = existing_mos[0]
+                old_qty = mo_to_update.product_qty
+                mo_to_update.write({'product_qty': qty_received})
+                mo_to_update._update_moves()
+                _logger.info(f"🔄 OP filial atualizada: {mo_to_update.name} ({old_qty} → {qty_received})")
+            else:
+                branch_mo = origin_mo.sudo()._create_mo_from_receipt(qty_received, picking)
+                picking.write({'branch_mo_id': [(4, branch_mo.id)]})
+                _logger.info(f"✅ OP filial criada após recebimento: {branch_mo.name} - {qty_received}")
+
+            # Caso haja backorder, cria transferência da matriz para filial
+            backorder = self.search([('backorder_id', '=', picking.id), ('state', 'not in', ['done', 'cancel'])],
+                                    limit=1)
+            qty_backorder = 0.0
             if backorder:
-                # Calcular quantidade faltante (no backorder)
-                qty_backorder = 0
-                for move in backorder.move_ids_without_package:
-                    if move.product_id == origin_mo.product_id:
-                        qty_backorder += move.product_uom_qty
+                qty_backorder = sum(move.product_uom_qty for move in backorder.move_ids_without_package if
+                                    move.product_id == origin_mo.product_id)
 
-                _logger.info(f"📦 Recebimento parcial: {qty_received} recebido, {qty_backorder} em backorder")
-
-                # 1. SEMPRE criar OP na filial para quantidade RECEBIDA (mesmo que já exista)
-                if qty_received > 0:
-                    # ✅ ATUALIZADO: Agora verifica se já existe alguma OP vinculada
-                    existing_mos = picking.branch_mo_id.filtered(lambda mo: mo.state not in ['done', 'cancel'])
-                    if existing_mos:
-                        # Atualizar quantidade da OP existente (pega a primeira não concluída)
-                        mo_to_update = existing_mos[0]
-                        old_qty = mo_to_update.product_qty
-                        mo_to_update.write({'product_qty': qty_received})
-                        mo_to_update._update_moves()
-                        _logger.info(
-                            f"🔄 OP filial atualizada: {mo_to_update.name} - {old_qty} → {qty_received}")
-                    else:
-                        # Criar nova OP
-                        branch_mo = origin_mo.sudo()._create_mo_from_receipt(qty_received, picking)
-                        # ✅ ATUALIZADO: Adiciona à relação Many2many
-                        picking.write({'branch_mo_id': [(4, branch_mo.id)]})
-                        _logger.info(f"✅ OP filial criada para quantidade recebida: {branch_mo.name} - {qty_received}")
-
-                # 2. Criar transferência da matriz para quantidade FALTANTE (backorder)
-                if qty_backorder > 0:
-                    # Verificar se já existe transferência para este backorder
-                    existing_transfer = self.search([
-                        ('origin', 'ilike', f"{origin_mo.name} - Backorder"),
-                        ('state', 'not in', ['done', 'cancel']),
-                        ('location_dest_id', '=', origin_mo.branch_location_id.id)
-                    ], limit=1)
-
-                    if not existing_transfer:
-                        transfer_picking = origin_mo.sudo()._create_backorder_transfer(qty_backorder)
-                        # Vincular o backorder à transferência criada
+            if qty_backorder > 0:
+                existing_transfer = self.search([
+                    ('origin', 'ilike', f"{origin_mo.name} - Backorder"),
+                    ('state', 'not in', ['done', 'cancel']),
+                    ('location_dest_id', '=', origin_mo.branch_location_id.id)
+                ], limit=1)
+                if not existing_transfer:
+                    transfer_picking = origin_mo.sudo()._create_backorder_transfer(qty_backorder)
+                    if backorder:
                         backorder.write({
                             'sending_transfer_id': [(4, transfer_picking.id)],
                             'custom_block_validate': True,
                             'show_validate': False,
                         })
-                        transfer_picking.write({
-                            'branch_receipt_id': [(4, backorder.id)]
-                        })
-                        _logger.info(f"✅ Transferência de backorder criada: {transfer_picking.name} - {qty_backorder}")
-                    else:
-                        _logger.info(f"⚠️ Transferência de backorder já existe: {existing_transfer.name}")
-
-            # Caso não tenha backorder mas tenha quantidade recebida (recebimento completo)
-            elif qty_received > 0 and not picking.branch_mo_id:
-                # Criar OP para quantidade recebida completa
-                branch_mo = origin_mo.sudo()._create_mo_from_receipt(qty_received, picking)
-                # ✅ ATUALIZADO: Adiciona à relação Many2many
-                picking.write({'branch_mo_id': [(4, branch_mo.id)]})
-                _logger.info(f"✅ OP filial criada para recebimento completo: {branch_mo.name} - {qty_received}")
+                    transfer_picking.write({'branch_receipt_id': [(4, backorder.id)] if backorder else []})
+                    _logger.info(f"✅ Transferência de backorder criada: {transfer_picking.name} ({qty_backorder})")
 
         except Exception as e:
             _logger.error(f"❌ Erro ao processar recebimento na filial: {str(e)}")
-            # Não levantar exceção para não bloquear a validação do picking
 
     # -------------------------------------------------------------------------
-    # ✅ MANTIDO: _action_done para bloqueio extra
+    # _action_done: bloqueio extra
     # -------------------------------------------------------------------------
     def _action_done(self):
         for picking in self:
@@ -226,65 +275,61 @@ class StockPicking(models.Model):
         return super(StockPicking, self)._action_done()
 
     # -------------------------------------------------------------------------
-    # ✅ MANTIDO: processar backorders após criação
+    # Processar backorders após criação (ajustado para não criar OP prematuramente)
     # -------------------------------------------------------------------------
     def _process_backorder_after_creation(self):
-        """Processa backorders após sua criação - ESSENCIAL para múltiplas OPs"""
         for backorder in self:
-            # Herda flag de bloqueio do original
+            _logger.info(f"🧩 Processando backorder {backorder.name} | tipo={backorder.picking_type_code} | state={backorder.state}")
+
+            # Ignora backorders enquanto bloqueado ou não finalizado
+            if backorder.custom_block_validate or backorder.state not in ['done', 'assigned']:
+                _logger.info(f"⏸️ Ignorando backorder {backorder.name}: bloqueado ou state={backorder.state}")
+                continue
+
             original_picking = backorder.backorder_id
             if original_picking and getattr(original_picking, 'custom_block_validate', False):
                 backorder.custom_block_validate = True
 
-            # Se backorder é um recebimento na filial
-            if (backorder.picking_type_code == 'internal' and
-                    backorder.origin_production_id and
-                    backorder.location_dest_id.usage == 'internal'):
-
+            # Se for backorder de recebimento na filial, apenas cria transferência se necessário.
+            if (
+                backorder.picking_type_code == 'internal'
+                and backorder.origin_production_id
+                and backorder.location_dest_id.usage == 'internal'
+                and backorder.sending_transfer_id
+                and not backorder.custom_block_validate
+                and backorder.state == 'done'
+            ):
                 origin_mo = backorder.origin_production_id
                 if origin_mo and origin_mo.branch_location_id:
                     try:
-                        # Calcular quantidade faltante no backorder
-                        qty_backorder = sum(move.product_uom_qty for move in backorder.move_ids_without_package
-                                            if move.product_id == origin_mo.product_id)
-
-                        # Verificar se já existe transferência para este backorder
-                        existing_transfer = self.search([
-                            ('origin', 'ilike', f"{origin_mo.name} - Backorder"),
-                            ('state', 'not in', ['done', 'cancel']),
-                            ('location_dest_id', '=', origin_mo.branch_location_id.id)
-                        ], limit=1)
-
-                        if not existing_transfer and qty_backorder > 0:
-                            # Criar transferência da matriz para filial com quantidade faltante
-                            transfer_picking = origin_mo.sudo()._create_backorder_transfer(qty_backorder)
-
-                            # Vincular o backorder à transferência criada
-                            backorder.write({
-                                'sending_transfer_id': [(4, transfer_picking.id)],
-                                'custom_block_validate': True,
-                                'show_validate': False,
-                            })
-                            transfer_picking.write({
-                                'branch_receipt_id': [(4, backorder.id)]
-                            })
-
-                            _logger.info(
-                                f"✅ Transferência de backorder criada: {transfer_picking.name} para quantidade {qty_backorder}")
-
+                        qty_backorder = sum(move.product_uom_qty for move in backorder.move_ids_without_package if move.product_id == origin_mo.product_id)
+                        if qty_backorder > 0:
+                            existing_transfer = self.search([
+                                ('origin', 'ilike', f"{origin_mo.name} - Backorder"),
+                                ('state', 'not in', ['done', 'cancel']),
+                                ('location_dest_id', '=', origin_mo.branch_location_id.id)
+                            ], limit=1)
+                            if not existing_transfer:
+                                transfer_picking = origin_mo.sudo()._create_backorder_transfer(qty_backorder)
+                                backorder.write({
+                                    'sending_transfer_id': [(4, transfer_picking.id)],
+                                    'custom_block_validate': True,
+                                    'show_validate': False,
+                                })
+                                transfer_picking.write({'branch_receipt_id': [(4, backorder.id)]})
+                                _logger.info(f"✅ Transferência de backorder criada: {transfer_picking.name} ({qty_backorder})")
+                            else:
+                                _logger.info(f"⚠️ Transferência de backorder já existe: {existing_transfer.name}")
                     except Exception as e:
                         _logger.error(f"❌ Erro ao criar transferência de backorder: {str(e)}")
 
-            # Se for backorder da matriz, bloqueia filial até conclusão
-            if backorder.picking_type_code == 'internal' and backorder.branch_receipt_id:
+            # Se for backorder da matriz -> herda bloqueios mas não cria OP
+            elif backorder.picking_type_code == 'internal' and backorder.branch_receipt_id:
                 pending = backorder.branch_receipt_id.filtered(lambda p: p.state not in ['done', 'cancel'])
                 if pending:
                     backorder.custom_block_validate = True
-                    backorder.message_post(
-                        body="❌ Backorder da filial bloqueada: aguarde a conclusão da matriz."
-                    )
+                    backorder.message_post(body="❌ Backorder da filial bloqueada: aguarde a conclusão da matriz.")
 
-            # Forçar status "Para Processar" se bloqueado
             if backorder.custom_block_validate:
                 try:
                     backorder.action_confirm()
@@ -293,42 +338,21 @@ class StockPicking(models.Model):
                     backorder.write({'state': 'assigned'})
 
     # -------------------------------------------------------------------------
-    # ✅ MANTIDO: Override _create_backorder para processamento automático
+    # Override _create_backorder para processamento automático
     # -------------------------------------------------------------------------
     def _create_backorder(self):
-        """Cria backorder e processa fluxo personalizado - ESSENCIAL para múltiplas OPs"""
         backorders = super(StockPicking, self)._create_backorder()
-
-        # Processar backorders criados
         if backorders:
             backorders._process_backorder_after_creation()
-
         return backorders
 
     def action_assign(self):
-        """Override para criar OP quando backorder for atribuído/liberado"""
         res = super(StockPicking, self).action_assign()
 
         for picking in self:
-            # Se é um backorder de recebimento na filial que foi liberado
-            if (picking.picking_type_code == 'internal' and
-                    picking.origin_production_id and
-                    picking.location_dest_id.usage == 'internal' and
-                    picking.state == 'assigned' and
-                    not picking.branch_mo_id):
-
-                try:
-                    origin_mo = picking.origin_production_id
-                    qty = sum(move.product_uom_qty for move in picking.move_ids_without_package
-                              if move.product_id == origin_mo.product_id)
-
-                    if qty > 0:
-                        branch_mo = origin_mo.sudo()._create_mo_from_receipt(qty, picking)
-                        # ✅ ATUALIZADO: Adiciona à relação Many2many
-                        picking.write({'branch_mo_id': [(4, branch_mo.id)]})
-                        _logger.info(f"✅ OP filial criada ao liberar backorder: {branch_mo.name} - {qty}")
-
-                except Exception as e:
-                    _logger.error(f"❌ Erro ao criar OP ao liberar backorder: {str(e)}")
+            # Não criar OP aqui — criação só deve ocorrer após RECEBIMENTO validado (button_validate)
+            _logger.debug(
+                f"action_assign: {picking.name} | state={picking.state} | block={picking.custom_block_validate} | sending={bool(picking.sending_transfer_id)}"
+            )
 
         return res

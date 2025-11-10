@@ -258,9 +258,18 @@ class MrpCutPlan(models.Model):
 
         venda = self.sale_order_id.procurement_group_id if self.sale_order_id else False
         data_plan = self.sale_order_id.commitment_date if self.sale_order_id else False
+        # 🔹 Forçar criação na matriz (exemplo: Polispan)
+        company_matrix = self.env['res.company'].search([('name', '=', 'Polispan')], limit=1)
+        warehouse_matrix = self.env['stock.warehouse'].search([('company_id', '=', company_matrix.id)], limit=1)
+
+        if not warehouse_matrix:
+            raise UserError("❌ Nenhum armazém encontrado para a matriz (Polispan).")
 
         # 🔹 Criação da OP
         production_data = {
+            'company_id': company_matrix.id,
+            'location_src_id': warehouse_matrix.lot_stock_id.id,  # Estoque origem
+            'location_dest_id': warehouse_matrix.lot_stock_id.id,  # Produção destino
             'cut_plan_id': self.id,
             'product_id': self.product_id.id,
             'product_uom_id': self.product_id.uom_id.id,

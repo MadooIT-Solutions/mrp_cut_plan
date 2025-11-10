@@ -1,6 +1,6 @@
 {
     'name': "Plano de Corte Polispan",
-    'version': '16.0.1.0.2',
+    'version': '16.0.1.0.3',
     'description': """Plano de Corte Polispan""",
     'author': "Rodrigo Abrão Madureira.",
     'depends': [
@@ -24,6 +24,7 @@
         'report/sale.xml',
         'report/purchase.xml',
         'views/mrp_production.xml',
+        'report/mrp_cut_plan_mrp_cut_plan_report_pdf.xml'
     ],
     'license': 'LGPL-3',
     'installable': True,
