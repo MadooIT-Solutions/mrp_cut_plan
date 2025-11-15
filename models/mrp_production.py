@@ -630,8 +630,6 @@ class BlueMrpProduction(models.Model):
                 f"⏸️ Recebimento {receipt_picking.name} sem qty do produto da OP ({self.product_id.display_name}).")
             return False
 
-        # (a partir daqui o código original segue utilizando 'qty' ou 'qty_received' conforme desejar)
-
         # ⚙️ Verifica se já existe OP vinculada a este recebimento
         if receipt_picking.branch_mo_id:
             existing_mo = receipt_picking.branch_mo_id[0]
@@ -667,11 +665,11 @@ class BlueMrpProduction(models.Model):
         if not bom:
             raise UserError(f"Nenhuma lista de materiais encontrada para {self.product_id.display_name}")
 
-        # ⚠️ CALCULA O RATIO EXATO BASEADO NA QUANTIDADE ORIGINAL DA MATRIZ
-        original_qty = self.product_qty
-        ratio = qty / original_qty if original_qty > 0 else 1
 
-        _logger.info(f"📊 Cálculo de quantidades: Matriz={original_qty}, Filial={qty}, Ratio={ratio}")
+        original_qty = self.product_qty
+
+
+        _logger.info(f"📊 Cálculo de quantidades: Matriz={original_qty}, Filial={qty}")
 
         # Valores para criar a OP filial
         mo_vals = {
@@ -694,8 +692,9 @@ class BlueMrpProduction(models.Model):
         mo = self.env['mrp.production'].create(mo_vals)
 
         # ⚠️ ATUALIZA OS MOVIMENTOS COM QUANTIDADES EXATAS PROPORCIONAIS ÀS DA MATRIZ
-        self._update_branch_mo_moves_exact(mo, ratio)
-
+        # Mantém o cálculo proporcional para garantir consistência
+        self._force_preserve_matrix_quantities(mo)
+        mo.with_context(bypass_update_moves=True)._update_moves()
         # Vincula a OP filial a si mesma
         mo.write({
             'branch_production_id': [(4, mo.id)]
@@ -714,13 +713,13 @@ class BlueMrpProduction(models.Model):
         _logger.info(f"✅ OP filial criada: {mo.name} (qty={qty})")
 
         # Valida as quantidades
-        self._validate_branch_mo_quantities_exact(mo, original_qty, qty, ratio)
+        self._validate_branch_mo_quantities_exact(mo, original_qty, qty)
 
         # Notifica a OP matriz
         self.message_post(
             body=f"⚙️ OP filial criada: "
                  f"<a href='/web#id={mo.id}&model=mrp.production'>{mo.name}</a> "
-                 f"para {qty} unidades (Ratio: {ratio:.3f})."
+                 f"para {qty} unidades"
         )
 
         return mo
@@ -941,46 +940,68 @@ class BlueMrpProduction(models.Model):
                 })
 
     def _update_moves(self):
+        """Atualiza movimentos - CORRIGIDO para não multiplicar/dividir quantidades"""
+
+        # ⚠️ SE BYPASS ESTÁ ATIVO, NÃO FAZ NADA
+        if self.env.context.get('bypass_update_moves'):
+            _logger.warning(f"⛔ BYPASS ativo - _update_moves ignorado para {self.name}")
+            return
+
         for production in self:
+            _logger.warning(f"🔍 _update_moves chamado para OP: {production.name}")
+            _logger.warning(f"   • Estado: {production.state}")
+            _logger.warning(f"   • Tipo: {'MATRIZ' if not production.origin_production_id else 'FILIAL'}")
+            _logger.warning(
+                f"   • Branch Location: {production.branch_location_id.display_name if production.branch_location_id else 'None'}")
+            _logger.warning(f"   • Product Qty: {production.product_qty}")
+
             # ⚠️ SE FOR OP MATRIZ SENDO ENVIADA PARA FILIAL, PRESERVA AS QUANTIDADES ORIGINAIS
             if production.branch_location_id and not production.origin_production_id:
-                _logger.info(
-                    f"🛑 OP Matriz {production.name} com filial - preservando quantidades originais dos componentes")
-                # NÃO FAZ NADA - preserva as quantidades existentes
+                _logger.warning(
+                    f"🛑 OP Matriz {production.name} com filial - PRESERVANDO quantidades originais dos componentes")
+                # ⚠️ NÃO FAZ NADA - preserva as quantidades existentes calculadas pelo mrp_cut_plan
                 continue
 
-            # ⚠️ PARA OP FILIAL: USA A QUANTIDADE DA PRÓPRIA OP, NÃO DA MATRIZ
+            # ⚠️ SE FOR OP FILIAL: USA AS QUANTIDADES EXATAS DA MATRIZ (já definidas na criação)
             if production.origin_production_id:
-                # OP filial - usa sua própria quantidade
-                product_qty = production.product_qty
-                bom = production.bom_id
-                bom_product_qty = bom.product_qty or 1
+                _logger.warning(f"🛑 OP Filial {production.name} - PRESERVANDO quantidades da matriz")
+                # ⚠️ NÃO FAZ NADA - as quantidades já foram copiadas exatamente da matriz
+                continue
 
-                for move in production.move_raw_ids:
-                    bom_line = bom.bom_line_ids.filtered(
-                        lambda line: line.product_id == move.product_id
-                    )
-                    if bom_line:
-                        # Calcula baseado na quantidade da OP filial
-                        new_qty = bom_line.product_qty * product_qty / bom_product_qty
-                        move.write({'product_uom_qty': new_qty})
-                        _logger.info(f"📦 OP Filial {production.name}: {move.product_id.display_name} = {new_qty}")
+            # ⚠️ COMPORTAMENTO ORIGINAL APENAS PARA OPs SEM FILIAL
+            _logger.warning(f"📦 OP Sem filial {production.name} - aplicando cálculo normal da BOM")
+            for move in production.move_raw_ids:
+                bom_line = production.bom_id.bom_line_ids.filtered(
+                    lambda line: line.product_id == move.product_id
+                )
+                if bom_line:
+                    new_qty = bom_line.product_qty * production.product_qty / production.bom_id.product_qty
+                    move.write({'product_uom_qty': new_qty})
+                    _logger.info(f"   • {move.product_id.display_name}: {new_qty}")
 
-                for move in production.move_finished_ids:
-                    if move.product_id == production.product_id:
-                        move.write({'product_uom_qty': product_qty})
-            else:
-                # OP matriz SEM filial - comportamento original
-                for move in production.move_raw_ids:
-                    bom_line = production.bom_id.bom_line_ids.filtered(
-                        lambda line: line.product_id == move.product_id
-                    )
-                    if bom_line:
-                        new_qty = bom_line.product_qty * production.product_qty / production.bom_id.product_qty
-                        move.write({'product_uom_qty': new_qty})
-                for move in production.move_finished_ids:
-                    if move.product_id == production.product_id:
-                        move.write({'product_uom_qty': production.product_qty})
+            for move in production.move_finished_ids:
+                if move.product_id == production.product_id:
+                    move.write({'product_uom_qty': production.product_qty})
+
+    def _force_preserve_matrix_quantities(self, branch_mo):
+        """Força a preservação das quantidades exatas da matriz na OP filial"""
+        _logger.warning(f"🔧 FORÇANDO preservação de quantidades da matriz para OP filial {branch_mo.name}")
+
+        # Copia as quantidades EXATAS dos componentes da matriz para a filial
+        for matrix_move in self.move_raw_ids:
+            branch_move = branch_mo.move_raw_ids.filtered(
+                lambda m: m.product_id == matrix_move.product_id
+            )
+            if branch_move:
+                # ⚠️ COPIA A QUANTIDADE EXATA DA MATRIZ
+                original_qty = matrix_move.product_uom_qty
+                branch_move.write({'product_uom_qty': original_qty})
+                _logger.warning(f"   ✅ {matrix_move.product_id.display_name}: {original_qty} (cópia exata da matriz)")
+
+        # Garante que o produto acabado tenha a quantidade correta
+        for branch_move in branch_mo.move_finished_ids:
+            if branch_move.product_id == branch_mo.product_id:
+                branch_move.write({'product_uom_qty': branch_mo.product_qty})
 
     def action_check_flow_status(self):
         for record in self:
@@ -1154,11 +1175,11 @@ class BlueMrpProduction(models.Model):
 
         return True
 
-    def _update_branch_mo_moves_exact(self, branch_mo, ratio):
-        """Atualiza movimentos da OP filial com quantidades exatas proporcionais às da matriz"""
-        _logger.info(f"🔧 Atualizando movimentos OP filial {branch_mo.name} com ratio {ratio}")
+    def _update_branch_mo_moves_original(self, branch_mo):
+        """Atualiza movimentos da OP filial MANTENDO quantidades originais da matriz"""
+        _logger.info(f"🔧 Atualizando movimentos OP filial {branch_mo.name} com quantidades ORIGINAIS")
 
-        # ⚠️ REPLICA OS MOVIMENTOS DE MATÉRIA-PRIMA DA MATRIZ EXATAMENTE (PROPORCIONALMENTE)
+        # ⚠️ COPIA AS QUANTIDADES EXATAS DA MATRIZ PARA A FILIAL
         for origin_move in self.move_raw_ids:
             # Encontra o movimento correspondente na filial
             branch_move = branch_mo.move_raw_ids.filtered(
@@ -1166,15 +1187,14 @@ class BlueMrpProduction(models.Model):
             )
 
             if branch_move:
-                # ⚠️ CALCULA QUANTIDADE EXATA PROPORCIONAL À MATRIZ
-                exact_qty = origin_move.product_uom_qty * ratio
-                branch_move.write({'product_uom_qty': exact_qty})
+                # ⚠️ MANTÉM A QUANTIDADE ORIGINAL DA MATRIZ - NÃO MULTIPLICA
+                branch_move.write({'product_uom_qty': origin_move.product_uom_qty})
 
                 _logger.info(f"📦 Componente {origin_move.product_id.display_name}: "
                              f"Matriz={origin_move.product_uom_qty}, "
-                             f"Filial={exact_qty} (ratio={ratio})")
+                             f"Filial={origin_move.product_uom_qty} (MESMA QUANTIDADE)")
 
-        # ⚠️ REPLICA OS MOVIMENTOS DE PRODUTO ACABADO
+        # ⚠️ ATUALIZA MOVIMENTOS DE PRODUTO ACABADO
         for origin_move in self.move_finished_ids:
             if origin_move.product_id == self.product_id:
                 branch_move = branch_mo.move_finished_ids.filtered(
@@ -1183,12 +1203,12 @@ class BlueMrpProduction(models.Model):
                 if branch_move:
                     branch_move.write({'product_uom_qty': branch_mo.product_qty})
 
-    def _validate_branch_mo_quantities_exact(self, branch_mo, original_qty, received_qty, ratio):
-        """Valida se as quantidades da OP filial estão exatamente proporcionais às da matriz"""
+    def _validate_branch_mo_quantities_exact(self, branch_mo, original_qty, received_qty):
+        """Valida se as quantidades da OP filial são IGUAIS às da matriz"""
         self.ensure_one()
 
-        _logger.info(f"🔍 Validando quantidades exatas: OP Matriz {self.name} -> OP Filial {branch_mo.name}")
-        _logger.info(f"📊 Original: {original_qty}, Recebido: {received_qty}, Ratio: {ratio}")
+        _logger.info(f"🔍 Validando quantidades: OP Matriz {self.name} -> OP Filial {branch_mo.name}")
+        _logger.info(f"📊 Original: {original_qty}, Recebido: {received_qty}")
 
         discrepancies = []
 
@@ -1197,7 +1217,7 @@ class BlueMrpProduction(models.Model):
             discrepancies.append(f"Quantidade produto: Esperado={received_qty}, Atual={branch_mo.product_qty}")
             branch_mo.write({'product_qty': received_qty})
 
-        # Verifica componentes com quantidades exatas da matriz
+        # ⚠️ VERIFICA SE OS COMPONENTES TEM MESMAS QUANTIDADES DA MATRIZ
         for branch_move in branch_mo.move_raw_ids:
             # Encontra o movimento correspondente na matriz
             origin_move = self.move_raw_ids.filtered(
@@ -1205,23 +1225,21 @@ class BlueMrpProduction(models.Model):
             )
 
             if origin_move:
-                origin_move = origin_move[0]  # Pega o primeiro movimento correspondente
-                expected_qty = origin_move.product_uom_qty * ratio
+                origin_move = origin_move[0]
+                # ⚠️ ESPERA A MESMA QUANTIDADE DA MATRIZ
+                expected_qty = origin_move.product_uom_qty
 
                 # Tolerância de 0.001 para diferenças de arredondamento
                 if abs(branch_move.product_uom_qty - expected_qty) > 0.001:
                     discrepancies.append(
                         f"Componente {branch_move.product_id.display_name}: "
-                        f"Esperado={expected_qty:.3f} (Matriz: {origin_move.product_uom_qty} × {ratio}), "
+                        f"Esperado={expected_qty:.3f} (Igual matriz), "
                         f"Atual={branch_move.product_uom_qty:.3f}"
                     )
-                    # ⚠️ CORRIGE A QUANTIDADE PARA SER EXATAMENTE PROPORCIONAL
+                    # ⚠️ CORRIGE PARA SER EXATAMENTE IGUAL À MATRIZ
                     branch_move.write({'product_uom_qty': expected_qty})
                     _logger.info(
                         f"🔧 Corrigido {branch_move.product_id.display_name}: {branch_move.product_uom_qty:.3f} -> {expected_qty:.3f}")
-
-            else:
-                _logger.warning(f"⚠️ Componente {branch_move.product_id.display_name} não encontrado na OP matriz")
 
         # Log do resultado
         if discrepancies:
@@ -1251,3 +1269,35 @@ class BlueMrpProduction(models.Model):
             _logger.warning(f"✅ Consumo recalculado para: {record.name}")
 
         return True
+
+    @api.model
+    def _scheduled_fix_branch_quantities(self):
+        """Tarefa agendada para corrigir quantidades de OPs filiais"""
+        _logger.warning("🔧 Executando correção agendada de quantidades...")
+
+        # Encontra todas as OPs matriz com filial
+        matrix_mos = self.search([
+            ('branch_location_id', '!=', False),
+            ('origin_production_id', '=', False)
+        ])
+
+        for matrix_mo in matrix_mos:
+            _logger.warning(f"🔧 Verificando OP matriz: {matrix_mo.name}")
+
+            # Para cada OP filial vinculada, corrige as quantidades
+            for branch_mo in matrix_mo.branch_production_id:
+                _logger.warning(f"🔧 Corrigindo OP filial: {branch_mo.name}")
+
+                # Copia as quantidades exatas da matriz para a filial
+                for matrix_move in matrix_mo.move_raw_ids:
+                    branch_move = branch_mo.move_raw_ids.filtered(
+                        lambda m: m.product_id == matrix_move.product_id
+                    )
+                    if branch_move:
+                        original_qty = matrix_move.product_uom_qty
+                        current_qty = branch_move.product_uom_qty
+
+                        if abs(original_qty - current_qty) > 0.001:
+                            branch_move.write({'product_uom_qty': original_qty})
+                            _logger.warning(
+                                f"   ✅ Corrigido: {matrix_move.product_id.display_name} {current_qty} → {original_qty}")

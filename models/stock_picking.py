@@ -85,7 +85,7 @@ class StockPicking(models.Model):
                 pending_sendings = picking.sending_transfer_id.filtered(lambda p: p.state != 'done')
                 if pending_sendings:
                     raise UserError(
-                        "Não é possível validar este recebimento enquanto o envio matriz → filial não estiver concluído."
+                        "Não é possível validar este recebimento enquanto o envio filial → matriz não estiver concluído."
                     )
 
         # 2) Preserva comportamento de outros módulos (l10n_br_stock_account etc.)
@@ -548,10 +548,40 @@ class StockPicking(models.Model):
         except Exception as e:
             _logger.error(f"❌ Erro ao processar recebimento na filial: {str(e)}")
 
+    @api.model
     def create(self, vals):
-        rec = super(StockPicking, self).create(vals)
-        _logger.warning(f"📦 DEBUG CREATE PICKING: {rec.name} | state={rec.state} | origin={rec.origin}")
-        return rec
+        """Override do create para pickings"""
+        picking = super(StockPicking, self).create(vals)
+
+        # Se é um picking de OP matriz com filial, agenda correção
+        if (picking.origin_production_id and
+                picking.origin_production_id.branch_location_id and
+                not picking.origin_production_id.origin_production_id):
+            _logger.warning(f"🔧 Picking criado para OP matriz com filial: {picking.name}")
+            # Agenda correção para garantir quantidades
+            self.env['mrp.production'].with_delay(priority=1)._scheduled_fix_branch_quantities()
+
+        return picking
+
+    def write(self, vals):
+        """Override do write para pickings"""
+        result = super(StockPicking, self).write(vals)
+
+        # Se está alterando moves de OP matriz com filial, agenda correção
+        if 'move_ids_without_package' in vals:
+            protected_pickings = self.filtered(
+                lambda p: (p.origin_production_id and
+                           p.origin_production_id.branch_location_id and
+                           not p.origin_production_id.origin_production_id)
+            )
+
+            if protected_pickings:
+                _logger.warning(
+                    f"🔧 Alteração detectada em picking de OP matriz com filial: {protected_pickings.mapped('name')}")
+                # Agenda correção para garantir quantidades
+                self.env['mrp.production'].with_delay(priority=1)._scheduled_fix_branch_quantities()
+
+        return result
 
     def _process_backorder_after_creation(self):
         for backorder in self:
@@ -637,3 +667,4 @@ class StockPicking(models.Model):
             )
 
         return res
+
