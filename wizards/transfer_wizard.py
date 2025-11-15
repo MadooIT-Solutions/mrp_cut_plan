@@ -53,38 +53,27 @@ class MrpProductionTransferWizard(models.TransientModel):
         if 'PS/Almoxarifado' in (self.location_dest_id.complete_name or ""):
             raise UserError("Selecione uma filial, não a matriz.")
 
-        # ⚠️ VALIDA ANTES DE CRIAR TRANSFERÊNCIA
+        # ⚙️ Valida condições da OP
         self.production_id._validate_before_branch_transfer()
 
-        # Cria envio da matriz
+        # ⚙️ Cria apenas o envio (sem recebimento)
         sending = self._create_sending_transfer()
 
-        # Cria recebimento da filial (bloqueado inicialmente)
-        receiving = self._create_branch_receipt(sending)
-
-        # ⚠️ ATUALIZA APENAS OS CAMPOS DE CONTROLE, MANTÉM ESTADO 'confirmed'
-        self.production_id.write({
+        _logger.warning(f"🧩 Antes do write() na produção {self.production_id.name}")
+        # usa sudo + context bypass para evitar triggers que criem OP durante o write
+        self.production_id.sudo().with_context(bypass_branch_creation=True).write({
             'branch_location_id': self.location_dest_id.id,
             'sending_transfer_id': [(4, sending.id)],
-            'branch_receipt_id': [(4, receiving.id)],
-            'origin_production_id': self.production_id.id,
-            # ⚠️ NÃO ALTERA O STATE - mantém em 'confirmed' para preservar quantidades
         })
+        _logger.warning(f"🧩 Depois do write() na produção {self.production_id.name}")
 
-        # Relação envio -> recebimento
-        sending.write({'branch_receipt_id': [(4, receiving.id)]})
-        receiving.write({'sending_transfer_id': [(4, sending.id)], 'origin_production_id': self.production_id.id})
-
-        _logger.info(f"✅ Wizard: enviado {sending.name} e criado recebimento {receiving.name}")
-
-        # Mensagem informativa
         self.production_id.message_post(
-            body=f"📤 Enviado para filial {self.location_dest_id.display_name}. "
-                 f"Componentes preservados para consumo na filial."
+            body=f"📦 Envio criado para filial {self.location_dest_id.display_name}. "
+                 f"Aguardando validação para gerar recebimento e OP filial."
         )
 
+        _logger.info(f"✅ Wizard: criado envio {sending.name} (aguardando validação para gerar recebimento)")
         return {"type": "ir.actions.act_window_close"}
-
 
     def _create_sending_transfer(self):
         picking_type = self.env['stock.picking.type'].search([
@@ -122,10 +111,11 @@ class MrpProductionTransferWizard(models.TransientModel):
             "origin": self.production_id.name,
             "move_ids_without_package": move_lines,
             "custom_block_validate": True,
+            # 🎯 CRÍTICO: Define origin_production_id no picking
+            "origin_production_id": self.production_id.id,
         }
 
         sending = self.env['stock.picking'].create(sending_vals)
-        sending.write({'origin_production_id': self.production_id.id})
 
         sending.action_confirm()
         try:
@@ -134,7 +124,7 @@ class MrpProductionTransferWizard(models.TransientModel):
             _logger.warning("Não foi possível reservar automaticamente o envio: %s", e)
             sending.write({'state': 'assigned'})
 
-        _logger.info(f"✅ Envio criado: {sending.name} - Apenas produto finalizado")
+        _logger.warning(f"✅ Envio criado: {sending.name} - Origin Production ID: {sending.origin_production_id.name}")
         return sending
 
     def _create_branch_receipt(self, sending):

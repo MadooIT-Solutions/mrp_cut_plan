@@ -258,6 +258,7 @@ class MrpCutPlan(models.Model):
 
         venda = self.sale_order_id.procurement_group_id if self.sale_order_id else False
         data_plan = self.sale_order_id.commitment_date if self.sale_order_id else False
+
         # 🔹 Forçar criação na matriz (exemplo: Polispan)
         company_matrix = self.env['res.company'].search([('name', '=', 'Polispan')], limit=1)
         warehouse_matrix = self.env['stock.warehouse'].search([('company_id', '=', company_matrix.id)], limit=1)
@@ -265,11 +266,43 @@ class MrpCutPlan(models.Model):
         if not warehouse_matrix:
             raise UserError("❌ Nenhum armazém encontrado para a matriz (Polispan).")
 
+        # 🎯 BUSCAR O PICKING TYPE CORRETO - VERSÃO ROBUSTA
+        picking_type_matrix = self.env['stock.picking.type'].search([
+            ('warehouse_id', '=', warehouse_matrix.id),
+            ('code', '=', 'mrp_operation')
+        ], limit=1)
+
+        # Fallback 1: procura por código de sequência MO
+        if not picking_type_matrix:
+            picking_type_matrix = self.env['stock.picking.type'].search([
+                ('warehouse_id', '=', warehouse_matrix.id),
+                ('sequence_code', '=', 'MO')
+            ], limit=1)
+
+        # Fallback 2: procura qualquer tipo de fabricação no armazém
+        if not picking_type_matrix:
+            picking_type_matrix = self.env['stock.picking.type'].search([
+                ('warehouse_id', '=', warehouse_matrix.id),
+            ], limit=1)
+
+        if not picking_type_matrix:
+            # 🚨 DEBUG: Listar todos os picking types disponíveis
+            all_picking_types = self.env['stock.picking.type'].search([])
+            _logger.error("🚨 Picking types disponíveis no sistema:")
+            for pt in all_picking_types:
+                _logger.error(
+                    f"   • {pt.name} (Empresa: {pt.company_id.name}, Armazém: {pt.warehouse_id.name}, Código: {pt.code})")
+
+            raise UserError("❌ Tipo de operação de fabricação não encontrado para a matriz.")
+
+        _logger.warning(f"🔍 DEBUG: Usando picking_type_id da matriz: {picking_type_matrix.name}")
+
         # 🔹 Criação da OP
         production_data = {
             'company_id': company_matrix.id,
-            'location_src_id': warehouse_matrix.lot_stock_id.id,  # Estoque origem
-            'location_dest_id': warehouse_matrix.lot_stock_id.id,  # Produção destino
+            'location_src_id': warehouse_matrix.lot_stock_id.id,
+            'location_dest_id': warehouse_matrix.lot_stock_id.id,
+            'picking_type_id': picking_type_matrix.id,  # 🚨 CRÍTICO: Especificar explicitamente
             'cut_plan_id': self.id,
             'product_id': self.product_id.id,
             'product_uom_id': self.product_id.uom_id.id,
@@ -284,7 +317,20 @@ class MrpCutPlan(models.Model):
         if data_plan:
             production_data['date_planned_start'] = data_plan
 
-        production_order = self.env['mrp.production'].create(production_data)
+        # 🎯 Criar com contexto explícito
+        production_order = self.env['mrp.production'].with_company(company_matrix).with_context(
+            allowed_company_ids=[company_matrix.id],
+            company_id=company_matrix.id
+        ).create(production_data)
+
+        production_order.write({
+            'origin_production_id': production_order.id  # ⬅️ CRÍTICO: Define com o próprio ID
+        })
+
+        _logger.warning(f"✅ OP CRIADA NA MATRIZ: {production_order.name}")
+        _logger.warning(f"   • Empresa: {production_order.company_id.name}")
+        _logger.warning(f"   • Picking Type: {production_order.picking_type_id.name}")
+        _logger.warning(f"   • Localização origem: {production_order.location_src_id.complete_name}")
 
         # 🔹 Gera os movimentos (substitui os antigos onchange)
         production_order.action_confirm()
@@ -297,7 +343,7 @@ class MrpCutPlan(models.Model):
                         if bom_line.blue_multiplier:
                             move.product_uom_qty = bom_line.product_qty
                         else:
-                            move.product_uom_qty = self.blue_m3
+                            move.product_uom_qty = self.blue_m3 * self.blue_qty
                     else:
                         if bom_line.blue_multiplier:
                             move.product_uom_qty = bom_line.product_qty

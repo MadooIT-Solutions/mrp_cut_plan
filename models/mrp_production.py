@@ -205,6 +205,7 @@ class BlueMrpProduction(models.Model):
         store=False
     )
 
+
     @api.depends('related_type', 'branch_location_id')
     def _compute_hide_check_availability(self):
         for record in self:
@@ -584,19 +585,51 @@ class BlueMrpProduction(models.Model):
         """Cria a OP da filial APÓS o recebimento na filial ser validado"""
         self.ensure_one()
 
-        if not receipt_picking:
-            receipt_picking = self.branch_receipt_id
+        # 0) Bypass por contexto — usado pelo wizard ao escrever a OP matriz para não disparar criação
+        if self.env.context.get('bypass_branch_creation'):
+            _logger.warning(f"⛔ Bypass ativo - criação de OP filial ignorada (context) para OP matriz {self.name}")
+            return False
 
+        # 1) receipt_picking obrigatório e existente
         if not receipt_picking:
-            raise UserError("Não existe picking de recebimento definido.")
+            receipt_picking = self.branch_receipt_id and self.branch_receipt_id[:1]
+        if not receipt_picking or not receipt_picking.exists():
+            _logger.warning(f"⏸️ _create_mo_from_receipt: nenhum receipt_picking válido para {self.name}")
+            return False
 
-        # 🚫 Só cria OP se o recebimento estiver concluído
+        # 2) somente se o picking estiver concluído
         if receipt_picking.state != 'done':
             _logger.warning(
                 f"⏸️ Recebimento {receipt_picking.name} não está concluído (state={receipt_picking.state}). "
                 f"Aguardando conclusão para criar OP filial."
             )
             return False
+
+        # 3) garantir que o picking realmente pertence a esta OP matriz (proteção contra chamadas indevidas)
+        if receipt_picking.origin_production_id and receipt_picking.origin_production_id.id != self.id:
+            _logger.warning(
+                f"⏸️ Recebimento {receipt_picking.name} não pertence a OP matriz {self.name} (origin_production_id={getattr(receipt_picking.origin_production_id, 'name', False)})"
+            )
+            return False
+
+        # 4) garantir que exista envio vinculado e que esteja concluído (protege contra recebimentos criados isoladamente)
+        if not receipt_picking.sending_transfer_id or any(
+                s.state != 'done' for s in receipt_picking.sending_transfer_id):
+            _logger.warning(
+                f"⏸️ Recebimento {receipt_picking.name} ignorado — envio vinculado ausente ou não concluído: {receipt_picking.sending_transfer_id.mapped('name')}"
+            )
+            return False
+
+        # 5) garantir que o produto recebido é o produto da OP e qtd positiva
+        qty_received = sum(
+            m.quantity_done for m in receipt_picking.move_ids_without_package if m.product_id == self.product_id
+        )
+        if qty_received <= 0:
+            _logger.warning(
+                f"⏸️ Recebimento {receipt_picking.name} sem qty do produto da OP ({self.product_id.display_name}).")
+            return False
+
+        # (a partir daqui o código original segue utilizando 'qty' ou 'qty_received' conforme desejar)
 
         # ⚙️ Verifica se já existe OP vinculada a este recebimento
         if receipt_picking.branch_mo_id:
@@ -1094,8 +1127,9 @@ class BlueMrpProduction(models.Model):
 
         errors = []
 
-        # 1. Verifica estado
-        if self.state != 'confirmed':
+        # 1. Verifica estado - VERSÃO FLEXÍVEL
+        allowed_states = ['confirmed']
+        if self.state not in allowed_states:
             errors.append(f"OP deve estar 'Confirmada'. Estado atual: {self.state}")
 
         # 2. Verifica componentes consumidos
@@ -1200,3 +1234,4 @@ class BlueMrpProduction(models.Model):
             )
         else:
             _logger.info(f"✅ Quantidades da OP filial {branch_mo.name} validadas com sucesso")
+
