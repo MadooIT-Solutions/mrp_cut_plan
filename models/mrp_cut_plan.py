@@ -266,20 +266,19 @@ class MrpCutPlan(models.Model):
         if not warehouse_matrix:
             raise UserError("❌ Nenhum armazém encontrado para a matriz (Polispan).")
 
-        # 🎯 BUSCAR O PICKING TYPE CORRETO - VERSÃO ROBUSTA
+        # 🎯 ENCONTRAR O picking_type_id CORRETO DA MATRIZ
         picking_type_matrix = self.env['stock.picking.type'].search([
             ('warehouse_id', '=', warehouse_matrix.id),
             ('code', '=', 'mrp_operation')
         ], limit=1)
 
-        # Fallback 1: procura por código de sequência MO
         if not picking_type_matrix:
+            # Fallback: qualquer tipo de operação de fabricação na matriz
             picking_type_matrix = self.env['stock.picking.type'].search([
                 ('warehouse_id', '=', warehouse_matrix.id),
                 ('sequence_code', '=', 'MO')
             ], limit=1)
 
-        # Fallback 2: procura qualquer tipo de fabricação no armazém
         if not picking_type_matrix:
             picking_type_matrix = self.env['stock.picking.type'].search([
                 ('warehouse_id', '=', warehouse_matrix.id),
@@ -302,7 +301,7 @@ class MrpCutPlan(models.Model):
             'company_id': company_matrix.id,
             'location_src_id': warehouse_matrix.lot_stock_id.id,
             'location_dest_id': warehouse_matrix.lot_stock_id.id,
-            'picking_type_id': picking_type_matrix.id,  # 🚨 CRÍTICO: Especificar explicitamente
+            'picking_type_id': picking_type_matrix.id,
             'cut_plan_id': self.id,
             'product_id': self.product_id.id,
             'product_uom_id': self.product_id.uom_id.id,
@@ -323,14 +322,16 @@ class MrpCutPlan(models.Model):
             company_id=company_matrix.id
         ).create(production_data)
 
+        # 🎯 AGORA SIM: Define o origin_production_id com o ID da própria OP
         production_order.write({
             'origin_production_id': production_order.id  # ⬅️ CRÍTICO: Define com o próprio ID
         })
 
         _logger.warning(f"✅ OP CRIADA NA MATRIZ: {production_order.name}")
+        _logger.warning(f"   • ID: {production_order.id}")
         _logger.warning(f"   • Empresa: {production_order.company_id.name}")
         _logger.warning(f"   • Picking Type: {production_order.picking_type_id.name}")
-        _logger.warning(f"   • Localização origem: {production_order.location_src_id.complete_name}")
+        _logger.warning(f"   • Origin Production ID: {production_order.origin_production_id.id}")
 
         # 🔹 Gera os movimentos (substitui os antigos onchange)
         production_order.action_confirm()

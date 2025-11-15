@@ -206,6 +206,7 @@ class BlueMrpProduction(models.Model):
     )
 
 
+
     @api.depends('related_type', 'branch_location_id')
     def _compute_hide_check_availability(self):
         for record in self:
@@ -1235,3 +1236,18 @@ class BlueMrpProduction(models.Model):
         else:
             _logger.info(f"✅ Quantidades da OP filial {branch_mo.name} validadas com sucesso")
 
+    def action_recalculate_consumption(self):
+        """Recalcula consumos baseado na BOM atual"""
+        for record in self:
+            _logger.warning(f"🔄 Recalculando consumo para OP: {record.name}")
+
+            # Remove movimentos existentes
+            record.move_raw_ids.filtered(lambda m: m.state in ['draft', 'confirmed']).unlink()
+
+            # Força recálculo baseado na BOM
+            record._onchange_bom_id()
+            record._onchange_move_raw()
+
+            _logger.warning(f"✅ Consumo recalculado para: {record.name}")
+
+        return True
