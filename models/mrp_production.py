@@ -368,23 +368,23 @@ class BlueMrpProduction(models.Model):
             if record.related_type != 'm':
                 raise UserError("Este botão só pode ser usado para Mold Calculation.")
 
-            # ⚠️ VERIFICA SE HÁ COMPONENTES JÁ CONSUMIDOS
-            consumed_components = record.move_raw_ids.filtered(
-                lambda m: m.quantity_done > 0
-            )
-            if consumed_components:
-                component_names = ", ".join(consumed_components.mapped('product_id.display_name'))
-                raise UserError(
-                    f"Não é possível enviar para filial com componentes já consumidos:\n\n"
-                    f"• {component_names}\n\n"
-                    f"Zere as quantidades consumidas antes do envio."
-                )
-
-            # ⚠️ VERIFICA SE A OP ESTÁ NO ESTADO CORRETO
-            if record.state != 'confirmed':
-                raise UserError(
-                    f"A OP deve estar no estado 'Confirmado' para envio à filial. Estado atual: {record.state}"
-                )
+            # # ⚠️ VERIFICA SE HÁ COMPONENTES JÁ CONSUMIDOS
+            # consumed_components = record.move_raw_ids.filtered(
+            #     lambda m: m.quantity_done > 0
+            # )
+            # if consumed_components:
+            #     component_names = ", ".join(consumed_components.mapped('product_id.display_name'))
+            #     raise UserError(
+            #         f"Não é possível enviar para filial com componentes já consumidos:\n\n"
+            #         f"• {component_names}\n\n"
+            #         f"Zere as quantidades consumidas antes do envio."
+            #     )
+            #
+            # # ⚠️ VERIFICA SE A OP ESTÁ NO ESTADO CORRETO
+            # if record.state != 'confirmed':
+            #     raise UserError(
+            #         f"A OP deve estar no estado 'Confirmado' para envio à filial. Estado atual: {record.state}"
+            #     )
 
             if not record.branch_location_id:
                 return {
@@ -405,12 +405,12 @@ class BlueMrpProduction(models.Model):
                 _logger.info(f"🔄 Concluindo OP filial {record.name}")
 
                 # Verifica se todos os componentes foram consumidos
-                for move in record.move_raw_ids:
-                    if move.product_uom_qty > 0 and move.quantity_done <= 0:
-                        raise UserError(
-                            f"Componente {move.product_id.display_name} não consumido. "
-                            f"Planejado: {move.product_uom_qty}, Consumido: {move.quantity_done}"
-                        )
+                # for move in record.move_raw_ids:
+                #     if move.product_uom_qty > 0 and move.quantity_done <= 0:
+                #         raise UserError(
+                #             f"Componente {move.product_id.display_name} não consumido. "
+                #             f"Planejado: {move.product_uom_qty}, Consumido: {move.quantity_done}"
+                #         )
 
                 # ⚠️ GARANTE QUE A QUANTIDADE PRODUZIDA É A MESMA DA OP
                 if record.move_finished_ids:
@@ -1150,24 +1150,24 @@ class BlueMrpProduction(models.Model):
         errors = []
 
         # 1. Verifica estado - VERSÃO FLEXÍVEL
-        allowed_states = ['confirmed']
-        if self.state not in allowed_states:
-            errors.append(f"OP deve estar 'Confirmada'. Estado atual: {self.state}")
+        # allowed_states = ['confirmed']
+        # if self.state not in allowed_states:
+        #     errors.append(f"OP deve estar 'Confirmada'. Estado atual: {self.state}")
 
         # 2. Verifica componentes consumidos
-        consumed_moves = self.move_raw_ids.filtered(lambda m: m.quantity_done > 0)
-        if consumed_moves:
-            component_list = "\n".join([f"• {m.product_id.display_name}: {m.quantity_done}" for m in consumed_moves])
-            errors.append(f"Componentes já consumidos:\n{component_list}")
+        # consumed_moves = self.move_raw_ids.filtered(lambda m: m.quantity_done > 0)
+        # if consumed_moves:
+        #     component_list = "\n".join([f"• {m.product_id.display_name}: {m.quantity_done}" for m in consumed_moves])
+        #     errors.append(f"Componentes já consumidos:\n{component_list}")
 
         # 3. Verifica se já existe produção na filial
         if self.branch_production_id:
             errors.append(f"Já existem OPs filiais vinculadas: {', '.join(self.branch_production_id.mapped('name'))}")
 
         # 4. Verifica quantidades dos componentes
-        for move in self.move_raw_ids:
-            if move.product_uom_qty <= 0:
-                errors.append(f"Componente {move.product_id.display_name} com quantidade zero ou negativa")
+        # for move in self.move_raw_ids:
+        #     if move.product_uom_qty <= 0:
+        #         errors.append(f"Componente {move.product_id.display_name} com quantidade zero ou negativa")
 
         if errors:
             error_message = "Não é possível enviar para filial:\n\n" + "\n".join(errors)

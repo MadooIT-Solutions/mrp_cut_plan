@@ -1,6 +1,6 @@
 <?xml version='1.0' encoding='utf-8'?>
 <odoo>
-    <record id="mrp_production_inherit" model="ir.ui.view">
+    <record id="mrp_cut_production_inherit" model="ir.ui.view">
         <field name="name">mrp.production.inherit</field>
         <field name="model">mrp.production</field>
         <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
@@ -29,12 +29,9 @@
                     <field name="product_id" invisible="1"/>
                     <field name="hide_check_availability" invisible="1"/>
 
+
                     <!-- Botão Enviar para Filial - APENAS para OP matriz sem filial definida e estado confirmed -->
-                    <button name="button_send_to_branch"
-                            type="object"
-                            class="oe_highlight"
-                            string="Send to Branch"
-                            attrs="{'invisible': ['|', '|', '|', ('related_type', '!=', 'm'), ('state', '!=', 'confirmed'), ('branch_location_id', '!=', False), ('state', 'in', ['progress', 'done'])]}"/>
+                    <button name="button_send_to_branch" type="object" class="oe_highlight" string="Send to Branch" attrs="{'invisible': ['|', '|', ('related_type', '!=', 'm'), ('branch_location_id', '!=', False), ('state', 'in', ['done'])]}"/>
 
                     <!-- Botão Confirmar - Comportamento diferente para OP filial -->
                     <button name="action_confirm"
