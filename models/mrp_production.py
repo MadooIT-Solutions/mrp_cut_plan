@@ -207,6 +207,10 @@ class BlueMrpProduction(models.Model):
         store=False
     )
 
+    def _compute_count_po(self):
+        for record in self:
+            record.count_po = 1 if record.cut_plan_id else 0
+
     @api.depends('company_id', 'bom_id', 'product_id', 'product_qty', 'product_uom_id', 'location_src_id')
     def _compute_move_raw_ids(self):
         """Override para preservar quantidades manuais"""
