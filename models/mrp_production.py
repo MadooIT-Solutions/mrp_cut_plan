@@ -1,8 +1,8 @@
 # mrp_production.py (corrigido)
 from collections import defaultdict
-from odoo import fields, models, api, _
+from odoo import fields, models, api, _, Command
 from odoo.exceptions import UserError
-from odoo.tools import float_round
+from odoo.tools import float_round, float_is_zero
 from odoo.tools.misc import groupby as tools_groupby
 import logging
 
@@ -183,10 +183,12 @@ class BlueMrpProduction(models.Model):
         compute="_compute_total_components_consumed"
     )
 
-    # Campos para controle visual das quantidades
-    display_product_qty = fields.Float(
-        string="Quantidade a Produzir",
-        compute="_compute_display_quantities"
+    # NOVO: Campo para mostrar SÓ os movimentos consumidos na(s) FILIAL(IS) - opção F2
+    component_moves_branch_ids = fields.Many2many(
+        comodel_name='stock.move',
+        string='Movimentos Consumidos na Filial',
+        compute='_compute_component_moves_branch',
+        store=False,
     )
 
     display_qty_producing = fields.Float(
@@ -205,7 +207,66 @@ class BlueMrpProduction(models.Model):
         store=False
     )
 
+    @api.depends('company_id', 'bom_id', 'product_id', 'product_qty', 'product_uom_id', 'location_src_id')
+    def _compute_move_raw_ids(self):
+        """Override para preservar quantidades manuais"""
+        # Para cada produção, processa individualmente
+        for production in self:
+            if production.state != 'draft' or self.env.context.get('skip_compute_move_raw_ids'):
+                continue
 
+            # ⚠️ BLOQUEIO: Não recalcula componentes para OPs com filial EXCETO na criação inicial
+            if (production.origin_production_id or production.branch_location_id) and production.move_raw_ids:
+                _logger.warning(f"🚫 _compute_move_raw_ids BLOQUEADO para OP com filial: {production.name}")
+                continue
+
+            # Armazena quantidades manuais antes de qualquer processamento
+            manual_moves_data = []
+            for move in production.move_raw_ids:
+                if not float_is_zero(move.quantity_done, precision_rounding=move.product_uom.rounding):
+                    manual_moves_data.append({
+                        'product_id': move.product_id.id,
+                        'quantity_done': move.quantity_done,
+                        'bom_line_id': move.bom_line_id.id if move.bom_line_id else False
+                    })
+
+            # Executa a lógica padrão do Odoo
+            if not production.bom_id and not production._origin.product_id:
+                # Mantém movimentos manuais
+                pass
+            elif any(move.bom_line_id.bom_id != production.bom_id or move.bom_line_id._skip_bom_line(
+                    production.product_id)
+                     for move in production.move_raw_ids if move.bom_line_id):
+                production.move_raw_ids = [Command.clear()]
+
+            if production.bom_id and production.product_id and production.product_qty > 0:
+                # Mantém entradas manuais
+                list_move_raw = [Command.link(move.id) for move in
+                                 production.move_raw_ids.filtered(lambda m: not m.bom_line_id)]
+                moves_raw_values = production._get_moves_raw_values()
+                move_raw_dict = {move.bom_line_id.id: move for move in
+                                 production.move_raw_ids.filtered(lambda m: m.bom_line_id)}
+
+                for move_raw_values in moves_raw_values:
+                    if move_raw_values['bom_line_id'] in move_raw_dict:
+                        list_move_raw += [
+                            Command.update(move_raw_dict[move_raw_values['bom_line_id']].id, move_raw_values)]
+                    else:
+                        list_move_raw += [Command.create(move_raw_values)]
+                production.move_raw_ids = list_move_raw
+            else:
+                production.move_raw_ids = [Command.delete(move.id) for move in
+                                           production.move_raw_ids.filtered(lambda m: m.bom_line_id)]
+
+            # Restaura quantidades manuais
+            for manual_data in manual_moves_data:
+                # Encontra o movimento correspondente
+                corresponding_move = production.move_raw_ids.filtered(
+                    lambda m: m.product_id.id == manual_data['product_id'] and
+                              (m.bom_line_id.id if m.bom_line_id else False) == manual_data['bom_line_id']
+                )
+                if corresponding_move:
+                    corresponding_move.quantity_done = manual_data['quantity_done']
 
     @api.depends('related_type', 'branch_location_id')
     def _compute_hide_check_availability(self):
@@ -235,12 +296,15 @@ class BlueMrpProduction(models.Model):
     def _compute_display_quantities(self):
         for record in self:
             if record.origin_production_id:
+                # OP FILIAL - mostra quantidades normais
                 record.display_product_qty = record.product_qty
                 record.display_qty_producing = record.qty_producing
             elif record.branch_location_id:
+                # OP MATRIZ COM FILIAL - mostra quantidade recebida como produzida
                 record.display_product_qty = record.product_qty
                 record.display_qty_producing = record.total_qty_received
             else:
+                # OP NORMAL - mostra quantidades padrão
                 record.display_product_qty = record.product_qty
                 record.display_qty_producing = record.qty_producing
 
@@ -270,8 +334,18 @@ class BlueMrpProduction(models.Model):
     def _compute_matrix_consumed_qty(self):
         for record in self:
             if record.origin_production_id:
+                # OP filial - consumo é zero na matriz
                 record.matrix_consumed_qty = 0.0
+            elif record.branch_location_id:
+                # ⚠️ OP matriz com filial - calcula consumo REAL (não mais zero)
+                total_consumed = 0.0
+                for move in record.move_raw_ids:
+                    if move.state in ['done', 'assigned'] and move.quantity_done > 0:
+                        total_consumed += move.quantity_done
+                record.matrix_consumed_qty = total_consumed
+                _logger.info(f"📊 Consumo matriz com filial {record.name}: {total_consumed}")
             else:
+                # OP normal sem filial - calcula consumo normal
                 total_consumed = 0.0
                 for move in record.move_raw_ids:
                     if move.state in ['done', 'assigned'] and move.quantity_done > 0:
@@ -306,10 +380,61 @@ class BlueMrpProduction(models.Model):
             'view_mode': 'form',
         }
 
-    def _compute_count_po(self):
+    @api.depends('related_type', 'branch_location_id')
+    def _compute_hide_check_availability(self):
         for record in self:
-            record.count_po = 1 if record.cut_plan_id else 0
+            record.hide_check_availability = (record.related_type == 'm' or bool(record.branch_location_id))
 
+    # -------------------------
+    # Component moves computes
+    # -------------------------
+    @api.depends('move_raw_ids.quantity_done', 'branch_production_id.move_raw_ids.quantity_done')
+    def _compute_component_moves(self):
+        """
+        Consolida movimentos consumidos — matriz + filiais.
+        Agora inclui consumo REAL tanto na matriz quanto nas filiais.
+        """
+        StockMove = self.env['stock.move']
+        for production in self:
+            moves = StockMove.browse()
+
+            # 1) movimentos da matriz com consumo REAL (quantity_done > 0)
+            mat_moves = production.move_raw_ids.filtered(lambda m: m.quantity_done > 0)
+            moves |= mat_moves
+
+            # 2) movimentos das OPs da filial com consumo REAL (quantity_done > 0)
+            if production.branch_production_id:
+                for branch_mo in production.branch_production_id:
+                    bm = branch_mo.move_raw_ids.filtered(lambda m: m.quantity_done > 0)
+                    # para cada movimento da filial, garantir que a location exibida reflete a filial
+                    for m in bm:
+                        try:
+                            # Só altera location_id se o movimento ainda não estiver 'done' (evita inconsistências contábeis)
+                            if m.state != 'done' and m.location_id != branch_mo.location_src_id:
+                                m.write({'location_id': branch_mo.location_src_id.id})
+                        except Exception as err:
+                            _logger.debug(f"Não foi possível ajustar location_id do move {m.id}: {err}")
+                    moves |= bm
+
+            production.component_moves_ids = moves
+
+    @api.depends('branch_production_id', 'branch_production_id.move_raw_ids')
+    def _compute_component_moves_branch(self):
+        """Somente movimentos consumidos nas filiais (para exibir em seção separada F2)"""
+        StockMove = self.env['stock.move']
+        for production in self:
+            branch_moves = StockMove.browse()
+            if production.branch_production_id:
+                for branch_mo in production.branch_production_id:
+                    bm = branch_mo.move_raw_ids.filtered(lambda m: m.quantity_done > 0)
+                    # opcional: garantir que location exibida seja a location_src_id da filial
+                    # (não escrevemos em DB — apenas retornamos os movimentos)
+                    branch_moves |= bm
+            production.component_moves_branch_ids = branch_moves
+
+    # -------------------------
+    # Validações / ações importantes
+    # -------------------------
     @api.depends(
         "branch_location_id",
         "branch_receipt_id.state",
@@ -398,28 +523,68 @@ class BlueMrpProduction(models.Model):
 
             raise UserError("A OP já está em processamento ou não pode ser enviada.")
 
+    def _pre_button_mark_done(self):
+        """Override para manter quantidades manuais no popup"""
+        # Armazenar quantidades manuais antes do popup
+        manual_consumptions = {}
+        for production in self:
+            for move in production.move_raw_ids:
+                if not float_is_zero(move.quantity_done, precision_rounding=move.product_uom.rounding):
+                    manual_consumptions[move.id] = move.quantity_done
+
+        # Chamar método original
+        result = super(BlueMrpProduction, self)._pre_button_mark_done()
+
+        # Restaurar quantidades manuais após popup
+        for move_id, qty_done in manual_consumptions.items():
+            move = self.env['stock.move'].browse(move_id)
+            if move.exists() and float_is_zero(move.quantity_done, precision_rounding=move.product_uom.rounding):
+                move.quantity_done = qty_done
+
+        return result
+
     def button_mark_done(self):
         for record in self:
+            record._force_preserve_consumption()
+
+            # ⚠️ BLOQUEIO CRÍTICO: OP MATRIZ não pode ser concluída sem receber todos os produtos da filial
+            if record.branch_location_id and not record.origin_production_id:
+                # Verifica se quantidade recebida é menor que a quantidade planejada
+                if record.total_qty_received < record.product_qty:
+                    raise UserError(
+                        f"❌ Não é possível concluir a OP matriz!\n\n"
+                        f"Quantidade recebida da filial: {record.total_qty_received}\n"
+                        f"Quantidade planejada: {record.product_qty}\n\n"
+                        f"Aguarde o recebimento completo de todas as unidades da filial antes de concluir a OP matriz."
+                    )
+
+                # Verifica se há processos pendentes no fluxo filial
+                pending_processes = record._check_matrix_receipt_blockers()
+                if pending_processes:
+                    blocker_message = "\n".join([f"• {b}" for b in pending_processes])
+                    raise UserError(
+                        f"❌ Não é possível concluir a OP matriz!\n\n"
+                        f"Ainda existem processos pendentes no fluxo filial:\n\n"
+                        f"{blocker_message}\n\n"
+                        f"Finalize todas as operações antes de validar a OP matriz."
+                    )
+
             if record.origin_production_id:
-                # ⚠️ OP FILIAL - VALIDAÇÕES ESPECÍFICAS
+                # ⚠️ OP FILIAL - comportamento normal
                 _logger.info(f"🔄 Concluindo OP filial {record.name}")
 
-                # Verifica se todos os componentes foram consumidos
-                # for move in record.move_raw_ids:
-                #     if move.product_uom_qty > 0 and move.quantity_done <= 0:
-                #         raise UserError(
-                #             f"Componente {move.product_id.display_name} não consumido. "
-                #             f"Planejado: {move.product_uom_qty}, Consumido: {move.quantity_done}"
-                #         )
-
-                # ⚠️ GARANTE QUE A QUANTIDADE PRODUZIDA É A MESMA DA OP
+                # ⚠️ GARANTE QUE O PRODUTO FINALIZADO TEM A QUANTIDADE CORRETA
                 if record.move_finished_ids:
                     for move in record.move_finished_ids:
                         if move.product_id == record.product_id:
                             move.write({
                                 'product_uom_qty': record.product_qty,
-                                'quantity_done': record.product_qty
+                                'quantity_done': record.qty_producing
                             })
+
+                # ⚠️ VALIDAÇÃO: Verifica se a quantidade produzida é consistente
+                if record.qty_producing <= 0:
+                    raise UserError("Não é possível concluir a OP filial com quantidade produzida zero.")
 
                 res = super(BlueMrpProduction, record).button_mark_done()
 
@@ -431,36 +596,41 @@ class BlueMrpProduction(models.Model):
                 return res
 
             if record.branch_location_id:
-                # ⚠️ OP MATRIZ COM FILIAL - NÃO ALTERA QUANTIDADES
-                if not record._can_receive_at_matrix():
-                    blockers = record._check_matrix_receipt_blockers()
-                    blocker_message = "\n".join([f"• {b}" for b in blockers])
-                    raise UserError(
-                        f"Não é possível concluir a OP matriz enquanto existirem processos pendentes na filial:\n\n"
-                        f"{blocker_message}"
-                    )
+                # ⚠️ OP MATRIZ COM FILIAL
+                _logger.info(f"🔧 OP Matriz {record.name} - Concluindo após validações")
 
-                if record.total_qty_received < record.product_qty:
-                    raise UserError(
-                        f"Quantidade recebida ({record.total_qty_received}) é menor que a quantidade planejada ({record.product_qty}). "
-                        f"Aguarde o recebimento total das filiais."
-                    )
+                # ⚠️ APENAS GARANTE QUE O PRODUTO FINALIZADO TEM A QUANTIDADE CORRETA
+                qty_to_record = min(record.total_qty_received, record.product_qty)
+                record.qty_producing = qty_to_record
 
-                # ⚠️ NÃO ALTERA AS QUANTIDADES DOS MOVIMENTOS - MANTÉM AS ORIGINAIS
-                # Apenas ajusta a quantidade produzida para o total recebido
-                record.qty_producing = record.total_qty_received
-
-                # Para o movimento finalizado, ajusta apenas a quantidade feita, não a planejada
                 for move in record.move_finished_ids:
                     if move.product_id == record.product_id:
                         move.write({
-                            'quantity_done': record.total_qty_received
+                            'quantity_done': qty_to_record
                         })
 
                 record._release_delivery_order()
                 return super(BlueMrpProduction, record).button_mark_done()
 
+            # ⚠️ OP NORMAL (SEM FILIAL) - COMPORTAMENTO PADRÃO
+            _logger.info(f"📦 Concluindo OP normal {record.name}")
             return super(BlueMrpProduction, record).button_mark_done()
+
+    def _clean_matrix_components(self):
+        """Limpa completamente os componentes de consumo na OP matriz"""
+        self.ensure_one()
+
+        if self.branch_location_id and not self.origin_production_id:
+            _logger.info(f"🧹 Limpando componentes da OP matriz {self.name}")
+
+            # Para cada movimento de componente, zera as quantidades
+            for move in self.move_raw_ids:
+                if move.state in ['draft', 'confirmed', 'assigned']:
+                    move.write({
+                        'product_uom_qty': 0.0,
+                        'quantity_done': 0.0
+                    })
+                    _logger.info(f"   ✅ Componente zerado: {move.product_id.display_name}")
 
     def _can_receive_at_matrix(self):
         self.ensure_one()
@@ -491,14 +661,24 @@ class BlueMrpProduction(models.Model):
 
         return True
 
-    def _calculate_total_required_consumption(self):
+    def _check_matrix_receipt_blockers(self):
         self.ensure_one()
-        total_required = 0.0
-        if self.bom_id:
-            for line in self.bom_id.bom_line_ids:
-                line_qty = line.product_qty * self.product_qty / self.bom_id.product_qty
-                total_required += line_qty
-        return total_required
+        blockers = []
+        if not self.branch_location_id:
+            return blockers
+        if self.branch_production_id:
+            pending_productions = self.branch_production_id.filtered(lambda p: p.state != 'done')
+            for prod in pending_productions:
+                blockers.append(f"Produção pendente na filial: {prod.name} ({prod.state})")
+        if self.return_transfer_id:
+            pending_returns = self.return_transfer_id.filtered(lambda r: r.state != 'done')
+            for ret in pending_returns:
+                blockers.append(f"Envio pendente da filial: {ret.name} ({ret.state})")
+        if self.branch_receipt_id:
+            pending_receipts = self.branch_receipt_id.filtered(lambda r: r.state != 'done')
+            for rec in pending_receipts:
+                blockers.append(f"Recebimento pendente na filial: {rec.name} ({rec.state})")
+        return blockers
 
     def _create_backorder_transfer(self, backorder_qty):
         self.ensure_one()
@@ -691,10 +871,15 @@ class BlueMrpProduction(models.Model):
         # Cria a OP filial
         mo = self.env['mrp.production'].create(mo_vals)
 
-        # ⚠️ ATUALIZA OS MOVIMENTOS COM QUANTIDADES EXATAS PROPORCIONAIS ÀS DA MATRIZ
-        # Mantém o cálculo proporcional para garantir consistência
+        # ⚠️ FORÇA a criação dos movimentos de componentes (chama compute uma vez)
+        _logger.warning(f"🔧 FORÇANDO criação de movimentos para OP filial {mo.name}")
+
+        # Chama o compute para criar movimentos iniciais
+        mo._compute_move_raw_ids()
+
+        # ⚠️ COPIA AS QUANTIDADES EXATAS DA MATRIZ PARA A FILIAL
         self._force_preserve_matrix_quantities(mo)
-        mo.with_context(bypass_update_moves=True)._update_moves()
+
         # Vincula a OP filial a si mesma
         mo.write({
             'branch_production_id': [(4, mo.id)]
@@ -880,7 +1065,8 @@ class BlueMrpProduction(models.Model):
 
         # Vincula o recebimento final ao envio de retorno
         picking.write({
-            'sending_transfer_id': [(4, return_picking.id)]
+            'sending_transfer_id': [(4, return_picking.id)],
+            'state': 'assigned'
         })
 
         _logger.info(f"✅ Recebimento final criado: {picking.name}")
@@ -940,48 +1126,57 @@ class BlueMrpProduction(models.Model):
                 })
 
     def _update_moves(self):
-        """Atualiza movimentos - CORRIGIDO para não multiplicar/dividir quantidades"""
-
+        """
+              Override ULTRA RESTRITIVO - BLOQUEIA QUALQUER alteração em OPs com filial
+              PRESERVA quantidades existentes
+              """
         # ⚠️ SE BYPASS ESTÁ ATIVO, NÃO FAZ NADA
         if self.env.context.get('bypass_update_moves'):
-            _logger.warning(f"⛔ BYPASS ativo - _update_moves ignorado para {self.name}")
+            _logger.warning(f"⛔ BYPASS ativo - _update_moves ignorado")
             return
 
         for production in self:
-            _logger.warning(f"🔍 _update_moves chamado para OP: {production.name}")
+            _logger.warning(f"🚫 _update_moves chamado para: {production.name}")
             _logger.warning(f"   • Estado: {production.state}")
-            _logger.warning(f"   • Tipo: {'MATRIZ' if not production.origin_production_id else 'FILIAL'}")
-            _logger.warning(
-                f"   • Branch Location: {production.branch_location_id.display_name if production.branch_location_id else 'None'}")
-            _logger.warning(f"   • Product Qty: {production.product_qty}")
 
-            # ⚠️ SE FOR OP MATRIZ SENDO ENVIADA PARA FILIAL, PRESERVA AS QUANTIDADES ORIGINAIS
-            if production.branch_location_id and not production.origin_production_id:
-                _logger.warning(
-                    f"🛑 OP Matriz {production.name} com filial - PRESERVANDO quantidades originais dos componentes")
-                # ⚠️ NÃO FAZ NADA - preserva as quantidades existentes calculadas pelo mrp_cut_plan
-                continue
+            # ⚠️ BLOQUEIO TOTAL para OPs com fluxo filial
+            if production.origin_production_id or production.branch_location_id:
+                _logger.warning(f"   🚫 BLOQUEIO ATIVADO - _update_moves IGNORADO")
+                # ⚠️ NÃO CHAMA O SUPER() - BLOQUEIO COMPLETO
+                return
 
-            # ⚠️ SE FOR OP FILIAL: USA AS QUANTIDADES EXATAS DA MATRIZ (já definidas na criação)
-            if production.origin_production_id:
-                _logger.warning(f"🛑 OP Filial {production.name} - PRESERVANDO quantidades da matriz")
-                # ⚠️ NÃO FAZ NADA - as quantidades já foram copiadas exatamente da matriz
-                continue
+            # ⚠️ Para OPs normais, comportamento padrão COM PROTEÇÃO
+            _logger.warning(f"   🔄 OP NORMAL - Comportamento padrão")
 
-            # ⚠️ COMPORTAMENTO ORIGINAL APENAS PARA OPs SEM FILIAL
-            _logger.warning(f"📦 OP Sem filial {production.name} - aplicando cálculo normal da BOM")
+            # Backup antes de qualquer alteração
+            backup_data = {}
             for move in production.move_raw_ids:
-                bom_line = production.bom_id.bom_line_ids.filtered(
-                    lambda line: line.product_id == move.product_id
-                )
-                if bom_line:
-                    new_qty = bom_line.product_qty * production.product_qty / production.bom_id.product_qty
-                    move.write({'product_uom_qty': new_qty})
-                    _logger.info(f"   • {move.product_id.display_name}: {new_qty}")
+                backup_data[move.id] = {
+                    'quantity_done': move.quantity_done,
+                    'product_uom_qty': move.product_uom_qty
+                }
 
-            for move in production.move_finished_ids:
-                if move.product_id == production.product_id:
-                    move.write({'product_uom_qty': production.product_qty})
+            try:
+                # Chama o comportamento original
+                super(BlueMrpProduction, production)._update_moves()
+            except Exception as e:
+                _logger.error(f"❌ Erro no _update_moves: {str(e)}")
+
+            # ⚠️ RESTAURA quantity_done E product_uom_qty
+            for move in production.move_raw_ids:
+                if move.id in backup_data:
+                    original_done = backup_data[move.id]['quantity_done']
+                    original_uom_qty = backup_data[move.id]['product_uom_qty']
+
+                    # Restaura quantity_done se foi alterado
+                    if abs(move.quantity_done - original_done) > 0.001:
+                        _logger.warning(f"   🔄 Restaurando quantity_done: {move.product_id.display_name}")
+                        move.quantity_done = original_done
+
+                    # Restaura product_uom_qty se foi alterado
+                    if abs(move.product_uom_qty - original_uom_qty) > 0.001:
+                        _logger.warning(f"   🔄 Restaurando product_uom_qty: {move.product_id.display_name}")
+                        move.product_uom_qty = original_uom_qty
 
     def _force_preserve_matrix_quantities(self, branch_mo):
         """Força a preservação das quantidades exatas da matriz na OP filial"""
@@ -993,15 +1188,160 @@ class BlueMrpProduction(models.Model):
                 lambda m: m.product_id == matrix_move.product_id
             )
             if branch_move:
-                # ⚠️ COPIA A QUANTIDADE EXATA DA MATRIZ
+                # ⚠️ COPIA APENAS product_uom_qty, PRESERVA quantity_done existente
                 original_qty = matrix_move.product_uom_qty
-                branch_move.write({'product_uom_qty': original_qty})
-                _logger.warning(f"   ✅ {matrix_move.product_id.display_name}: {original_qty} (cópia exata da matriz)")
+                current_done = branch_move.quantity_done  # Preserva o valor atual
+
+                branch_move.write({
+                    'product_uom_qty': original_qty,
+                    'quantity_done': current_done  # ⚠️ MANTÉM O VALOR ORIGINAL
+                })
+                _logger.warning(
+                    f"   ✅ {matrix_move.product_id.display_name}: Planejado={original_qty}, Consumido={current_done}")
 
         # Garante que o produto acabado tenha a quantidade correta
         for branch_move in branch_mo.move_finished_ids:
             if branch_move.product_id == branch_mo.product_id:
                 branch_move.write({'product_uom_qty': branch_mo.product_qty})
+
+    @api.onchange('product_qty')
+    def _onchange_product_qty(self):
+        """
+                Override COMPLETO - BLOQUEIA QUALQUER alteração nos componentes
+                PRESERVA quantidades existentes e não preenche componentes zerados
+                """
+        for record in self:
+            _logger.warning(f"🚫 ONCHANGE PRODUCT_QTY BLOQUEADO para: {record.name}")
+            _logger.warning(f"   • Nova quantidade: {record.product_qty}")
+            _logger.warning(
+                f"   • Tipo: {'FILIAL' if record.origin_production_id else 'MATRIZ' if record.branch_location_id else 'NORMAL'}")
+
+            # ⚠️ BLOQUEIO TOTAL para OPs com fluxo filial - NÃO ALTERA COMPONENTES
+            if record.origin_production_id or record.branch_location_id:
+                _logger.warning(f"   🚫 BLOQUEIO ATIVADO - Nenhum componente será alterado")
+
+                # ⚠️ NÃO CHAMA O SUPER() - BLOQUEIO COMPLETO
+                # Apenas atualiza o produto finalizado
+                if record.move_finished_ids:
+                    for move in record.move_finished_ids:
+                        if move.product_id == record.product_id:
+                            old_qty = move.product_uom_qty
+                            if abs(old_qty - record.product_qty) > 0.001:
+                                move.product_uom_qty = record.product_qty
+                                _logger.warning(
+                                    f"   ✅ Apenas produto final atualizado: {old_qty} → {record.product_qty}")
+
+                return
+
+            # ⚠️ Para OPs NORMAIS, comportamento padrão MAS com proteção EXTREMA
+            _logger.warning(f"   🔄 OP NORMAL - Comportamento padrão COM PROTEÇÃO")
+
+            # Backup COMPLETO de todos os movimentos ANTES - PRESERVA QUANTIDADES EXISTENTES
+            backup_data = self._create_complete_moves_backup()
+
+            try:
+                # Chama o comportamento original
+                super(BlueMrpProduction, record)._onchange_product_qty()
+            except Exception as e:
+                _logger.error(f"❌ Erro no onchange: {str(e)}")
+
+            # ⚠️ RESTAURAÇÃO COMPLETA dos movimentos - MANTÉM QUANTIDADES ORIGINAIS
+            self._restore_complete_moves_backup(backup_data)
+
+    @api.onchange('bom_id')
+    def _onchange_bom_id_preserve_consumption(self):
+        """
+        Override do onchange bom_id para preservar consumption
+        """
+        for record in self:
+            if record.origin_production_id or record.branch_location_id:
+                _logger.warning(f"⛔ Onchange bom_id BLOQUEADO para OP: {record.name}")
+                # ⚠️ Não faz nada para OPs com fluxo filial
+                return
+
+            # Para OPs normais, comportamento padrão
+            super(BlueMrpProduction, record)._onchange_bom_id()
+
+    def action_use_planned_quantities(self):
+        """Preenche quantity_done com planned_uom_qty quando está zerado"""
+        for production in self:
+            for move in production.move_raw_ids:
+                if float_is_zero(move.quantity_done, precision_rounding=move.product_uom.rounding):
+                    move.quantity_done = move.planned_uom_qty
+        return True
+
+    def action_safe_update_quantities(self):
+        """
+        Ação manual para atualizar quantidades de forma segura
+        (Para ser usada quando realmente necessário)
+        """
+        for record in self:
+            _logger.warning(f"🔄 Atualização segura de quantidades para: {record.name}")
+
+            # Backup dos consumos
+            consumption_backup = {}
+            for move in record.move_raw_ids:
+                consumption_backup[move.id] = move.quantity_done
+
+            # Atualiza usando o método original com contexto de proteção
+            try:
+                super(BlueMrpProduction, record.with_context(
+                    safe_quantity_update=True
+                ))._onchange_product_qty()
+            except Exception as e:
+                _logger.error(f"❌ Erro na atualização segura: {str(e)}")
+
+            # Restaura consumos
+            record._restore_consumption_values(consumption_backup)
+
+            record.message_post(
+                body="✅ Quantidades atualizadas com preservação de consumo manual"
+            )
+
+    def _restore_consumption_immediate(self, consumption_backup):
+        """
+        Restauração IMEDIATA e AGESSIVA dos valores de consumption
+        """
+        for record in self:
+            _logger.warning(f"🛡️ RESTAURAÇÃO IMEDIATA de consumos para: {record.name}")
+
+            restored_count = 0
+            for move in record.move_raw_ids:
+                if move.id in consumption_backup:
+                    original_done = consumption_backup[move.id]
+                    current_done = move.quantity_done
+
+                    # ⚠️ RESTAURA SEMPRE, independente do estado
+                    if abs(current_done - original_done) > 0.001:
+                        # Escrita FORÇADA sem triggers
+                        self.env.cr.execute("""
+                            UPDATE stock_move 
+                            SET quantity_done = %s 
+                            WHERE id = %s
+                        """, (original_done, move.id))
+
+                        # Atualiza o cache local
+                        move.quantity_done = original_done
+
+                        restored_count += 1
+                        _logger.warning(
+                            f"   🔄 RESTAURADO: {move.product_id.display_name} {current_done} → {original_done}")
+
+            _logger.warning(f"🛡️ TOTAL RESTAURADO: {restored_count} componentes")
+
+            # ⚠️ FORÇA o refresh do cache
+            record.invalidate_cache(['move_raw_ids'])
+
+    def action_update_planned_qty_only(self):
+        """Ação manual para atualizar apenas quantidades planejadas sem afetar consumo"""
+        for record in self:
+            if record.origin_production_id:
+                _logger.info(f"🔄 Atualizando apenas quantidades planejadas para OP filial {record.name}")
+                record.with_context(bypass_update_moves=True)._update_filial_moves_preserve_consumption()
+
+                record.message_post(
+                    body="✅ Quantidades planejadas atualizadas (consumo real preservado)"
+                )
 
     def action_check_flow_status(self):
         for record in self:
@@ -1090,6 +1430,22 @@ class BlueMrpProduction(models.Model):
 
         _logger.info(f"✅ OP {self.name} pode receber na matriz - todos os processos da filial concluídos")
         return True
+
+    # -----------------------------------------------------------------------------
+    # BLOQUEAR QUALQUER CONSUMO NA OP MATRIZ (SEM POPUP, SEM quantity_done)
+    # -----------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------
+    # REMOVER BLOQUEIO DE CONSUMO NA MATRIZ - AGORA PERMITE CONSUMO SELETIVO
+    # -----------------------------------------------------------------------------
+    def _check_consumed_materials(self):
+        """Permite consumo seletivo tanto na matriz quanto na filial"""
+        for production in self:
+            # ⚠️ REMOVIDO: Não bloqueia mais consumo na matriz com filial
+            # Agora ambas (matriz e filial) permitem consumo seletivo
+            _logger.info(
+                f"🔍 Verificando consumo para OP {production.name} - Tipo: {'FILIAL' if production.origin_production_id else 'MATRIZ'}")
+
+        return super(BlueMrpProduction, self)._check_consumed_materials()
 
     def _check_matrix_receipt_blockers(self):
         self.ensure_one()
@@ -1255,18 +1611,43 @@ class BlueMrpProduction(models.Model):
             _logger.info(f"✅ Quantidades da OP filial {branch_mo.name} validadas com sucesso")
 
     def action_recalculate_consumption(self):
-        """Recalcula consumos baseado na BOM atual"""
+        """Ação MANUAL para recálculo de consumo (quando necessário)"""
         for record in self:
-            _logger.warning(f"🔄 Recalculando consumo para OP: {record.name}")
+            _logger.warning(f"🔄 RECÁLCULO MANUAL de consumo para: {record.name}")
 
-            # Remove movimentos existentes
-            record.move_raw_ids.filtered(lambda m: m.state in ['draft', 'confirmed']).unlink()
+            # Backup das quantidades atuais
+            current_quantities = {}
+            for move in record.move_raw_ids:
+                current_quantities[move.id] = {
+                    'product_uom_qty': move.product_uom_qty,
+                    'quantity_done': move.quantity_done
+                }
 
-            # Força recálculo baseado na BOM
-            record._onchange_bom_id()
-            record._onchange_move_raw()
+            # Força recálculo chamando o método original COM contexto
+            try:
+                super(BlueMrpProduction, record.with_context(
+                    force_recalculation=True
+                ))._compute_move_raw_ids()
 
-            _logger.warning(f"✅ Consumo recalculado para: {record.name}")
+                # Restaura quantity_done dos movimentos que já tinham consumo
+                for move in record.move_raw_ids:
+                    if move.id in current_quantities:
+                        original_uom_qty = current_quantities[move.id]['product_uom_qty']
+                        original_done = current_quantities[move.id]['quantity_done']
+                        # Restaura product_uom_qty (inclusive se era zero)
+                        move.product_uom_qty = original_uom_qty
+
+                        # Restaura quantity_done (inclusive se era zero)
+                        move.quantity_done = original_done
+
+                        _logger.warning(
+                            f"   🔄 Restaurado: {move.product_id.display_name} = {original_uom_qty} (done: {original_done})")
+
+                record.message_post(body="✅ Consumo recalculado manualmente (todas as quantidades preservadas)")
+
+            except Exception as e:
+                _logger.error(f"❌ Erro no recálculo manual: {str(e)}")
+                record.message_post(body=f"❌ Erro no recálculo manual: {str(e)}")
 
         return True
 
@@ -1301,3 +1682,293 @@ class BlueMrpProduction(models.Model):
                             branch_move.write({'product_uom_qty': original_qty})
                             _logger.warning(
                                 f"   ✅ Corrigido: {matrix_move.product_id.display_name} {current_qty} → {original_qty}")
+
+    def _set_qty_producing(self):
+        """Custom implementation to preserve manual quantities"""
+        # Primeiro chama a implementação original para moves sem quantidade manual
+        manual_moves = self.env['stock.move']
+        for production in self:
+            manual_moves |= production.move_raw_ids.filtered(
+                lambda m: not float_is_zero(m.quantity_done, precision_rounding=m.product_uom.rounding)
+            )
+
+        # Aplica a lógica original apenas para moves sem quantidade manual
+        auto_productions = self.filtered(lambda p: any(
+            float_is_zero(m.quantity_done, precision_rounding=m.product_uom.rounding)
+            for m in p.move_raw_ids
+        ))
+
+        if auto_productions:
+            super(BlueMrpProduction, auto_productions)._set_qty_producing()
+
+    @api.model
+    def create(self, vals):
+        """Override do create para forçar criação inicial de movimentos"""
+        record = super(BlueMrpProduction, self).create(vals)
+
+        # ⚠️ FORÇA criação inicial de movimentos APENAS para novas OPs
+        if record.bom_id and not record.move_raw_ids:
+            _logger.warning(f"🔧 Criando movimentos iniciais para nova OP: {record.name}")
+            record.with_context(allow_initial_compute=True)._compute_move_raw_ids()
+
+        return record
+
+    def write(self, vals):
+        """Override do write para evitar recálculo automático de componentes"""
+        # Se está alterando a quantidade do produto, EVITAR recálculo de componentes
+        if 'product_qty' in vals and not self.env.context.get('force_update_moves'):
+            _logger.warning(f"🚫 Alteração de product_qty BLOQUEADA para recálculo automático")
+
+            # Escreve APENAS o product_qty sem disparar recálculos
+            for production in self:
+                # Atualiza apenas o campo product_qty
+                super(BlueMrpProduction, production).write({'product_qty': vals['product_qty']})
+
+                # Atualiza movimento do produto finalizado se necessário
+                if production.move_finished_ids:
+                    for move in production.move_finished_ids:
+                        if move.product_id == production.product_id:
+                            move.product_uom_qty = vals['product_qty']
+                            _logger.warning(f"   ✅ Produto final atualizado: {move.product_uom_qty}")
+
+            return True
+
+        # Para outros campos, comportamento normal
+        return super(BlueMrpProduction, self).write(vals)
+
+    def _force_preserve_consumption(self):
+        """Força a preservação do consumo em todos os movimentos - método de emergência"""
+        for production in self:
+            _logger.warning(f"🚨 FORÇANDO preservação de consumo para OP: {production.name}")
+
+            for move in production.move_raw_ids:
+                if move.quantity_done > 0 and move.state not in ['done', 'cancel']:
+                    original_done = move.quantity_done
+                    # Garante que quantity_done não seja alterado
+                    move.with_context(bypass_consumption_check=True).write({
+                        'quantity_done': original_done
+                    })
+                    _logger.warning(
+                        f"   🔒 Consumo travado: {move.product_id.display_name} = {original_done}"
+                    )
+
+    def _force_preserve_consumption_immediate(self):
+        """
+        Preservação IMEDIATA e URGENTE dos consumos
+        Usado durante onchanges para travar os valores
+        """
+        for record in self:
+            _logger.warning(f"🔒 TRAVANDO consumos para: {record.name}")
+
+            for move in record.move_raw_ids:
+                if move.quantity_done > 0:
+                    current_done = move.quantity_done
+
+                    # ⚠️ ESCREVE DIRETAMENTE NO BANCO para evitar triggers
+                    self.env.cr.execute("""
+                        UPDATE stock_move 
+                        SET quantity_done = %s 
+                        WHERE id = %s AND quantity_done != %s
+                    """, (current_done, move.id, current_done))
+
+                    _logger.warning(f"   🔒 TRAVADO: {move.product_id.display_name} = {current_done}")
+
+            # ⚠️ FORÇA o refresh
+            record.invalidate_cache(['move_raw_ids'])
+
+    def _create_complete_moves_backup(self):
+        """
+        Cria backup COMPLETO de todos os movimentos
+        """
+        backup_data = {}
+        for record in self:
+            backup_data[record.id] = {
+                'raw_moves': [],
+                'finished_moves': []
+            }
+
+            # Backup movimentos de componentes
+            for move in record.move_raw_ids:
+                backup_data[record.id]['raw_moves'].append({
+                    'id': move.id,
+                    'product_id': move.product_id.id,
+                    'product_uom_qty': move.product_uom_qty,
+                    'quantity_done': move.quantity_done,
+                    'product_uom': move.product_uom.id,
+                    'name': move.name,
+                    'state': move.state,
+                    'bom_line_id': move.bom_line_id.id if move.bom_line_id else False
+                })
+                _logger.warning(f"   💾 BACKUP COMPONENTE: {move.product_id.display_name} - Done: {move.quantity_done}")
+
+            # Backup movimentos finalizados
+            for move in record.move_finished_ids:
+                backup_data[record.id]['finished_moves'].append({
+                    'id': move.id,
+                    'product_id': move.product_id.id,
+                    'product_uom_qty': move.product_uom_qty,
+                    'quantity_done': move.quantity_done,
+                    'product_uom': move.product_uom.id,
+                    'name': move.name,
+                    'state': move.state
+                })
+
+        return backup_data
+
+    def _restore_complete_moves_backup(self, backup_data):
+        """
+        Restauração COMPLETA dos movimentos do backup
+        """
+        for record in self:
+            if record.id not in backup_data:
+                continue
+
+            _logger.warning(f"🔄 RESTAURAÇÃO COMPLETA para: {record.name}")
+
+            data = backup_data[record.id]
+            restored_count = 0
+
+            # ⚠️ RESTAURA movimentos de componentes
+            for move_backup in data['raw_moves']:
+                move = record.move_raw_ids.filtered(lambda m: m.id == move_backup['id'])
+                if move:
+                    # Verifica se algo foi alterado
+                    needs_restore = (
+                            abs(move.product_uom_qty - move_backup['product_uom_qty']) > 0.001 or
+                            abs(move.quantity_done - move_backup['quantity_done']) > 0.001
+                    )
+
+                    if needs_restore:
+                        # ⚠️ ESCRITA DIRETA NO BANCO para evitar triggers
+                        self.env.cr.execute("""
+                            UPDATE stock_move 
+                            SET product_uom_qty = %s, 
+                                quantity_done = %s,
+                                product_uom = %s
+                            WHERE id = %s
+                        """, (
+                            move_backup['product_uom_qty'],
+                            move_backup['quantity_done'],
+                            move_backup['product_uom'],
+                            move.id
+                        ))
+
+                        # Atualiza cache
+                        move.product_uom_qty = move_backup['product_uom_qty']
+                        move.quantity_done = move_backup['quantity_done']
+                        move.product_uom = move_backup['product_uom']
+
+                        restored_count += 1
+                        _logger.warning(f"   🔄 RESTAURADO: {move.product_id.display_name}")
+                        _logger.warning(f"      Qty: {move.product_uom_qty} → {move_backup['product_uom_qty']}")
+                        _logger.warning(f"      Done: {move.quantity_done} → {move_backup['quantity_done']}")
+
+            # ⚠️ RESTAURA movimentos finalizados (apenas quantidade planejada)
+            for move_backup in data['finished_moves']:
+                move = record.move_finished_ids.filtered(lambda m: m.id == move_backup['id'])
+                if move and move.product_id == record.product_id:
+                    if abs(move.product_uom_qty - record.product_qty) > 0.001:
+                        move.product_uom_qty = record.product_qty
+                        _logger.warning(f"   ✅ Produto final: {move.product_uom_qty}")
+
+            _logger.warning(f"🔄 TOTAL RESTAURADO: {restored_count} componentes")
+
+            # ⚠️ FORÇA INVALIDAÇÃO DO CACHE
+            record.invalidate_cache()
+
+    def action_verify_and_fix_consumption(self):
+        """
+        Ação para verificar e corrigir consumos manualmente
+        """
+        for record in self:
+            _logger.warning(f"🔍 VERIFICANDO CONSUMOS: {record.name}")
+
+            problems = []
+
+            # Verifica componentes
+            for move in record.move_raw_ids:
+                bom_line = record.bom_id.bom_line_ids.filtered(
+                    lambda l: l.product_id == move.product_id
+                )
+
+                if bom_line:
+                    expected_qty = bom_line.product_qty * record.product_qty / record.bom_id.product_qty
+
+                    if abs(move.product_uom_qty - expected_qty) > 0.001:
+                        problems.append(
+                            f"• {move.product_id.display_name}: "
+                            f"Esperado={expected_qty:.3f}, Atual={move.product_uom_qty:.3f}"
+                        )
+
+            if problems:
+                message = "Problemas encontrados:\n\n" + "\n".join(problems)
+                _logger.warning(f"❌ PROBLEMAS: {message}")
+
+                # Pergunta se quer corrigir
+                return {
+                    'name': 'Corrigir Consumos',
+                    'type': 'ir.actions.act_window',
+                    'res_model': 'mrp.production.fix.consumption.wizard',
+                    'view_mode': 'form',
+                    'target': 'new',
+                    'context': {
+                        'default_production_id': record.id,
+                        'default_problems': "\n".join(problems)
+                    }
+                }
+            else:
+                record.message_post(body="✅ Consumos verificados - Todos corretos")
+                raise UserError("✅ Todos os consumos estão corretos!")
+
+    def _cal_price(self, consumed_moves):
+        """Override para lidar com validação distribuída entre matriz e filiais"""
+        # Filtrar apenas moves válidos para cálculo de custo
+        valid_moves = consumed_moves.filtered(
+            lambda m: m.state == 'done' and m.product_qty != 0
+        )
+
+        # Para cada produção, processar individualmente
+        for production in self:
+            # Encontrar o movimento do produto final correto
+            finished_moves = production.move_finished_ids.filtered(
+                lambda m: m.product_id == production.product_id and
+                          m.state == 'done'
+            )
+
+            if not finished_moves:
+                continue
+
+            # Se houver múltiplos moves, usar o principal
+            if len(finished_moves) > 1:
+                # Ordenar por ID e pegar o mais recente ou usar lógica específica
+                main_finished_move = finished_moves.sorted(key=lambda m: m.id, reverse=True)[0]
+            else:
+                main_finished_move = finished_moves
+
+            try:
+                # Chamar a implementação original com o move correto
+                super(BlueMrpProduction, production)._cal_price(valid_moves)
+            except ValueError as e:
+                # Fallback: calcular custo manualmente se houver erro
+                if "Expected singleton" in str(e):
+                    production._fallback_cal_price(valid_moves, main_finished_move)
+
+        return True
+
+    def _fallback_cal_price(self, consumed_moves, finished_move):
+        """Fallback para cálculo de custo quando há múltiplos moves"""
+        # Implementação simplificada de cálculo de custo
+        total_cost = 0.0
+        for move in consumed_moves:
+            if move.raw_material_production_id == self:
+                # Calcular custo baseado no preço padrão
+                total_cost += move.product_qty * move.product_id.standard_price
+
+        # Atribuir custo ao produto final
+        if finished_move and finished_move.quantity_done > 0:
+            unit_cost = total_cost / finished_move.quantity_done
+            finished_move.price_unit = unit_cost
+
+            # Atualizar custo padrão do produto se configurado
+            if self.env.company.auto_update_standard_cost:
+                finished_move.product_id.standard_price = unit_cost

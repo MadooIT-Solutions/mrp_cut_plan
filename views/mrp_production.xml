@@ -1,183 +1,141 @@
-<?xml version='1.0' encoding='utf-8'?>
+<?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- mrp_cut_plan - views/mrp_production.xml (versão revisada) -->
+
     <record id="mrp_cut_production_inherit" model="ir.ui.view">
         <field name="name">mrp.production.inherit</field>
         <field name="model">mrp.production</field>
         <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
         <field name="arch" type="xml">
 
+            <!-- Substitui header com controles seguros -->
             <xpath expr="//header" position="replace">
                 <header>
-                    <!-- Campos necessários para os attrs -->
+                    <!-- Campos invisíveis usados em attrs/logic -->
                     <field name="show_lock" invisible="1"/>
                     <field name="is_locked" invisible="1"/>
                     <field name="confirm_cancel" invisible="1"/>
                     <field name="show_serial_mass_produce" invisible="1"/>
 
-                    <!-- CAMPOS ADICIONAIS PARA CONTROLE DO FLUXO (INVISÍVEIS) -->
                     <field name="branch_location_id" invisible="1"/>
                     <field name="sending_transfer_id" invisible="1"/>
                     <field name="total_qty_received" invisible="1"/>
-                    <field name="final_receipt_id" invisible="1"/>
-                    <field name="product_qty" invisible="1"/>
                     <field name="related_type" invisible="1"/>
-                    <field name="move_raw_ids" invisible="1"/>
-                    <field name="state" invisible="1"/>
                     <field name="origin_production_id" invisible="1"/>
                     <field name="is_planned" invisible="1"/>
-                    <field name="workorder_ids" invisible="1"/>
+                    <field name="product_qty" invisible="1"/>
                     <field name="product_id" invisible="1"/>
                     <field name="hide_check_availability" invisible="1"/>
 
+                    <!-- Botões: attrs simples e seguros -->
+                    <button name="button_send_to_branch" type="object" class="oe_highlight"
+                            string="Send to Branch"
+                            attrs="{'invisible': ['|','|',('related_type','!=','m'),('branch_location_id','!=',False),('state','in',['done'])]}"/>
 
-                    <!-- Botão Enviar para Filial - APENAS para OP matriz sem filial definida e estado confirmed -->
-                    <button name="button_send_to_branch" type="object" class="oe_highlight" string="Send to Branch" attrs="{'invisible': ['|', '|', ('related_type', '!=', 'm'), ('branch_location_id', '!=', False), ('state', 'in', ['done'])]}"/>
+                    <button name="action_confirm" type="object" class="oe_highlight" string="Confirm"
+                            attrs="{'invisible':[('state','!=','draft')]}"/>
+                    <button name="button_mark_done" type="object" class="oe_highlight" string="Validate"
+                            attrs="{'invisible':[('state','not in',['progress','to_close','confirmed'])]}"/>
 
-                    <!-- Botão Confirmar - Comportamento diferente para OP filial -->
-                    <button name="action_confirm"
-                            type="object"
-                            class="oe_highlight"
-                            string="Confirm"
-                            attrs="{'invisible': ['|', ('state', '!=', 'draft'), '&amp;', ('origin_production_id', '!=', False), ('state', '!=', 'draft')]}"/>
+                    <button name="button_plan" type="object" class="oe_highlight" string="Plan"
+                            attrs="{'invisible':['|','|','|',('state','not in',['confirmed','progress','to_close']),('workorder_ids','=',[]),('is_planned','=',True),('origin_production_id','!=',False)]}"/>
 
-                    <!-- Botão Validar - Aparece para OP filial após confirmação (state='confirmed') -->
-                    <button name="button_mark_done"
-                            type="object"
-                            class="oe_highlight"
-                            string="Validate"
-                            attrs="{'invisible': [('state', 'not in', ['progress', 'to_close', 'confirmed'])]}"/>
-
-                    <!-- REMOVIDO: Botão Plan/Confirmar para OP filial - Não é mais necessário -->
-
-                    <!-- Botão Plan normal para OPs sem filial - OCULTO para OPs com filial -->
-                    <button name="button_plan"
-                            type="object"
-                            class="oe_highlight"
-                            string="Plan"
-                            attrs="{'invisible': ['|', '|', '|', ('state', 'not in', ['confirmed', 'progress', 'to_close']), ('workorder_ids', '=', []), ('is_planned', '=', True), ('origin_production_id', '!=', False)]}"/>
-
-                    <!-- Botão Unplan - OCULTO para OPs com filial E para produtos do tipo molde (related_type = 'm') -->
                     <button name="button_unplan"
                             type="object"
                             class="oe_highlight"
                             string="Unplan"
-                            attrs="{'invisible': ['|', '|', ('is_planned', '=', False), ('state', '=', 'cancel'), '|', ('origin_production_id', '!=', False), ('related_type', '=', 'm')]}"/>
+                            attrs="{'invisible': [
+            '|', '|',
+            ['is_planned', '=', False],
+            ['state', '=', 'cancel'],
+            ['origin_production_id', '!=', False],
+            ['related_type', '=', 'm']
+        ]}"/>
 
-                    <!-- Botão Check Availability - OCULTO quando hide_check_availability = True -->
-                    <button name="action_assign"
-                            type="object"
-                            string="Check Availability"
-                            attrs="{'invisible': [('hide_check_availability', '=', True)]}"/>
 
-                    <button name="do_unreserve"
-                            type="object"
-                            string="Unreserve"
-                            attrs="{'invisible': [('unreserve_visible', '=', False)]}"/>
 
-                    <button name="button_scrap"
-                            type="object"
-                            string="Scrap"
-                            attrs="{'invisible': [('state', 'in', ['cancel', 'draft'])]}"/>
 
-                    <button name="action_toggle_is_locked"
-                            type="object"
-                            string="Unlock"
+                    <button name="action_assign" type="object" string="Check Availability"
+                            attrs="{'invisible':[('hide_check_availability','=',True)]}"/>
+
+                    <button name="do_unreserve" type="object" string="Unreserve"
+                            attrs="{'invisible':[('unreserve_visible','=',False)]}"/>
+
+                    <button name="button_scrap" type="object" string="Scrap"
+                            attrs="{'invisible':[('state','in',['cancel','draft'])]}"/>
+
+                    <button name="action_toggle_is_locked" type="object" string="Unlock"
                             groups="mrp.group_mrp_manager"
-                            attrs="{'invisible': [('show_lock', '=', False), ('is_locked', '=', False)]}"/>
-                    <button name="action_toggle_is_locked"
-                            type="object"
-                            string="Lock"
+                            attrs="{'invisible':[('show_lock','=',False),('is_locked','=',False)]}"/>
+
+                    <button name="action_toggle_is_locked" type="object" string="Lock"
                             groups="mrp.group_mrp_manager"
-                            attrs="{'invisible': [('show_lock', '=', False), ('is_locked', '=', True)]}"/>
+                            attrs="{'invisible':[('show_lock','=',False),('is_locked','=',True)]}"/>
 
-                    <button name="action_serial_mass_produce_wizard"
-                            type="object"
-                            string="Mass Produce"
-                            attrs="{'invisible': [('show_serial_mass_produce', '=', False)]}"/>
+                    <button name="action_serial_mass_produce_wizard" type="object" string="Mass Produce"
+                            attrs="{'invisible':[('show_serial_mass_produce','=',False)]}"/>
 
-                    <!-- Botão Cancelar ÚNICO com lógica condicional para confirmação -->
-                    <button name="action_cancel"
-                            type="object"
-                            string="Cancel"
-                            attrs="{'invisible': [('state', 'in', ['done', 'cancel'])]}"
-                            confirm="{'True': 'Some product moves have already been confirmed, this manufacturing order can\\'t be completely cancelled. Are you sure you want to process?', 'False': ''}[confirm_cancel]"/>
+                    <button name="action_cancel" type="object" string="Cancel"
+                            attrs="{'invisible':[('state','in',['done','cancel'])]}"
+                            confirm="{'True':'Some product moves have already been confirmed. Are you sure?', 'False':''}[confirm_cancel]"/>
 
-                    <button name="button_unbuild"
-                            type="object"
-                            string="Unbuild"
-                            attrs="{'invisible': [('state', '!=', 'done')]}"/>
+                    <button name="button_unbuild" type="object" string="Unbuild"
+                            attrs="{'invisible':[('state','!=','done')]}"/>
 
                     <!-- Statusbar -->
                     <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,progress,done"/>
                 </header>
             </xpath>
 
-            <xpath expr="//div[@name='button_box']" position="inside">
-                <button class="oe_stat_button" name="open_linked_po"
-                        type="object"
-                        icon="fa-flask"
-                        attrs="{'invisible': [('count_po', '=', 0)]}">
-                    <div class="o_stat_info">
-                        <field name="count_po" nolabel="1" widget="statinfo"/>
-                        <span class="o_stat_text">Plano De Corte</span>
-                    </div>
-                </button>
-            </xpath>
+            <!-- Alertas — inseridos após o campo name -->
+<!--            <xpath expr="//field[@name='name']" position="after">-->
 
-            <!-- Mensagem de alerta após o campo state - CORRIGIDO PARA ACESSIBILIDADE -->
-            <xpath expr="//field[@name='name']" position="after">
-                <div style="width: 100%; margin-top: -29px; margin-right: -550px">
+<!--                <div style="width:100%;margin-top:-29px;margin-right:-550px">-->
+<!--                    <div class="alert alert-danger mb-2" role="alert"-->
+<!--                         attrs="{'invisible':[('message_state','!=','Aguardando envio para filial.')]}">-->
+<!--                        <i class="fa fa-truck mr-2"></i>-->
+<!--                        <field name="message_state" readonly="1" nolabel="1"/>-->
+<!--                    </div>-->
 
-                    <!-- Aguardando envio para filial-->
-                    <div class="alert alert-danger mb-2" role="alert" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 150px;"
-                         attrs="{'invisible': [('message_state', '!=', 'Aguardando envio para filial.')]}">
-                        <i class="fa fa-truck mr-2" style="margin-right: 10px;" />    <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
-                    </div>
+<!--                    <div class="alert alert-danger mb-2" role="alert"-->
+<!--                         attrs="{'invisible':[('message_state','!=','Em trânsito para a filial.')]}">-->
+<!--                        <i class="fa fa-truck mr-2"></i>-->
+<!--                        <field name="message_state" readonly="1" nolabel="1"/>-->
+<!--                    </div>-->
 
-                    <!-- Em trânsito para a filial - VERMELHO -->
-                    <div class="alert alert-danger mb-2" role="alert" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 150px;"
-                         attrs="{'invisible': [('message_state', '!=', 'Em trânsito para a filial.')]}">
-                        <i class="fa fa-truck mr-2" style="margin-right: 10px;" />    <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
-                    </div>
+<!--                    <div class="alert alert-warning mb-2" role="alert"-->
+<!--                         attrs="{'invisible':[('message_state','!=','Recebido na filial. Aguardando início da produção.')]}">-->
+<!--                        <i class="fa fa-check mr-2"></i>-->
+<!--                        <field name="message_state" readonly="1" nolabel="1"/>-->
+<!--                    </div>-->
 
-                    <!-- Recebido na filial. Aguardando inicio da produção. - AMARELO -->
-                    <div class="alert alert-warning mb-2" role="alert" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 150px;"
-                         attrs="{'invisible': [('message_state', '!=', 'Recebido na filial. Aguardando início da produção.')]}">
-                        <i class="fa fa-check mr-2" style="margin-right: 10px;" />
-                        <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
-                    </div>
+<!--                    <div class="alert alert-info mb-2" role="alert"-->
+<!--                         attrs="{'invisible':[('message_state','!=','Aguardando a fabricação na filial.')]}">-->
+<!--                        <i class="fa fa-cogs mr-2"></i>-->
+<!--                        <field name="message_state" readonly="1" nolabel="1"/>-->
+<!--                    </div>-->
 
-                    <!-- Aguardando a fabricação na filial. - AZUL -->
-                    <div class="alert alert-info mb-2" role="alert" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 150px;"
-                         attrs="{'invisible': [('message_state', '!=', 'Aguardando a fabricação na filial.')]}">
-                        <i class="fa fa-cogs mr-2" style="margin-right: 10px;" />
-                        <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
-                    </div>
+<!--                    <div class="alert alert-info mb-2" role="alert"-->
+<!--                         attrs="{'invisible':[('message_state','!=','Fabricação na filial concluída, aguardando envio.')]}">-->
+<!--                        <i class="fa fa-suitcase mr-2"></i>-->
+<!--                        <field name="message_state" readonly="1" nolabel="1"/>-->
+<!--                    </div>-->
 
-                    <!-- Fabricação na filial concluída, aguardando envio. - AZUL -->
-                    <div class="alert alert-info mb-2" role="alert" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 150px;"
-                         attrs="{'invisible': [('message_state', '!=', 'Fabricação na filial concluída, aguardando envio.')]}">
-                        <i class="fa fa-suitcase mr-2" style="margin-right: 10px;" />
-                        <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
-                    </div>
+<!--                    <div class="alert alert-warning mb-2" role="alert"-->
+<!--                         attrs="{'invisible':[('message_state','!=','Em trânsito para a matriz.')]}">-->
+<!--                        <i class="fa fa-truck mr-2"></i>-->
+<!--                        <field name="message_state" readonly="1" nolabel="1"/>-->
+<!--                    </div>-->
 
-                    <!-- Em trânsito para a matriz. - AMARELO -->
-                    <div class="alert alert-warning mb-2" role="alert" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 150px;"
-                         attrs="{'invisible': [('message_state', '!=', 'Em trânsito para a matriz.')]}">
-                        <i class="fa fa-truck mr-2" style="margin-right: 10px;" />
-                        <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0;" readonly="1"/>
-                    </div>
+<!--                    <div class="alert alert-success mb-2" role="alert"-->
+<!--                         attrs="{'invisible':[('message_state','!=','Recebido na matriz.')]}">-->
+<!--                        <i class="fa fa-check mr-2"></i>-->
+<!--                        <field name="message_state" readonly="1" nolabel="1"/>-->
+<!--                    </div>-->
+<!--                </div>-->
+<!--            </xpath>-->
 
-                    <!-- Recebido na matriz. - VERDE -->
-                    <div class="alert alert-success mb-2" role="alert" style="font-size: 14px !important; display: inline-flex !important; align-items: right; white-space: nowrap; padding: 6px 150px;"
-                         attrs="{'invisible': [('message_state', '!=', 'Recebido na matriz.')]}">
-                        <i class="fa fa-check mr-2" style="margin-right: 10px;" />
-                        <field name="message_state" nolabel="1" style="font-weight: bold; font-size: 14px !important; margin: 0; padding: 0; right: 10;" readonly="1"/>
-                    </div>
-                </div>
-            </xpath>
-
-            <!-- Seção do fluxo filial - POSIÇÃO ORIGINAL DENTRO DO GRUPO DO PRODUTO -->
+            <!-- Fluxo filial: campos inseridos dentro do bloco onde product_id está -->
             <xpath expr="//group[field[@name='product_id']]" position="inside">
                 <separator string="Fluxo Filial"/>
                 <field name="origin_production_id" readonly="1"/>
@@ -189,40 +147,67 @@
                 <field name="total_qty_received" readonly="1"/>
             </xpath>
 
-            <!-- Seção Medidas - POSIÇÃO ORIGINAL APÓS user_id -->
+            <!-- Medidas (após user_id) -->
             <xpath expr="//field[@name='user_id']" position="after">
                 <group string="Medidas">
-                    <field name="related_type" string="Tipo"/>
-
+                    <field name="related_type"/>
                     <group>
-                        <field name="blue_I" string="L"/>
-                        <field name="blue_II" string="L "/>
-                        <field name="blue_h" string="H"/>
+                        <field name="blue_I"/>
+                        <field name="blue_II"/>
+                        <field name="blue_h"/>
                     </group>
                     <group>
-                        <field name="blue_I_uom" string="Udm L"/>
-                        <field name="blue_II_uom" string="Udm L "/>
-                        <field name="blue_h_uom" string="Udm H"/>
+                        <field name="blue_I_uom"/>
+                        <field name="blue_II_uom"/>
+                        <field name="blue_h_uom"/>
                     </group>
                     <group>
-                        <field name="blue_advance" string="Avanço"/>
+                        <field name="blue_advance"/>
                     </group>
                     <group>
-                        <field name="blue_advance_uom" string="Udm Avanço"/>
+                        <field name="blue_advance_uom"/>
                     </group>
                 </group>
+            </xpath>
+
+            <!-- Aba adicional: Consumo em Filiais -->
+            <xpath expr="//notebook/page[@name='components']" position="after">
+                <page string="Consumo em Filiais" name="branch_consumption_page">
+<!--                    <group>-->
+<!--                        <label class="o_form_label" string="Itens consumidos nas filiais"/>-->
+<!--                    </group>-->
+
+                    <field name="component_moves_branch_ids" colspan="4">
+                        <tree editable="false">
+                            <field name="product_id"/>
+                            <field name="product_uom_qty" readonly="1" string="Qty Planejada"/>
+                            <field name="quantity_done" string="Consumido"/>
+                            <field name="location_id"/>
+                            <field name="state" invisible="1"/>
+                        </tree>
+                    </field>
+
+                    <group colspan="4">
+<!--                        <label class="o_form_label" string="Observação:"/>-->
+                        <div class="o_form_field_text">
+                            <p>
+                                Estes registros representam o consumo REAL realizado nas filiais.
+                                Não alteram estoque da matriz e não fazem parte da Lista de Materiais.
+                            </p>
+                        </div>
+                    </group>
+                </page>
             </xpath>
 
         </field>
     </record>
 
-    <!-- VIEW PARA STOCK PICKING - Controlar visibilidade dos botões nos pickings -->
+    <!-- VIEW PICKING — controle de campos invisíveis e botão validate -->
     <record id="view_picking_form_flow_control" model="ir.ui.view">
         <field name="name">stock.picking.form.flow.control</field>
         <field name="model">stock.picking</field>
         <field name="inherit_id" ref="stock.view_picking_form"/>
         <field name="arch" type="xml">
-            <!-- Adicionar campos necessários que estão sendo usados nos attrs -->
             <xpath expr="//form" position="inside">
                 <field name="origin_production_id" invisible="1"/>
                 <field name="custom_block_validate" invisible="1"/>
@@ -231,13 +216,13 @@
                 <field name="branch_mo_id" invisible="1"/>
             </xpath>
 
-            <!-- Ocultar Validate para pickings bloqueados -->
             <button name="button_validate" position="attributes">
-                <attribute name="attrs">{'invisible': [('show_validate', '=', False)]}</attribute>
+                <attribute name="attrs">{'invisible':[('show_validate','=',False)]}</attribute>
             </button>
         </field>
     </record>
 
+    <!-- List view small tweak -->
     <record id="mrp_cut_production_tree" model="ir.ui.view">
         <field name="name">mrp.production.cut.production.tree</field>
         <field name="model">mrp.production</field>
@@ -248,4 +233,5 @@
             </field>
         </field>
     </record>
+
 </odoo>

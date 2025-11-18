@@ -668,3 +668,26 @@ class StockPicking(models.Model):
 
         return res
 
+
+class StockMove(models.Model):
+    _inherit = 'stock.move'
+
+    planned_uom_qty = fields.Float(
+        'Planned Quantity',
+        digits='Product Unit of Measure',
+        compute='_compute_planned_uom_qty',
+        store=True,
+        help="Original planned quantity based on initial BOM calculation"
+    )
+
+    @api.depends('bom_line_id', 'raw_material_production_id', 'raw_material_production_id.product_qty')
+    def _compute_planned_uom_qty(self):
+        for move in self:
+            if move.raw_material_production_id and move.bom_line_id:
+                # Calcular baseado no BOM e quantidade original
+                bom = move.raw_material_production_id.bom_id
+                if bom:
+                    factor = move.raw_material_production_id.product_qty / bom.product_qty
+                    move.planned_uom_qty = move.bom_line_id.product_qty * factor
+            elif not move.planned_uom_qty:
+                move.planned_uom_qty = move.product_uom_qty
