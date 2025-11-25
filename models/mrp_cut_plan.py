@@ -345,11 +345,12 @@ class MrpCutPlan(models.Model):
                         if bom_line.blue_multiplier:
                             move.product_uom_qty = bom_line.product_qty
                         else:
-                            move.product_uom_qty = self.blue_m3 * self.blue_qty
+                            move.product_uom_qty = self.blue_m3
                     else:
                         if bom_line.blue_multiplier:
                             move.product_uom_qty = bom_line.product_qty
                         else:
+
                             move.product_uom_qty = (
                                     (self.blue_qty / self.blue_bom_template_id.product_qty) * bom_line.product_qty
                             )
@@ -506,8 +507,10 @@ class MrpCutPlan(models.Model):
 
                     if record.blue_h_uom != meter_uom_id:
                         height = record.blue_h_uom._compute_quantity(record.blue_h, meter_uom_id, round=False)
-
-                    record.blue_m3 = side1 * side2 * height
+                    if record.blue_qty:
+                        record.blue_m3 = side1 * side2 * height * record.blue_qty
+                    else:
+                        record.blue_m3 = side1 * side2 * height
                 else:
                     record.blue_m3 = 0
 
