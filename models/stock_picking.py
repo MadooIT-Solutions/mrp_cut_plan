@@ -175,35 +175,9 @@ class StockPicking(models.Model):
             else:
                 _logger.warning(f"   ⚠️ NENHUM PEDIDO ENCONTRADO para este picking")
 
-    def _apply_sale_description_on_creation(self):
-        """Aplica a descrição do pedido de venda na CRIAÇÃO do picking"""
-        for picking in self:
-            # Se já tem sale_id, aplica a descrição imediatamente
-            if picking.sale_id:
-                picking._force_apply_sale_description_to_all_moves()
 
-            # Se tem origin_production_id com sale_order_id, também aplica
-            elif picking.origin_production_id and picking.origin_production_id.sale_order_id:
-                # Define o sale_id no picking para facilitar o relacionamento
-                picking.sale_id = picking.origin_production_id.sale_order_id.id
-                picking._force_apply_sale_description_to_all_moves()
 
-    def _apply_sale_order_description_to_moves(self):
-        """Aplica a descrição do pedido de venda usando o relacionamento direto"""
-        for picking in self:
-            # Primeiro estabelece os relacionamentos
-            picking._link_sale_order_lines_to_moves()
 
-            # Agora aplica as descrições em TODOS os movimentos
-            picking._force_apply_sale_description_to_all_moves()
-
-            # Agora aplica as descrições (que serão computadas automaticamente pelo campo compute)
-            for move in picking.move_ids_without_package:
-                if move.sale_order_line_id:
-                    # A descrição será automaticamente computada pelo campo sale_line_description
-                    # Força a escrita do nome baseado na linha do pedido
-                    if move.name != move.sale_order_line_id.name:
-                        move.name = move.sale_order_line_id.name
 
     def _get_sale_order_description(self, production):
         """Obtém a descrição EXATA do pedido de venda, se disponível"""
@@ -222,11 +196,8 @@ class StockPicking(models.Model):
 
     def button_validate(self):
         """Button validate com forçamento de descrição"""
-        # FORÇA descrição antes da validação
-        for picking in self:
-            picking._apply_sale_order_description_to_moves()
 
-        # Bloqueio: impedir validação se houver envio pendente
+         # Bloqueio: impedir validação se houver envio pendente
         for picking in self:
             if (picking.picking_type_code == 'incoming'
                     and picking.sending_transfer_id
@@ -459,43 +430,6 @@ class StockPicking(models.Model):
 
         return receiving
 
-    def _force_apply_sale_description_to_all_moves(self):
-        """Força a aplicação da descrição do pedido de venda em TODOS os movimentos"""
-        for picking in self:
-            _logger.info(f"🔗 Aplicando descrição do pedido para picking: {picking.name}")
-
-            # Busca o pedido de venda relacionado
-            sale_order = picking._get_related_sale_order()
-
-            if not sale_order:
-                _logger.warning(f"   ⚠️ Nenhum pedido de venda encontrado para {picking.name}")
-                continue
-
-            _logger.info(f"   📦 Pedido encontrado: {sale_order.name}")
-
-            # Para CADA movimento no picking, aplica a descrição correta
-            for move in picking.move_ids_without_package:
-                # Busca a linha exata do pedido para este produto
-                order_line = sale_order.order_line.filtered(
-                    lambda l: l.product_id.id == move.product_id.id
-                )
-
-                if order_line:
-                    description = order_line[0].name
-                    _logger.info(f"   ✅ Aplicando descrição para {move.product_id.display_name}: '{description}'")
-
-                    # Atualiza a descrição do movimento
-                    if move.name != description:
-                        move.name = description
-
-                    # Atualiza também as linhas de movimento (move lines)
-                    for move_line in move.move_line_ids:
-                        if move_line.product_id == move.product_id and move_line.lot_id == move.lot_id:
-                            if hasattr(move_line,
-                                       'sale_line_description') and move_line.sale_line_description != description:
-                                move_line.sale_line_description = description
-                else:
-                    _logger.warning(f"   ❌ Produto {move.product_id.display_name} não encontrado no pedido")
 
     @api.model
     def create(self, vals):
@@ -504,7 +438,7 @@ class StockPicking(models.Model):
 
         # Estabelece relacionamentos e aplica descrições
         picking._link_sale_order_lines_to_moves()
-        picking._apply_sale_description_on_creation()
+
 
         return picking
 
@@ -515,41 +449,15 @@ class StockPicking(models.Model):
         # Se está alterando campos relevantes, atualiza relacionamentos
         if any(field in vals for field in ['origin_production_id', 'origin', 'move_ids_without_package']):
             self._link_sale_order_lines_to_moves()
-            self._apply_sale_description_on_creation()
+
 
         return result
 
     def action_assign(self):
         """Ação de assign com aplicação de descrições"""
-        self._apply_sale_order_description_to_moves()
+
         return super(StockPicking, self).action_assign()
 
-    def action_force_apply_sale_description(self):
-        """Ação manual para forçar aplicação da descrição do pedido de venda"""
-        for picking in self:
-            picking._link_sale_order_lines_to_moves()
-            picking._apply_sale_order_description_to_moves()
-            picking.message_post(body="✅ Descrições do pedido de venda aplicadas manualmente")
-        return True
-
-    def action_force_apply_sale_description_all(self):
-        """Ação manual para forçar aplicação da descrição do pedido em TODOS os movimentos"""
-        for picking in self:
-            picking._link_sale_order_lines_to_moves()
-            picking._force_apply_sale_description_to_all_moves()
-            picking.message_post(body="✅ Descrições do pedido de venda aplicadas manualmente em TODOS os movimentos")
-
-        # Mostra mensagem de confirmação
-        return {
-            'type': 'ir.actions.client',
-            'tag': 'display_notification',
-            'params': {
-                'title': 'Descrições Aplicadas',
-                'message': 'Descrições do pedido de venda aplicadas em todos os movimentos!',
-                'type': 'success',
-                'sticky': False,
-            }
-        }
 
 class StockMove(models.Model):
     _inherit = 'stock.move'
