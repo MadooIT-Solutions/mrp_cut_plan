@@ -1264,46 +1264,88 @@ class BlueMrpProduction(models.Model):
     @api.onchange('product_qty')
     def _onchange_product_qty(self):
         """
-                Override COMPLETO - BLOQUEIA QUALQUER alteração nos componentes
-                PRESERVA quantidades existentes e não preenche componentes zerados
-                """
+        Override CORRIGIDO - Bloqueia apenas OPs com fluxo filial
+        Permite criação manual de OPs normais
+        """
         for record in self:
-            _logger.warning(f"🚫 ONCHANGE PRODUCT_QTY BLOQUEADO para: {record.name}")
+            _logger.warning(f"🔍 ONCHANGE PRODUCT_QTY: {record.name}")
             _logger.warning(f"   • Nova quantidade: {record.product_qty}")
-            _logger.warning(
-                f"   • Tipo: {'FILIAL' if record.origin_production_id else 'MATRIZ' if record.branch_location_id else 'NORMAL'}")
+            _logger.warning(f"   • ID: {record.id}")
+            _logger.warning(f"   • Estado: {record.state}")
 
-            # ⚠️ BLOQUEIO TOTAL para OPs com fluxo filial - NÃO ALTERA COMPONENTES
-            if record.origin_production_id or record.branch_location_id:
-                _logger.warning(f"   🚫 BLOQUEIO ATIVADO - Nenhum componente será alterado")
+            # ⚠️ BLOQUEIO APENAS para OPs com fluxo filial específico
+            # Verifica se é uma OP de filial (tem origem definida)
+            if record.origin_production_id:
+                _logger.warning(f"   🚫 BLOQUEIO - OP DE FILIAL detectada")
 
-                # ⚠️ NÃO CHAMA O SUPER() - BLOQUEIO COMPLETO
-                # Apenas atualiza o produto finalizado
+                # Atualiza apenas produto finalizado
                 if record.move_finished_ids:
                     for move in record.move_finished_ids:
                         if move.product_id == record.product_id:
                             old_qty = move.product_uom_qty
                             if abs(old_qty - record.product_qty) > 0.001:
                                 move.product_uom_qty = record.product_qty
-                                _logger.warning(
-                                    f"   ✅ Apenas produto final atualizado: {old_qty} → {record.product_qty}")
-
+                                _logger.warning(f"   ✅ Produto final atualizado: {old_qty} → {record.product_qty}")
                 return
 
-            # ⚠️ Para OPs NORMAIS, comportamento padrão MAS com proteção EXTREMA
-            _logger.warning(f"   🔄 OP NORMAL - Comportamento padrão COM PROTEÇÃO")
+            # ⚠️ PARA OPs NORMAIS (inclusive novas) - COMPORTAMENTO PADRÃO
+            _logger.warning(f"   ✅ OP NORMAL - Aplicando comportamento padrão")
 
-            # Backup COMPLETO de todos os movimentos ANTES - PRESERVA QUANTIDADES EXISTENTES
-            backup_data = self._create_complete_moves_backup()
+            # Para OPs NOVAS (ainda não salvas) - comportamento normal
+            if not record.id or record.state in ['draft', 'confirmed']:
+                _logger.warning(f"   📝 OP NOVA/RASCUNHO - Comportamento padrão")
+                try:
+                    super(BlueMrpProduction, record)._onchange_product_qty()
+                    _logger.warning(f"   ✅ Super() executado com sucesso")
+                except Exception as e:
+                    _logger.error(f"❌ Erro no onchange padrão: {str(e)}")
+                    # Em caso de erro, tenta o fallback
+                    self._safe_onchange_fallback(record)
+            else:
+                # Para OPs EXISTENTES - proteção com backup
+                _logger.warning(f"   🔄 OP EXISTENTE - Proteção com backup")
+                backup_data = self._create_complete_moves_backup()
 
+                try:
+                    super(BlueMrpProduction, record)._onchange_product_qty()
+                    _logger.warning(f"   ✅ Super() executado com backup")
+                except Exception as e:
+                    _logger.error(f"❌ Erro no onchange: {str(e)}")
+                    self._restore_complete_moves_backup(backup_data)
+
+        # Método fallback seguro
+        def _safe_onchange_fallback(self, record):
+            """Fallback seguro para quando o onchange padrão falha"""
             try:
-                # Chama o comportamento original
-                super(BlueMrpProduction, record)._onchange_product_qty()
-            except Exception as e:
-                _logger.error(f"❌ Erro no onchange: {str(e)}")
+                # Atualização manual básica dos movimentos
+                if record.move_finished_ids:
+                    for move in record.move_finished_ids:
+                        if move.product_id == record.product_id:
+                            move.product_uom_qty = record.product_qty
 
-            # ⚠️ RESTAURAÇÃO COMPLETA dos movimentos - MANTÉM QUANTIDADES ORIGINAIS
-            self._restore_complete_moves_backup(backup_data)
+                # Para componentes, usa BOM se disponível
+                if record.bom_id and record.product_qty > 0:
+                    record._onchange_bom_id()
+
+            except Exception as e:
+                _logger.error(f"❌ Fallback também falhou: {str(e)}")
+
+        # Método fallback seguro
+    def _safe_onchange_fallback(self, record):
+        """Fallback seguro para quando o onchange padrão falha"""
+        try:
+            # Atualização manual básica dos movimentos
+            if record.move_finished_ids:
+                for move in record.move_finished_ids:
+                    if move.product_id == record.product_id:
+                        move.product_uom_qty = record.product_qty
+
+            # Para componentes, usa BOM se disponível
+            if record.bom_id and record.product_qty > 0:
+                record._onchange_bom_id()
+
+        except Exception as e:
+            _logger.error(f"❌ Fallback também falhou: {str(e)}")
 
     def action_use_planned_quantities(self):
         """Preenche quantity_done com product_uom_qty quando está zerado"""
