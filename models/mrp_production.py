@@ -599,7 +599,7 @@ class BlueMrpProduction(models.Model):
                         f"Finalize todas as operações antes de validar a OP matriz."
                     )
 
-            if record.origin_production_id:
+            if record.origin_production_id and record.sending_transfer_id and record.branch_receipt_id:
                 # ⚠️ OP FILIAL - comportamento normal
                 _logger.info(f"🔄 Concluindo OP filial {record.name}")
 
