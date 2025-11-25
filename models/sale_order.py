@@ -89,6 +89,16 @@ class SaleOrder(models.Model):
         res = super(SaleOrder, self).action_confirm()
         self._adjust_stock_picking_to_waiting()
 
+        # AGORA COPIA O NAME DA SALE ORDER LINE PARA DESCRIPTION_PICKING
+        for order in self:
+            # Para cada ordem de entrega (picking) criada
+            for picking in order.picking_ids:
+                # Para cada linha de movimento (stock.move) na ordem de entrega
+                for move in picking.move_ids_without_package:
+                    if move.sale_line_id and move.sale_line_id.name:
+                        # Copia o campo name da sale order line para description_picking
+                        move.description_picking = move.sale_line_id.name
+
         # agora vincula as MOs criadas ao plano de corte
         for line in self.order_line:
             if line.product_id.id in cut_plan_map:
