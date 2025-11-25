@@ -199,8 +199,10 @@ class BlueSaleOrderLineConfig(models.TransientModel):
                     
                     if record.blue_h_uom != meter_uom_id:
                         height = record.blue_h_uom._compute_quantity(record.blue_h, meter_uom_id, round=False)
-
-                    record.blue_m3 = advance * height
+                    if record.quantity == 1:
+                        record.blue_m3 = advance * height
+                    else:
+                        record.blue_m3 = advance * height * record.quantity
                 else:
                     record.blue_m3 = 0
             else:
