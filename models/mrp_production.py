@@ -32,38 +32,47 @@ class BlueMrpProduction(models.Model):
     blue_I = fields.Float(
         string="L",
         digits='Product Unit of Measure',
-        compute="_compute_cut_plan_fields"
+        related='cut_plan_id.blue_I'
+
     )
 
     blue_II = fields.Float(
         string="L ",
         digits='Product Unit of Measure',
-        compute="_compute_cut_plan_fields"
+        related='cut_plan_id.blue_II'
+
     )
 
     blue_h = fields.Float(
         string="H",
         digits='Product Unit of Measure',
-        compute="_compute_cut_plan_fields"
+        related='cut_plan_id.blue_h'
+
     )
 
     blue_I_uom = fields.Many2one(
         comodel_name="uom.uom",
         string="Uom ",
-        compute="_compute_cut_plan_fields"
+        related='cut_plan_id.blue_I_uom'
+
     )
 
     blue_II_uom = fields.Many2one(
         comodel_name="uom.uom",
         string="Uom  ",
-        compute="_compute_cut_plan_fields"
+        related='cut_plan_id.blue_II_uom'
+
     )
 
     blue_h_uom = fields.Many2one(
         comodel_name="uom.uom",
         string="Uom   ",
-        compute="_compute_cut_plan_fields"
+        related='cut_plan_id.blue_h_uom'
+
     )
+
+    blue_m2 = fields.Float(string="M²", related='cut_plan_id.blue_m2')
+    blue_m3 = fields.Float(string="M³", related='cut_plan_id.blue_m3')
 
     sale_order_id = fields.Many2one(
         comodel_name="sale.order",
@@ -74,13 +83,15 @@ class BlueMrpProduction(models.Model):
     blue_advance = fields.Float(
         string="Advance",
         digits='Product Unit of Measure',
-        compute="_compute_cut_plan_fields"
+        related='cut_plan_id.blue_advance'
+
     )
 
     blue_advance_uom = fields.Many2one(
         comodel_name="uom.uom",
         string="Udm",
-        compute="_compute_cut_plan_fields"
+        related='cut_plan_id.blue_advance_uom'
+
     )
 
     related_type = fields.Selection(
@@ -90,7 +101,7 @@ class BlueMrpProduction(models.Model):
             ("m", "Mold Calculation")
         ],
         string="Related Type",
-        compute="_compute_cut_plan_fields", store=True
+        store=True
     )
 
     cotation_partner_id = fields.Many2one(
@@ -206,6 +217,21 @@ class BlueMrpProduction(models.Model):
         compute='_compute_hide_check_availability',
         store=False
     )
+
+    def _get_sale_order_description(self, production):
+        """Obtém a descrição EXATA do pedido de venda, se disponível"""
+        # Tenta encontrar a descrição do pedido de venda vinculado
+        if production.sale_id:
+            # Busca a linha do pedido de venda para este produto
+            order_line = production.sale_id.order_line.filtered(
+                lambda l: l.product_id == production.product_id
+            )
+            if order_line:
+                # Retorna a descrição EXATA da linha do pedido
+                return order_line[0].name
+
+        # Fallback: usa a descrição padrão do produto
+        return production.product_id.get_product_multiline_description_sale()
 
     def _compute_count_po(self):
         for record in self:
@@ -701,13 +727,17 @@ class BlueMrpProduction(models.Model):
         if not picking_type:
             raise UserError("Tipo de operação interna não encontrado.")
 
+        # ✅ DESCRIÇÃO IGUAL AO PEDIDO DE VENDA
+        product_description = self._get_sale_order_description(self.origin_production_id)
+
         move_lines = [(0, 0, {
-            "name": f"Backorder {self.product_id.display_name}",
+            "name": product_description,  # ✅ DESCRIÇÃO IDÊNTICA AO PEDIDO DE VENDA
             "product_id": self.product_id.id,
             "product_uom_qty": backorder_qty,
             "product_uom": self.product_uom_id.id,
             "location_id": self.location_src_id.id,
             "location_dest_id": self.branch_location_id.id,
+            "description_picking": product_description,  # ✅ DESCRIÇÃO ADICIONAL
         })]
 
         picking = self.env['stock.picking'].create({
@@ -717,6 +747,8 @@ class BlueMrpProduction(models.Model):
             "origin": f"{self.name} - Backorder",
             "move_ids_without_package": move_lines,
             "custom_block_validate": False,
+            "sale_id": self.origin_production_id.sale_id.id,
+            "partner_id": self.origin_production_id.partner_id.id,
         })
 
         picking.action_confirm()
@@ -739,22 +771,28 @@ class BlueMrpProduction(models.Model):
         if not picking_type:
             raise UserError(f"Tipo de operação de recebimento não encontrado para {warehouse.name}")
 
+        # ✅ DESCRIÇÃO IGUAL AO PEDIDO DE VENDA
+        product_description = self._get_sale_order_description(self.origin_production_id)
+
         receiving = self.env['stock.picking'].create({
             "picking_type_id": picking_type.id,
             "location_id": sending_picking.location_id.id,
             "location_dest_id": self.branch_location_id.id,
             "origin": f"{self.name} - Backorder Recebimento",
             "move_ids_without_package": [(0, 0, {
-                "name": f"Recebimento Backorder {self.product_id.display_name}",
+                "name": product_description,  # ✅ DESCRIÇÃO IDÊNTICA AO PEDIDO DE VENDA
                 "product_id": self.product_id.id,
                 "product_uom_qty": qty,
                 "product_uom": self.product_uom_id.id,
                 "location_id": sending_picking.location_id.id,
                 "location_dest_id": self.branch_location_id.id,
+                "description_picking": product_description,  # ✅ DESCRIÇÃO ADICIONAL
             })],
             "show_validate": False,
             "custom_block_validate": True,
             "sending_transfer_id": [(4, sending_picking.id)],
+            "sale_id": self.origin_production_id.sale_id.id,
+            "partner_id": self.origin_production_id.partner_id.id,
         })
 
         receiving.action_confirm()
@@ -861,6 +899,7 @@ class BlueMrpProduction(models.Model):
             "product_qty": qty,
             "product_uom_id": self.product_uom_id.id,
             "bom_id": bom.id,
+            'cut_plan_id': self.origin_production_id.cut_plan_id.id,
             "location_src_id": receipt_picking.location_dest_id.id,
             "location_dest_id": production_loc.id,
             "picking_type_id": picking_type.id,
@@ -870,6 +909,7 @@ class BlueMrpProduction(models.Model):
             "state": "draft",
             "sending_transfer_id": [(6, 0, self.sending_transfer_id.ids)],
             "branch_receipt_id": [(6, 0, [receipt_picking.id])],
+
         }
 
         # Cria a OP filial
@@ -925,15 +965,20 @@ class BlueMrpProduction(models.Model):
             raise UserError("Não existem produtos finalizados para criar o retorno.")
 
         move_lines = []
+        product_description = self._get_sale_order_description(self.origin_production_id)
         for move in self.move_finished_ids:
             if move.product_id.type != 'service' and move.product_qty > 0:
+                # ✅ DESCRIÇÃO IGUAL AO PEDIDO DE VENDA para cada produto
+
+
                 move_lines.append((0, 0, {
-                    "name": f"Retorno {move.product_id.display_name}",
+                    "name": product_description,  # ✅ DESCRIÇÃO IDÊNTICA AO PEDIDO DE VENDA
                     "product_id": move.product_id.id,
                     "product_uom_qty": move.product_qty,
                     "product_uom": move.product_uom.id,
                     "location_id": self.location_src_id.id,  # Localização da filial
                     "location_dest_id": self.origin_production_id.location_dest_id.id,  # Localização da matriz
+                    "description_picking": product_description,  # ✅ DESCRIÇÃO ADICIONAL
                 }))
 
         # Encontra o tipo de operação para retorno
@@ -958,6 +1003,8 @@ class BlueMrpProduction(models.Model):
             "origin": f"{self.name} - Retorno para Matriz",
             "move_ids_without_package": move_lines,
             "picking_type_id": picking_type.id,
+            "sale_id": self.origin_production_id.sale_id.id,
+            "partner_id": self.origin_production_id.partner_id.id,
             "custom_block_validate": False,  # ⚠️ Não bloqueia inicialmente
             "show_validate": True,
         })
@@ -1044,13 +1091,17 @@ class BlueMrpProduction(models.Model):
 
         move_lines = []
         for move in return_picking.move_ids_without_package:
+            # ✅ DESCRIÇÃO IGUAL AO PEDIDO DE VENDA para cada produto
+            product_description = self._get_sale_order_description(self.origin_production_id)
+
             move_lines.append((0, 0, {
-                "name": f"Recebimento Final {move.product_id.display_name}",
+                "name": product_description,  # ✅ DESCRIÇÃO IDÊNTICA AO PEDIDO DE VENDA
                 "product_id": move.product_id.id,
                 "product_uom_qty": move.product_uom_qty,
                 "product_uom": move.product_uom.id,
                 "location_id": return_picking.location_id.id,
                 "location_dest_id": return_picking.location_dest_id.id,
+                "description_picking": product_description,  # ✅ DESCRIÇÃO ADICIONAL
             }))
 
         picking = self.env["stock.picking"].create({
@@ -1061,6 +1112,8 @@ class BlueMrpProduction(models.Model):
             "move_ids_without_package": move_lines,
             "custom_block_validate": True,  # ⚠️ Bloqueado até envio ser concluído
             "show_validate": False,
+            "sale_id": self.origin_production_id.sale_id.id,
+            "partner_id": self.origin_production_id.partner_id.id,
             # ⚠️ NÃO vincula origin_production_id aqui - isso evita criação de nova OP
         })
 
@@ -1252,26 +1305,12 @@ class BlueMrpProduction(models.Model):
             # ⚠️ RESTAURAÇÃO COMPLETA dos movimentos - MANTÉM QUANTIDADES ORIGINAIS
             self._restore_complete_moves_backup(backup_data)
 
-    @api.onchange('bom_id')
-    def _onchange_bom_id_preserve_consumption(self):
-        """
-        Override do onchange bom_id para preservar consumption
-        """
-        for record in self:
-            if record.origin_production_id or record.branch_location_id:
-                _logger.warning(f"⛔ Onchange bom_id BLOQUEADO para OP: {record.name}")
-                # ⚠️ Não faz nada para OPs com fluxo filial
-                return
-
-            # Para OPs normais, comportamento padrão
-            super(BlueMrpProduction, record)._onchange_bom_id()
-
     def action_use_planned_quantities(self):
-        """Preenche quantity_done com planned_uom_qty quando está zerado"""
+        """Preenche quantity_done com product_uom_qty quando está zerado"""
         for production in self:
             for move in production.move_raw_ids:
                 if float_is_zero(move.quantity_done, precision_rounding=move.product_uom.rounding):
-                    move.quantity_done = move.planned_uom_qty
+                    move.quantity_done = move.product_uom_qty  # ✅ Usar product_uom_qty em vez de planned_uom_qty
         return True
 
     def action_safe_update_quantities(self):
@@ -1435,12 +1474,6 @@ class BlueMrpProduction(models.Model):
         _logger.info(f"✅ OP {self.name} pode receber na matriz - todos os processos da filial concluídos")
         return True
 
-    # -----------------------------------------------------------------------------
-    # BLOQUEAR QUALQUER CONSUMO NA OP MATRIZ (SEM POPUP, SEM quantity_done)
-    # -----------------------------------------------------------------------------
-    # -----------------------------------------------------------------------------
-    # REMOVER BLOQUEIO DE CONSUMO NA MATRIZ - AGORA PERMITE CONSUMO SELETIVO
-    # -----------------------------------------------------------------------------
     def _check_consumed_materials(self):
         """Permite consumo seletivo tanto na matriz quanto na filial"""
         for production in self:

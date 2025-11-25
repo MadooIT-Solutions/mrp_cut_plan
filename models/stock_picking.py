@@ -3,7 +3,6 @@ from odoo.exceptions import UserError
 import logging
 
 _logger = logging.getLogger(__name__)
-_logger.warning("🔥 STOCK_PICKING.PY CARREGADO — este é o arquivo em uso REAL")
 
 
 class StockPicking(models.Model):
@@ -56,28 +55,178 @@ class StockPicking(models.Model):
 
     branch_backorder_id = fields.Many2one("stock.picking", string="Backorder Vinculado")
 
-    def button_validate(self):
-        """
-        Button validate único e robusto:
-        - chama super() (preserva comportamento de outros módulos como l10n_br_stock_account)
-        - cria RECEBIMENTO na filial após ENVIO (outgoing) ser validado (done)
-        - cria OP filial APENAS após RECEBIMENTO (incoming) estar done e ter sending_transfer done
-        - respeita contexto bypass_branch_creation para evitar criação prematura durante wizard writes
-        """
-        # 🎯 DEBUG INICIAL
-        _logger.warning(f"🎯 INICIANDO BUTTON_VALIDATE:")
-        for picking in self:
-            _logger.warning(f"   • Picking: {picking.name}")
-            _logger.warning(f"   • Type: {picking.picking_type_code}")
-            _logger.warning(f"   • State: {picking.state}")
-            _logger.warning(f"   • Origin: {picking.origin}")
-            _logger.warning(f"   • Origin Production ID: {picking.origin_production_id}")
-            _logger.warning(
-                f"   • Origin Production Name: {picking.origin_production_id.name if picking.origin_production_id else 'None'}")
-            _logger.warning(f"   • Branch Receipt IDs: {picking.branch_receipt_id.ids}")
-            _logger.warning(f"   • Custom Block: {picking.custom_block_validate}")
+    customer = fields.Many2one('res.partner', string='Partner', compute="_compute_customer")
+    sale_order = fields.Many2one('sale.order', string='Sale Order', compute="_compute_sale_order")
 
-        # 1) Bloqueio: impedir validação se houver envio pendente (para incoming)
+    def _compute_customer(self):
+        """Computa o nome do cliente a partir do partner_id"""
+        for picking in self:
+            sale_order = picking._get_related_sale_order()
+            picking.customer = sale_order.partner_id if sale_order else picking.partner_id
+
+    def debug_picking_sale_info(self):
+        """Debug específico para pickings de entrega"""
+        for picking in self:
+            print(f"=== DEBUG PICKING: {picking.name} ===")
+            print(f"Origin: {picking.origin}")
+            print(f"Picking Type: {picking.picking_type_code}")
+            print(f"Partner: {picking.partner_id.name}")
+            print(f"Sale Order (campo): {picking.sale_order.name if picking.sale_order else 'None'}")
+
+            # Buscar pedidos possíveis
+            if picking.origin:
+                origin_clean = picking.origin.split(' - ')[0]
+                possible_orders = env['sale.order'].search([('name', '=', origin_clean)])
+                print(f"Pedidos encontrados por origin '{origin_clean}': {len(possible_orders)}")
+                for order in possible_orders:
+                    print(f"  • {order.name} - {order.partner_id.name}")
+
+            print("Movimentos:")
+            for move in picking.move_ids_without_package:
+                print(f"  • {move.product_id.display_name} -> '{move.name}'")
+
+    def _compute_sale_order(self):
+        """Computa o pedido de venda a partir da origem ou da OP de produção"""
+        for picking in self:
+            sale_order = False
+
+            # 1. Busca pelo origin_production_id
+            if picking.origin_production_id and picking.origin_production_id.sale_order_id:
+                sale_order = picking.origin_production_id.sale_order_id
+
+            # 2. Busca pelo nome do pedido no origin
+            elif picking.origin:
+                origin_clean = picking.origin.split(' - ')[0]
+                sale_order = self.env['sale.order'].search([
+                    ('name', '=', origin_clean)
+                ], limit=1)
+
+            # 3. Busca pelo partner_id se for um picking de cliente
+            elif picking.partner_id and picking.picking_type_code == 'outgoing':
+                sale_order = self.env['sale.order'].search([
+                    ('partner_id', '=', picking.partner_id.id),
+                    ('state', 'in', ['sale', 'done'])
+                ], order='date_order desc', limit=1)
+
+            picking.sale_order = sale_order
+
+    def _get_related_sale_order(self):
+        """Obtém o pedido de venda relacionado ao picking"""
+        # 1. Tenta buscar pela OP de produção
+        if self.origin_production_id and self.origin_production_id.sale_order_id:
+            return self.origin_production_id.sale_order_id
+
+        # 2. Se não encontrou, tenta buscar pelo nome na origem
+        elif self.origin:
+            origin_clean = self.origin.split(' - ')[0]
+            return self.env['sale.order'].search([
+                ('name', '=', origin_clean)
+            ], limit=1)
+
+        return False
+
+    def _link_sale_order_lines_to_moves(self):
+        """Estabelece o relacionamento entre sale.order.line e stock.move"""
+        for picking in self:
+            _logger.warning(f"🔗 VINCULANDO LINHAS PEDIDO: {picking.name}")
+
+            sale_order = False
+
+            # MÉTODO 1: Busca através do campo sale_order
+            if picking.sale_order:
+                sale_order = picking.sale_order
+                _logger.warning(f"   📦 Pedido encontrado via sale_order: {sale_order.name}")
+
+            # MÉTODO 2: Busca através do origin_production_id
+            elif picking.origin_production_id and picking.origin_production_id.sale_order_id:
+                sale_order = picking.origin_production_id.sale_order_id
+                _logger.warning(f"   📦 Pedido encontrado via OP: {sale_order.name}")
+
+            # MÉTODO 3: Busca através do origin (nome do pedido)
+            elif picking.origin:
+                origin_clean = picking.origin.split(' - ')[0]
+                _logger.warning(f"   🔍 Buscando por origin: {origin_clean}")
+
+                sale_order = self.env['sale.order'].search([
+                    ('name', '=', origin_clean)
+                ], limit=1)
+
+                if sale_order:
+                    _logger.warning(f"   📦 Pedido encontrado via origin: {sale_order.name}")
+
+            if sale_order:
+                _logger.warning(f"   📋 Linhas do pedido {sale_order.name}:")
+                for line in sale_order.order_line:
+                    _logger.warning(f"      • {line.product_id.display_name} -> '{line.name}'")
+
+                for move in picking.move_ids_without_package:
+                    _logger.warning(f"   🔍 Buscando linha para movimento: {move.product_id.display_name}")
+
+                    # Busca a linha do pedido para este produto específico
+                    order_line = sale_order.order_line.filtered(
+                        lambda l: l.product_id.id == move.product_id.id
+                    )
+
+                    if order_line:
+                        move.sale_order_line_id = order_line[0]
+                        _logger.warning(f"   ✅ VINCULADO: {move.product_id.display_name} -> '{order_line[0].name}'")
+                    else:
+                        _logger.warning(f"   ❌ NENHUMA LINHA ENCONTRADA para: {move.product_id.display_name}")
+            else:
+                _logger.warning(f"   ⚠️ NENHUM PEDIDO ENCONTRADO para este picking")
+
+    def _apply_sale_description_on_creation(self):
+        """Aplica a descrição do pedido de venda na CRIAÇÃO do picking"""
+        for picking in self:
+            # Se já tem sale_id, aplica a descrição imediatamente
+            if picking.sale_id:
+                picking._force_apply_sale_description_to_all_moves()
+
+            # Se tem origin_production_id com sale_order_id, também aplica
+            elif picking.origin_production_id and picking.origin_production_id.sale_order_id:
+                # Define o sale_id no picking para facilitar o relacionamento
+                picking.sale_id = picking.origin_production_id.sale_order_id.id
+                picking._force_apply_sale_description_to_all_moves()
+
+    def _apply_sale_order_description_to_moves(self):
+        """Aplica a descrição do pedido de venda usando o relacionamento direto"""
+        for picking in self:
+            # Primeiro estabelece os relacionamentos
+            picking._link_sale_order_lines_to_moves()
+
+            # Agora aplica as descrições em TODOS os movimentos
+            picking._force_apply_sale_description_to_all_moves()
+
+            # Agora aplica as descrições (que serão computadas automaticamente pelo campo compute)
+            for move in picking.move_ids_without_package:
+                if move.sale_order_line_id:
+                    # A descrição será automaticamente computada pelo campo sale_line_description
+                    # Força a escrita do nome baseado na linha do pedido
+                    if move.name != move.sale_order_line_id.name:
+                        move.name = move.sale_order_line_id.name
+
+    def _get_sale_order_description(self, production):
+        """Obtém a descrição EXATA do pedido de venda, se disponível"""
+        # Tenta encontrar a descrição do pedido de venda vinculado
+        if production.sale_id:
+            # Busca a linha do pedido de venda para este produto
+            order_line = production.sale_id.order_line.filtered(
+                lambda l: l.product_id == production.product_id
+            )
+            if order_line:
+                # Retorna a descrição EXATA da linha do pedido
+                return order_line[0].name
+
+        # Fallback: usa a descrição padrão do produto
+        return production.product_id.get_product_multiline_description_sale()
+
+    def button_validate(self):
+        """Button validate com forçamento de descrição"""
+        # FORÇA descrição antes da validação
+        for picking in self:
+            picking._apply_sale_order_description_to_moves()
+
+        # Bloqueio: impedir validação se houver envio pendente
         for picking in self:
             if (picking.picking_type_code == 'incoming'
                     and picking.sending_transfer_id
@@ -88,91 +237,23 @@ class StockPicking(models.Model):
                         "Não é possível validar este recebimento enquanto o envio filial → matriz não estiver concluído."
                     )
 
-        # 2) Preserva comportamento de outros módulos (l10n_br_stock_account etc.)
+        # Preserva comportamento de outros módulos
         result = super(StockPicking, self).button_validate()
 
-        # 3) Pós-validação - aplicar lógica de criação de recebimento / OP filial
+        #RECEBIMENTO FILIAL!!!!
+        # Lógica de criação de recebimento / OP filial (mantenha sua lógica existente)
         for picking in self:
-            # Debug global para saber que o método realmente executou
-            _logger.warning(
-                f"🧨 DEBUG BUTTON_VALIDATE APÓS SUPER → {picking.name} | "
-                f"type={picking.picking_type_code} | state={picking.state} | "
-                f"custom_block={picking.custom_block_validate} | origin={picking.origin} | "
-                f"origin_mo={picking.origin_production_id and picking.origin_production_id.name} | "
-                f"sending_ids={picking.sending_transfer_id.ids} | branch_receipts={picking.branch_receipt_id.ids}"
-            )
-
-            # ---------------------------------------------------------
-            # 🎯 CONDIÇÃO 0: Se é BACKORDER de envio validado -> LIBERAR recebimento correspondente na filial
-            # ---------------------------------------------------------
-            if (
-                    picking.picking_type_code == 'outgoing'
-                    and picking.state == 'done'
-                    and picking.origin_production_id
-                    and 'Backorder' in (picking.origin or '')
-            ):
-                _logger.warning(f"🎯 CONDIÇÃO 0 ATENDIDA - BACKORDER DE ENVIO VALIDADO: {picking.name}")
-                try:
-                    # Encontra o recebimento vinculado a este backorder
-                    related_receipt = picking.branch_receipt_id.filtered(
-                        lambda r: r.state in ['assigned', 'confirmed'] and 'Backorder' in (r.origin or '')
-                    )
-
-                    if related_receipt:
-                        for receipt in related_receipt:
-                            _logger.warning(f"   • Liberando recebimento: {receipt.name}")
-                            _logger.warning(
-                                f"   • Estado atual: bloqueado={receipt.custom_block_validate}, mostrar_validação={receipt.show_validate}")
-
-                            # 🎯 LIBERA o recebimento do backorder
-                            receipt.write({
-                                'custom_block_validate': False,  # 🎯 LIBERA a validação
-                                'show_validate': True,  # 🎯 Mostra botão de validar
-                            })
-
-                            _logger.warning(f"   ✅ Recebimento liberado: {receipt.name}")
-                            _logger.warning(
-                                f"   • Novo estado: bloqueado={receipt.custom_block_validate}, mostrar_validação={receipt.show_validate}")
-
-                            # Opcional: Postar mensagem no recebimento
-                            receipt.message_post(
-                                body=f"✅ Recebimento liberado: Backorder da matriz {picking.name} foi validado."
-                            )
-                    else:
-                        _logger.warning(f"   ⚠️ Nenhum recebimento encontrado para liberar")
-                        _logger.warning(f"   • Branch receipts vinculados: {picking.branch_receipt_id.mapped('name')}")
-
-                except Exception as e:
-                    _logger.error(f"❌ Erro ao liberar recebimento para backorder {picking.name}: {str(e)}")
-                    import traceback
-                    _logger.error(traceback.format_exc())
-
-            # ---------------------------------------------------------
-            # 1️⃣ CONDIÇÃO 1: Se é um ENVIO NORMAL (outgoing) que acabou de ficar done -> criar RECEBIMENTO na filial
-            # ---------------------------------------------------------
-            elif (
-                    picking.picking_type_code == 'outgoing'
+            if (picking.picking_type_code == 'outgoing'
                     and picking.state == 'done'
                     and picking.origin_production_id
                     and not picking.branch_receipt_id
-                    and 'Backorder' not in (picking.origin or '')  # 🎯 Não é backorder
-            ):
-                _logger.warning(f"🎯 CONDIÇÃO 1 ATENDIDA - CRIANDO RECEBIMENTO NORMAL PARA: {picking.name}")
+                    and 'Backorder' not in (picking.origin or '')):
                 try:
-                    # 🎯 VERIFICA SE É BACKORDER
-                    is_backorder = picking.backorder_id and 'Backorder' in (picking.origin or '')
-
                     origin_mo = picking.origin_production_id
-                    _logger.warning(f"   • Origin MO: {origin_mo.name}")
-                    _logger.warning(
-                        f"   • Branch Location: {origin_mo.branch_location_id.display_name if origin_mo.branch_location_id else 'None'}")
-
                     warehouse = origin_mo.branch_location_id and origin_mo.branch_location_id.warehouse_id
-                    if not warehouse:
-                        _logger.warning(f"⚠️ Envio {picking.name} não tem warehouse filial configurado.")
-                        continue
 
-                    _logger.warning(f"   • Warehouse: {warehouse.name}")
+                    if not warehouse:
+                        continue
 
                     picking_type = self.env['stock.picking.type'].search([
                         ('warehouse_id', '=', warehouse.id),
@@ -180,81 +261,62 @@ class StockPicking(models.Model):
                     ], limit=1)
 
                     if not picking_type:
-                        _logger.error(f"❌ Tipo de operação de recebimento não encontrado para {warehouse.name}")
                         continue
 
-                    # Quantidade realmente enviada (quantity_done nos moves)
                     qty_sent = sum(
                         move.quantity_done for move in picking.move_ids_without_package
                         if move.product_id == origin_mo.product_id
                     )
 
-                    _logger.warning(f"   • Qty Sent: {qty_sent}")
-
                     if qty_sent <= 0:
-                        _logger.warning(
-                            f"⏸️ Envio {picking.name} sem quantidades processadas, ignorando recebimento automático.")
                         continue
+                    product_description = self._get_sale_order_description(origin_mo)
 
-                    # Define a origem correta
-                    if is_backorder:
-                        origin_text = f"{picking.origin} - Backorder Recebimento Filial"
-                    else:
-                        origin_text = f"{picking.origin} - Recebimento Filial"
-
-                    # Criar recebimento com bypass para evitar triggers no create/write
+                    # Cria recebimento
                     receiving_vals = {
                         "picking_type_id": picking_type.id,
                         "location_id": picking.location_dest_id.id,
                         "location_dest_id": origin_mo.branch_location_id.id,
-                        "origin": origin_text,
+                        "origin": f"{picking.origin} - Recebimento Filial",
                         "move_ids_without_package": [(0, 0, {
-                            "name": f"Recebimento {origin_mo.product_id.display_name}",
+                            "name": origin_mo.product_id.get_product_multiline_description_sale(),
                             "product_id": origin_mo.product_id.id,
                             "product_uom_qty": qty_sent,
                             "product_uom": origin_mo.product_uom_id.id,
                             "location_id": picking.location_dest_id.id,
                             "location_dest_id": origin_mo.branch_location_id.id,
+                            "description_picking": product_description,  # ✅ DESCRIÇÃO ADICIONAL
+
                         })],
-                        "custom_block_validate": False,  # 🎯 NÃO BLOQUEADO (recebimento normal)
-                        "show_validate": True,  # 🎯 Mostrar botão de validar
+                        "custom_block_validate": False,
+                        "show_validate": True,
                         "origin_production_id": origin_mo.id,
                         "sending_transfer_id": [(4, picking.id)],
+                        "sale_id": picking.origin_production_id.sale_id.id,
+                        "partner_id": picking.origin_production_id.partner_id.id
                     }
 
-                    _logger.warning(f"   • Receiving Vals: {receiving_vals}")
-
-                    # 🎯 CORREÇÃO: Usar with_context em vez de merge
                     receiving = self.env['stock.picking'].with_context(
                         bypass_branch_creation=True
                     ).create(receiving_vals)
-                    _logger.warning(f"   ✅ Recebimento criado: {receiving.name}")
 
                     receiving.with_context(bypass_branch_creation=True).action_confirm()
                     try:
                         receiving.with_context(bypass_branch_creation=True).state = 'assigned'
-                        _logger.warning(f"   • Estado após assign: {receiving.state}")
                     except Exception:
                         receiving.with_context(bypass_branch_creation=True).write({'state': 'assigned'})
-                        _logger.warning(f"   • Estado após assign (fallback): {receiving.state}")
 
-                    # Vincula registros
                     picking.write({'branch_receipt_id': [(4, receiving.id)]})
                     origin_mo.write({'branch_receipt_id': [(4, receiving.id)]})
 
-                    _logger.warning(
-                        f"✅ {'BACKORDER ' if is_backorder else ''}RECEBIMENTO criado: {receiving.name} ({qty_sent})")
+                    _logger.warning(f"✅ RECEBIMENTO criado: {receiving.name} ({qty_sent})")
 
                 except Exception as e:
-                    _logger.error(
-                        f"❌ Erro ao criar recebimento para {'backorder ' if is_backorder else ''}envio {picking.name}: {str(e)}")
+                    _logger.error(f"❌ Erro ao criar recebimento para envio {picking.name}: {str(e)}")
                     import traceback
                     _logger.error(traceback.format_exc())
 
-            # ---------------------------------------------------------
-            # 2️⃣ CONDIÇÃO 2: Se é um RECEBIMENTO (incoming) validado -> criar OP filial
-            #    Inclui tanto recebimentos normais quanto de backorder
-            # ---------------------------------------------------------
+            # CONDIÇÃO 2: RECEBIMENTO validado -> criar OP filial
             elif (
                     picking.picking_type_code == 'incoming'
                     and picking.state == 'done'
@@ -263,38 +325,18 @@ class StockPicking(models.Model):
                     and not picking.final_receipt_id
                     and 'Recebimento Final' not in (picking.origin or '')
             ):
-                _logger.warning(f"🎯 CONDIÇÃO 2 ATENDIDA - CRIANDO OP FILIAL PARA: {picking.name}")
+                _logger.warning(f"🎯 CRIANDO OP FILIAL PARA: {picking.name}")
                 try:
-                    # DEBUG CRÍTICO DETALHADO
-                    _logger.warning(f"🔍 VERIFICANDO CONDIÇÕES PARA OP FILIAL:")
-                    _logger.warning(f"   • Picking: {picking.name}")
-                    _logger.warning(f"   • Estado: {picking.state}")
-                    _logger.warning(f"   • Tipo: {picking.picking_type_code}")
-                    _logger.warning(f"   • Origin: {picking.origin}")
-                    _logger.warning(f"   • Origin Production: {picking.origin_production_id.name}")
-                    _logger.warning(f"   • Branch MO IDs: {picking.branch_mo_id.ids}")
-                    _logger.warning(f"   • Final Receipt IDs: {picking.final_receipt_id.ids}")
-                    _logger.warning(
-                        f"   • Recebimento Final na origem? {'Recebimento Final' in (picking.origin or '')}")
-                    _logger.warning(f"   • bypass_branch_creation: {self.env.context.get('bypass_branch_creation')}")
-
-                    # Se create/write foi feito com bypass, respeitar e não criar aqui
                     if self.env.context.get('bypass_branch_creation'):
-                        _logger.warning(
-                            f"⛔ OP DA FILIAL NÃO SERÁ CRIADA (bypass_branch_creation=True) → {picking.name}")
+                        _logger.warning(f"⛔ OP DA FILIAL NÃO SERÁ CRIADA (bypass_branch_creation=True)")
                         continue
-
-                    # Exige que exista envio vinculado e que esteja done
-                    _logger.warning(f"   • Sending Transfer IDs: {picking.sending_transfer_id.ids}")
-                    _logger.warning(f"   • Sending Transfer Estados: {picking.sending_transfer_id.mapped('state')}")
 
                     if not picking.sending_transfer_id:
                         _logger.warning(f"⏸️ Recebimento {picking.name} ignorado — nenhum envio vinculado.")
                         continue
 
                     if any(s.state != 'done' for s in picking.sending_transfer_id):
-                        _logger.warning(
-                            f"⏸️ Recebimento {picking.name} ignorado — envio não concluído: {picking.sending_transfer_id.mapped('name')}")
+                        _logger.warning(f"⏸️ Recebimento {picking.name} ignorado — envio não concluído.")
                         continue
 
                     origin_mo = picking.origin_production_id
@@ -305,15 +347,13 @@ class StockPicking(models.Model):
                         if move.product_id == origin_mo.product_id
                     )
 
-                    _logger.warning(f"   • Qty Received: {qty_received}")
-
                     if qty_received <= 0:
                         _logger.warning(f"⏸️ Recebimento {picking.name} sem qty recebida para produto da OP.")
                         continue
 
                     _logger.warning(f"🎯 CHAMANDO _create_mo_from_receipt para OP {origin_mo.name}")
 
-                    # Chama o método da OP matriz para criar OP filial.
+                    # Chama o método da OP matriz para criar OP filial
                     branch_mo = origin_mo._create_mo_from_receipt(qty=qty_received, receipt_picking=picking)
 
                     if branch_mo:
@@ -321,7 +361,7 @@ class StockPicking(models.Model):
                         _logger.warning(f"✅ OP filial criada: {branch_mo.name} ({qty_received})")
                         origin_mo._compute_message_state()
                     else:
-                        _logger.warning(f"❌ _create_mo_from_receipt retornou False para {picking.name}")
+                        _logger.warning(f"❌ _create_mo_from_receipt retornou False")
 
                 except Exception as e:
                     _logger.error(f"❌ Erro ao criar OP filial para recebimento {picking.name}: {str(e)}")
@@ -334,37 +374,27 @@ class StockPicking(models.Model):
         """Override para processar backorders automaticamente após validação"""
         result = super(StockPicking, self)._action_done()
 
-        # Processa backorders criados automaticamente
         for picking in self:
             if picking.backorder_ids:
-                _logger.warning(f"🔄 PROCESSANDO BACKORDERS para {picking.name}")
                 for backorder in picking.backorder_ids:
-                    _logger.warning(f"   • Backorder: {backorder.name} | state: {backorder.state}")
-
-                    # 🎯 CORREÇÃO: Aceita tanto 'assigned' quanto 'confirmed'
                     if (backorder.picking_type_code == 'outgoing'
                             and backorder.origin_production_id
-                            and backorder.state in ['assigned', 'confirmed']):  # ⬅️ ACEITA AMBOS OS ESTADOS
+                            and backorder.state in ['assigned', 'confirmed']):
                         try:
-                            _logger.warning(f"🎯 PROCESSANDO BACKORDER DE ENVIO: {backorder.name}")
                             self._process_backorder_receipt(backorder)
                         except Exception as e:
-                            _logger.error(f"❌ Erro ao processar backorder {backorder.name}: {str(e)}")
+                            _logger.error(f"Erro ao processar backorder {backorder.name}: {str(e)}")
 
         return result
 
     def _process_backorder_receipt(self, backorder_picking):
-        """Cria recebimento na filial para backorders de envio - BLOQUEADO até backorder da matriz ser validado"""
-        _logger.warning(f"🔄 CRIANDO RECEBIMENTO PARA BACKORDER: {backorder_picking.name}")
-
+        """Cria recebimento na filial para backorders de envio"""
         origin_mo = backorder_picking.origin_production_id
         if not origin_mo or not origin_mo.branch_location_id:
-            _logger.warning(f"⚠️ Backorder {backorder_picking.name} sem OP origem ou filial configurada")
             return
 
         warehouse = origin_mo.branch_location_id.warehouse_id
         if not warehouse:
-            _logger.warning(f"⚠️ Backorder {backorder_picking.name} não tem warehouse filial configurado.")
             return
 
         picking_type = self.env['stock.picking.type'].search([
@@ -373,29 +403,25 @@ class StockPicking(models.Model):
         ], limit=1)
 
         if not picking_type:
-            _logger.error(f"❌ Tipo de operação de recebimento não encontrado para {warehouse.name}")
             return
 
-        # Quantidade do backorder
         qty_backorder = sum(
             move.product_uom_qty for move in backorder_picking.move_ids_without_package
             if move.product_id == origin_mo.product_id
         )
 
         if qty_backorder <= 0:
-            _logger.warning(f"⏸️ Backorder {backorder_picking.name} sem quantidades para produto da OP.")
             return
 
-        # Verifica se já existe recebimento vinculado a este backorder
         existing_receipt = backorder_picking.branch_receipt_id.filtered(
             lambda r: r.state not in ['done', 'cancel']
         )
 
         if existing_receipt:
-            _logger.warning(f"⚠️ Já existe recebimento {existing_receipt.name} para backorder {backorder_picking.name}")
             return
 
-        # Cria recebimento para o backorder - BLOQUEADO inicialmente
+        product_description = self._get_sale_order_description(origin_mo)
+
         receiving_vals = {
             "picking_type_id": picking_type.id,
             "location_id": backorder_picking.location_dest_id.id,
@@ -408,14 +434,16 @@ class StockPicking(models.Model):
                 "product_uom": origin_mo.product_uom_id.id,
                 "location_id": backorder_picking.location_dest_id.id,
                 "location_dest_id": origin_mo.branch_location_id.id,
+                "description_picking": product_description,
             })],
-            "custom_block_validate": True,  # 🎯 BLOQUEADO até backorder da matriz ser validado
-            "show_validate": False,  # 🎯 Não mostrar botão de validar
+            "custom_block_validate": True,
+            "show_validate": False,
             "origin_production_id": origin_mo.id,
             "sending_transfer_id": [(4, backorder_picking.id)],
+            "sale_id": picking.origin_production_id.sale_id.id,
+            "partner_id": picking.origin_production_id.partner_id.id
         }
 
-        # Cria com bypass para evitar triggers
         receiving = self.env['stock.picking'].with_context(
             bypass_branch_creation=True
         ).create(receiving_vals)
@@ -426,268 +454,239 @@ class StockPicking(models.Model):
         except Exception:
             receiving.with_context(bypass_branch_creation=True).write({'state': 'assigned'})
 
-        # Vincula registros
         backorder_picking.write({'branch_receipt_id': [(4, receiving.id)]})
         origin_mo.write({'branch_receipt_id': [(4, receiving.id)]})
 
-        _logger.warning(f"✅ RECEBIMENTO DE BACKORDER CRIADO (BLOQUEADO): {receiving.name} (qty: {qty_backorder})")
-
         return receiving
 
-    def _create_backorder(self):
-        backorders = super(StockPicking, self)._create_backorder()
+    def _force_apply_sale_description_to_all_moves(self):
+        """Força a aplicação da descrição do pedido de venda em TODOS os movimentos"""
+        for picking in self:
+            _logger.info(f"🔗 Aplicando descrição do pedido para picking: {picking.name}")
 
-        _logger.warning(f"🧩 BACKORDER CRIADO:")
-        for backorder in backorders:
-            _logger.warning(f"   • {backorder.name} | type: {backorder.picking_type_code} | origin: {backorder.origin}")
-            _logger.warning(
-                f"   • origin_production_id: {backorder.origin_production_id and backorder.origin_production_id.name}")
-            _logger.warning(f"   • backorder_id: {backorder.backorder_id and backorder.backorder_id.name}")
+            # Busca o pedido de venda relacionado
+            sale_order = picking._get_related_sale_order()
 
-            # 🎯 DEBUG DETALHADO
-            if backorder.backorder_id:
-                _logger.warning(
-                    f"   • backorder_id.origin_production_id: {backorder.backorder_id.origin_production_id}")
-                _logger.warning(
-                    f"   • backorder_id.origin_production_id.id: {backorder.backorder_id.origin_production_id.id if backorder.backorder_id.origin_production_id else 'None'}")
+            if not sale_order:
+                _logger.warning(f"   ⚠️ Nenhum pedido de venda encontrado para {picking.name}")
+                continue
 
-            # 🎯 CORREÇÃO CRÍTICA: Herda origin_production_id do picking original
-            if backorder.backorder_id and backorder.backorder_id.origin_production_id:
-                backorder.write({
-                    'origin_production_id': backorder.backorder_id.origin_production_id.id,
-                    'custom_block_validate': backorder.backorder_id.custom_block_validate,
-                    'show_validate': backorder.backorder_id.show_validate,
-                })
-                _logger.warning(f"   ✅ HERDADO origin_production_id: {backorder.origin_production_id.name}")
-            else:
-                _logger.warning(f"   ❌ NÃO FOI POSSÍVEL HERDAR origin_production_id")
-                _logger.warning(f"      • backorder_id existe? {bool(backorder.backorder_id)}")
-                if backorder.backorder_id:
-                    _logger.warning(
-                        f"      • backorder_id.origin_production_id: {backorder.backorder_id.origin_production_id}")
-                    _logger.warning(
-                        f"      • backorder_id.origin_production_id.id: {backorder.backorder_id.origin_production_id.id if backorder.backorder_id.origin_production_id else 'None'}")
+            _logger.info(f"   📦 Pedido encontrado: {sale_order.name}")
 
-        if backorders:
-            backorders._process_backorder_after_creation()
-        return backorders
+            # Para CADA movimento no picking, aplica a descrição correta
+            for move in picking.move_ids_without_package:
+                # Busca a linha exata do pedido para este produto
+                order_line = sale_order.order_line.filtered(
+                    lambda l: l.product_id.id == move.product_id.id
+                )
 
-    def _process_partial_branch_receipt(self, picking):
-        """Processa recebimento na filial - cria/atualiza OP somente se recebimento validado"""
-        try:
-            # ⚠️ VERIFICA SE É UM RECEBIMENTO FINAL
-            if 'Recebimento Final' in (picking.origin or ''):
-                _logger.info(f"⏸️ Ignorando processamento: é um recebimento final {picking.name}")
-                return
+                if order_line:
+                    description = order_line[0].name
+                    _logger.info(f"   ✅ Aplicando descrição para {move.product_id.display_name}: '{description}'")
 
-            origin_mo = picking.origin_production_id
-            if not origin_mo or not origin_mo.branch_location_id:
-                _logger.info("Ignorando processamento parcial: sem origin_mo ou sem branch_location_id.")
-                return
+                    # Atualiza a descrição do movimento
+                    if move.name != description:
+                        move.name = description
 
-            # Garante que o recebimento foi validado e não está bloqueado
-            if picking.custom_block_validate or picking.state != 'done':
-                _logger.info(f"⏳ Recebimento {picking.name} ainda bloqueado ou não finalizado. Ignorando.")
-                return
-
-            # Quantidade recebida do produto da OP
-            qty_received = sum(
-                move.quantity_done for move in picking.move_ids_without_package
-                if move.product_id == origin_mo.product_id and move.quantity_done > 0
-            )
-
-            _logger.info(
-                f"📦 Recebimento detectado ({picking.name}): {qty_received} x {origin_mo.product_id.display_name}")
-
-            if qty_received <= 0:
-                return
-
-            # Verificar se já existe OP filial vinculada (não criar duplicada)
-            existing_mos = picking.branch_mo_id.filtered(lambda mo: mo.state not in ['done', 'cancel'])
-            if existing_mos:
-                mo_to_update = existing_mos[0]
-                old_qty = mo_to_update.product_qty
-                mo_to_update.write({'product_qty': qty_received})
-                mo_to_update._update_moves()
-                _logger.info(f"🔄 OP filial atualizada: {mo_to_update.name} ({old_qty} → {qty_received})")
-            else:
-                # NÃO usar sudo() aqui — isso limpa contexto e ignora nossos guards em _create_mo_from_receipt
-                branch_mo = origin_mo._create_mo_from_receipt(qty_received, picking)
-                if branch_mo:
-                    picking.write({'branch_mo_id': [(4, branch_mo.id)]})
-                    _logger.info(f"✅ OP filial criada após recebimento: {branch_mo.name} - {qty_received}")
+                    # Atualiza também as linhas de movimento (move lines)
+                    for move_line in move.move_line_ids:
+                        if move_line.product_id == move.product_id and move_line.lot_id == move.lot_id:
+                            if hasattr(move_line,
+                                       'sale_line_description') and move_line.sale_line_description != description:
+                                move_line.sale_line_description = description
                 else:
-                    _logger.warning(
-                        f"⏸️ _create_mo_from_receipt retornou False — OP filial NÃO criada para {picking.name}")
-
-            # Caso haja backorder, cria transferência da matriz para filial
-            backorder = self.search([('backorder_id', '=', picking.id), ('state', 'not in', ['done', 'cancel'])],
-                                    limit=1)
-            qty_backorder = 0.0
-            if backorder:
-                qty_backorder = sum(move.product_uom_qty for move in backorder.move_ids_without_package if
-                                    move.product_id == origin_mo.product_id)
-
-            if qty_backorder > 0:
-                existing_transfer = self.search([
-                    ('origin', 'ilike', f"{origin_mo.name} - Backorder"),
-                    ('state', 'not in', ['done', 'cancel']),
-                    ('location_dest_id', '=', origin_mo.branch_location_id.id)
-                ], limit=1)
-                if not existing_transfer:
-                    transfer_picking = origin_mo.sudo()._create_backorder_transfer(qty_backorder)
-                    if backorder:
-                        backorder.write({
-                            'sending_transfer_id': [(4, transfer_picking.id)],
-                            'custom_block_validate': True,
-                            'show_validate': False,
-                        })
-                    transfer_picking.write({'branch_receipt_id': [(4, backorder.id)] if backorder else []})
-                    _logger.info(f"✅ Transferência de backorder criada: {transfer_picking.name} ({qty_backorder})")
-
-        except Exception as e:
-            _logger.error(f"❌ Erro ao processar recebimento na filial: {str(e)}")
+                    _logger.warning(f"   ❌ Produto {move.product_id.display_name} não encontrado no pedido")
 
     @api.model
     def create(self, vals):
-        """Override do create para pickings"""
+        """Override do create para estabelecer relacionamentos"""
         picking = super(StockPicking, self).create(vals)
 
-        # Se é um picking de OP matriz com filial, agenda correção
-        if (picking.origin_production_id and
-                picking.origin_production_id.branch_location_id and
-                not picking.origin_production_id.origin_production_id):
-            _logger.warning(f"🔧 Picking criado para OP matriz com filial: {picking.name}")
-            # Agenda correção para garantir quantidades
-            self.env['mrp.production'].with_delay(priority=1)._scheduled_fix_branch_quantities()
+        # Estabelece relacionamentos e aplica descrições
+        picking._link_sale_order_lines_to_moves()
+        picking._apply_sale_description_on_creation()
 
         return picking
 
     def write(self, vals):
-        """Override do write para pickings"""
+        """Override do write para manter relacionamentos atualizados"""
         result = super(StockPicking, self).write(vals)
 
-        # Se está alterando moves de OP matriz com filial, agenda correção
-        if 'move_ids_without_package' in vals:
-            protected_pickings = self.filtered(
-                lambda p: (p.origin_production_id and
-                           p.origin_production_id.branch_location_id and
-                           not p.origin_production_id.origin_production_id)
-            )
-
-            if protected_pickings:
-                _logger.warning(
-                    f"🔧 Alteração detectada em picking de OP matriz com filial: {protected_pickings.mapped('name')}")
-                # Agenda correção para garantir quantidades
-                self.env['mrp.production'].with_delay(priority=1)._scheduled_fix_branch_quantities()
+        # Se está alterando campos relevantes, atualiza relacionamentos
+        if any(field in vals for field in ['origin_production_id', 'origin', 'move_ids_without_package']):
+            self._link_sale_order_lines_to_moves()
+            self._apply_sale_description_on_creation()
 
         return result
 
-    def _process_backorder_after_creation(self):
-        for backorder in self:
-            _logger.info(
-                f"🧩 Processando backorder {backorder.name} | tipo={backorder.picking_type_code} | state={backorder.state}")
-
-            # 🎯 CORREÇÃO: Tenta reservar o backorder se estiver em confirmed
-            if backorder.state == 'confirmed' and not backorder.custom_block_validate:
-                try:
-                    _logger.warning(f"🔄 TENTANDO RESERVAR BACKORDER: {backorder.name}")
-                    backorder.action_assign()
-                    _logger.warning(f"   • Estado após action_assign: {backorder.state}")
-                except Exception as e:
-                    _logger.error(f"❌ Erro ao reservar backorder: {str(e)}")
-
-            # Ignora backorders enquanto bloqueado ou não finalizado
-            if backorder.custom_block_validate or backorder.state not in ['done', 'assigned',
-                                                                          'confirmed']:  # ⬅️ INCLUI confirmed
-                _logger.info(f"⏸️ Ignorando backorder {backorder.name}: bloqueado ou state={backorder.state}")
-                continue
-
-            original_picking = backorder.backorder_id
-            if original_picking and getattr(original_picking, 'custom_block_validate', False):
-                backorder.custom_block_validate = True
-
-            # Se for backorder de recebimento na filial, apenas cria transferência se necessário.
-            if (
-                    backorder.picking_type_code == 'internal'
-                    and backorder.origin_production_id
-                    and backorder.location_dest_id.usage == 'internal'
-                    and backorder.sending_transfer_id
-                    and not backorder.custom_block_validate
-                    and backorder.state in ['done', 'assigned', 'confirmed']  # ⬅️ INCLUI confirmed
-            ):
-                origin_mo = backorder.origin_production_id
-                if origin_mo and origin_mo.branch_location_id:
-                    try:
-                        qty_backorder = sum(move.product_uom_qty for move in backorder.move_ids_without_package if
-                                            move.product_id == origin_mo.product_id)
-                        if qty_backorder > 0:
-                            existing_transfer = self.search([
-                                ('origin', 'ilike', f"{origin_mo.name} - Backorder"),
-                                ('state', 'not in', ['done', 'cancel']),
-                                ('location_dest_id', '=', origin_mo.branch_location_id.id)
-                            ], limit=1)
-                            if not existing_transfer:
-                                transfer_picking = origin_mo.sudo()._create_backorder_transfer(qty_backorder)
-                                if backorder:
-                                    backorder.write({
-                                        'sending_transfer_id': [(4, transfer_picking.id)],
-                                        'custom_block_validate': True,
-                                        'show_validate': False,
-                                    })
-                                transfer_picking.write({'branch_receipt_id': [(4, backorder.id)]})
-                                _logger.info(
-                                    f"✅ Transferência de backorder criada: {transfer_picking.name} ({qty_backorder})")
-                            else:
-                                _logger.info(f"⚠️ Transferência de backorder já existe: {existing_transfer.name}")
-                    except Exception as e:
-                        _logger.error(f"❌ Erro ao criar transferência de backorder: {str(e)}")
-
-            # Se for backorder da matriz -> herda bloqueios mas não cria OP
-            elif backorder.picking_type_code == 'internal' and backorder.branch_receipt_id:
-                pending = backorder.branch_receipt_id.filtered(lambda p: p.state not in ['done', 'cancel'])
-                if pending:
-                    backorder.custom_block_validate = True
-                    backorder.message_post(body="❌ Backorder da filial bloqueada: aguarde a conclusão da matriz.")
-
-            if backorder.custom_block_validate:
-                try:
-                    backorder.action_confirm()
-                    backorder.action_assign()
-                except Exception:
-                    backorder.write({'state': 'assigned'})
-
     def action_assign(self):
-        res = super(StockPicking, self).action_assign()
+        """Ação de assign com aplicação de descrições"""
+        self._apply_sale_order_description_to_moves()
+        return super(StockPicking, self).action_assign()
 
+    def action_force_apply_sale_description(self):
+        """Ação manual para forçar aplicação da descrição do pedido de venda"""
         for picking in self:
-            # Não criar OP aqui — criação só deve ocorrer após RECEBIMENTO validado (button_validate)
-            _logger.debug(
-                f"action_assign: {picking.name} | state={picking.state} | block={picking.custom_block_validate} | sending={bool(picking.sending_transfer_id)}"
-            )
+            picking._link_sale_order_lines_to_moves()
+            picking._apply_sale_order_description_to_moves()
+            picking.message_post(body="✅ Descrições do pedido de venda aplicadas manualmente")
+        return True
 
-        return res
+    def action_force_apply_sale_description_all(self):
+        """Ação manual para forçar aplicação da descrição do pedido em TODOS os movimentos"""
+        for picking in self:
+            picking._link_sale_order_lines_to_moves()
+            picking._force_apply_sale_description_to_all_moves()
+            picking.message_post(body="✅ Descrições do pedido de venda aplicadas manualmente em TODOS os movimentos")
 
+        # Mostra mensagem de confirmação
+        return {
+            'type': 'ir.actions.client',
+            'tag': 'display_notification',
+            'params': {
+                'title': 'Descrições Aplicadas',
+                'message': 'Descrições do pedido de venda aplicadas em todos os movimentos!',
+                'type': 'success',
+                'sticky': False,
+            }
+        }
 
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
-    planned_uom_qty = fields.Float(
-        'Planned Quantity',
-        digits='Product Unit of Measure',
-        compute='_compute_planned_uom_qty',
-        store=True,
-        help="Original planned quantity based on initial BOM calculation"
+    sale_order_line_id = fields.Many2one(
+        'sale.order.line',
+        string='Linha do Pedido de Venda',
+        help='Relacionamento direto com a linha do pedido de venda'
     )
 
-    @api.depends('bom_line_id', 'raw_material_production_id', 'raw_material_production_id.product_qty')
+    sale_line_description = fields.Char(
+        string='Descrição do Pedido',
+        compute='_compute_sale_line_description',
+        store=True
+    )
+
+    planned_uom_qty = fields.Float(
+        string='Planned Quantity',
+        compute='_compute_planned_uom_qty',
+        store=True
+    )
+
+    @api.depends('product_uom_qty')
     def _compute_planned_uom_qty(self):
         for move in self:
-            if move.raw_material_production_id and move.bom_line_id:
-                # Calcular baseado no BOM e quantidade original
-                bom = move.raw_material_production_id.bom_id
-                if bom:
-                    factor = move.raw_material_production_id.product_qty / bom.product_qty
-                    move.planned_uom_qty = move.bom_line_id.product_qty * factor
-            elif not move.planned_uom_qty:
-                move.planned_uom_qty = move.product_uom_qty
+            move.planned_uom_qty = move.product_uom_qty
+
+    @api.depends('picking_id.sale_order', 'picking_id.origin', 'product_id')
+    def _compute_sale_line_description(self):
+        """Computa a descrição buscando diretamente no pedido de venda do picking - VERSÃO AGUESSIVA"""
+        for move in self:
+            _logger.info(f"🔍 COMPUTANDO DESCRIÇÃO PARA MOVIMENTO: {move.id}")
+            _logger.info(f"   • Produto: {move.product_id.display_name}")
+            _logger.info(f"   • Picking: {move.picking_id.name if move.picking_id else 'None'}")
+
+            sale_line_description = move.product_id.display_name  # Fallback
+
+            # Busca em MÚLTIPLAS fontes
+            sale_order = False
+
+            # 1. Busca através do sale_order do picking
+            if move.picking_id and move.picking_id.sale_order:
+                sale_order = move.picking_id.sale_order
+                _logger.info(f"   📦 Pedido encontrado via sale_order: {sale_order.name}")
+
+            # 2. Busca através do origin do picking (nome do pedido)
+            elif move.picking_id and move.picking_id.origin:
+                origin_clean = move.picking_id.origin.split(' - ')[0]
+                _logger.info(f"   🔍 Buscando por origin: {origin_clean}")
+
+                sale_order = self.env['sale.order'].search([
+                    ('name', '=', origin_clean)
+                ], limit=1)
+
+                if sale_order:
+                    _logger.info(f"   📦 Pedido encontrado via origin: {sale_order.name}")
+
+            # 3. Busca através do group_id (procurement group)
+            elif move.group_id:
+                sale_order = self.env['sale.order'].search([
+                    ('procurement_group_id', '=', move.group_id.id)
+                ], limit=1)
+
+                if sale_order:
+                    _logger.info(f"   📦 Pedido encontrado via procurement group: {sale_order.name}")
+
+            # Se encontrou o pedido, busca a descrição exata
+            if sale_order:
+                order_line = sale_order.order_line.filtered(
+                    lambda l: l.product_id.id == move.product_id.id
+                )
+
+                if order_line:
+                    sale_line_description = order_line[0].name
+                    _logger.info(f"   ✅ DESCRIÇÃO ENCONTRADA: '{order_line[0].name}'")
+
+                    # ⚠️ ATUALIZAÇÃO AGUESSIVA: Força a atualização do campo name
+                    if move.name != order_line[0].name:
+                        move.name = order_line[0].name
+                        _logger.info(f"   🔄 Campo 'name' atualizado para: '{order_line[0].name}'")
+
+                    # Atualiza o relacionamento
+                    move.sale_order_line_id = order_line[0]
+                else:
+                    _logger.warning(f"   ❌ PRODUTO NÃO ENCONTRADO NO PEDIDO: {move.product_id.display_name}")
+
+            move.sale_line_description = sale_line_description
+
+    def action_force_update_description(self):
+        """Ação manual para forçar atualização da descrição"""
+        for move in self:
+            # Recomputa a descrição
+            move._compute_sale_line_description()
+
+            # Força a escrita se necessário
+            if move.sale_order_line_id and move.name != move.sale_order_line_id.name:
+                move.name = move.sale_order_line_id.name
+
+        return True
+
+    @api.model
+    def create(self, vals):
+        """Override do create para vincular linha do pedido automaticamente"""
+        move = super(StockMove, self).create(vals)
+
+        # Se o movimento tem um picking, tenta vincular
+        if move.picking_id:
+            move.picking_id._link_sale_order_lines_to_moves()
+
+        return move
+
+    def write(self, vals):
+        """Override do write para manter relacionamentos"""
+        result = super(StockMove, self).write(vals)
+
+        # Se está mudando o picking, tenta vincular
+        if 'picking_id' in vals:
+            for move in self:
+                if move.picking_id:
+                    move.picking_id._link_sale_order_lines_to_moves()
+
+        return result
+
+class StockMoveLine(models.Model):
+    _inherit = 'stock.move.line'
+
+    sale_line_description = fields.Char(
+        string='Descrição do Pedido',
+        compute='_compute_sale_line_description',
+        store=True
+    )
+
+    @api.depends('move_id.sale_order_line_id', 'move_id.sale_order_line_id.name')
+    def _compute_sale_line_description(self):
+        """Computa a descrição baseada no movimento pai"""
+        for move_line in self:
+            if move_line.move_id.sale_order_line_id:
+                move_line.sale_line_description = move_line.move_id.sale_order_line_id.name
+            else:
+                move_line.sale_line_description = move_line.product_id.display_name

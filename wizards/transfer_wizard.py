@@ -1,3 +1,4 @@
+# transfer_wizard.py (corrigido - com descrição IGUAL ao pedido de venda)
 from odoo import models, fields, api
 from odoo.exceptions import UserError
 import logging
@@ -18,6 +19,21 @@ class MrpProductionTransferWizard(models.TransientModel):
     )
     domain_location_ids = fields.Many2many("stock.location")
     location_dest_warehouse_name = fields.Char(string="Armazém", compute="_compute_location_dest_warehouse")
+
+    def _get_sale_order_description(self, production):
+        """Obtém a descrição EXATA do pedido de venda, se disponível"""
+        # Tenta encontrar a descrição do pedido de venda vinculado
+        if production.sale_id:
+            # Busca a linha do pedido de venda para este produto
+            order_line = production.sale_id.order_line.filtered(
+                lambda l: l.product_id == production.product_id
+            )
+            if order_line:
+                # Retorna a descrição EXATA da linha do pedido
+                return order_line[0].name
+
+        # Fallback: usa a descrição padrão do produto
+        return production.product_id.get_product_multiline_description_sale()
 
     @api.depends("location_dest_id")
     def _compute_location_dest_warehouse(self):
@@ -88,17 +104,23 @@ class MrpProductionTransferWizard(models.TransientModel):
         if not picking_type:
             raise UserError("Tipo de operação interna não encontrado.")
 
+        # ✅ DESCRIÇÃO IGUAL AO PEDIDO DE VENDA
+        product_description = self._get_sale_order_description(self.production_id)
+
         # ⚠️ ENVIA APENAS O PRODUTO FINALIZADO, NÃO OS COMPONENTES
         move_lines = []
         for move in self.production_id.move_finished_ids:
             if move.product_id.type != 'service':
                 move_lines.append((0, 0, {
-                    "name": f"Envio {move.product_id.display_name}",
+                    "name": product_description,  # ✅ DESCRIÇÃO IDÊNTICA AO PEDIDO DE VENDA
                     "product_id": move.product_id.id,
                     "product_uom_qty": move.product_uom_qty,
                     "product_uom": move.product_uom.id,
                     "location_id": self.production_id.location_src_id.id,
                     "location_dest_id": self.location_dest_id.id,
+                    "description_picking": product_description,  # ✅ DESCRIÇÃO ADICIONAL
+                    "sale_line_description": product_description,
+
                 }))
 
         # ⚠️ NÃO INCLUI COMPONENTES NA TRANSFERÊNCIA
@@ -113,6 +135,8 @@ class MrpProductionTransferWizard(models.TransientModel):
             "custom_block_validate": True,
             # 🎯 CRÍTICO: Define origin_production_id no picking
             "origin_production_id": self.production_id.id,
+            "sale_id": self.production_id.sale_id.id,
+            "partner_id": self.production_id.partner_id.id,
         }
 
         sending = self.env['stock.picking'].create(sending_vals)
@@ -137,17 +161,39 @@ class MrpProductionTransferWizard(models.TransientModel):
         if not picking_type:
             raise UserError(f"Tipo de operação de recebimento não encontrado para {warehouse.name}")
 
+        # ✅ DESCRIÇÃO IGUAL AO PEDIDO DE VENDA
+        # product_description = self._get_sale_order_description(self.production_id)
+
         # Cria o recebimento explicitamente (sem origin_production_id para não disparar criação automática de OP)
-        receiving = sending.copy({
-            'picking_type_id': picking_type.id,
-            'location_id': sending.location_id.id if sending.location_id else sending.location_dest_id.id,
-            'location_dest_id': self.location_dest_id.id,
-            'partner_id': sending.company_id.partner_id.id if sending.company_id and sending.company_id.partner_id else False,
-            'show_validate': False,
-            'custom_block_validate': True,  # bloqueia até envio ser concluído
-            })
-        # receiving = self.env['stock.picking'].create(receiving_vals)
+        move_lines = []
+        for move in sending.move_ids_without_package:
+            if move.product_id.type != 'service':
+                move_lines.append((0, 0, {
+                    "name": product_description,  # ✅ DESCRIÇÃO IDÊNTICA AO PEDIDO DE VENDA
+                    "product_id": move.product_id.id,
+                    "product_uom_qty": move.product_uom_qty,
+                    "product_uom": move.product_uom.id,
+                    "location_id": sending.location_id.id,
+                    "location_dest_id": self.location_dest_id.id,
+                    "description_picking": sending.description_picking,  # ✅ DESCRIÇÃO ADICIONAL
+                }))
+
+        receiving_vals = {
+            "picking_type_id": picking_type.id,
+            "location_id": sending.location_id.id if sending.location_id else sending.location_dest_id.id,
+            "location_dest_id": self.location_dest_id.id,
+            "origin": f"{self.production_id.name} - Recebimento Filial",
+            "move_ids_without_package": move_lines,
+            "partner_id": sending.company_id.partner_id.id if sending.company_id and sending.company_id.partner_id else False,
+            "show_validate": False,
+            "custom_block_validate": True,  # bloqueia até envio ser concluído
+            "sale_id": self.production_id.sale_order.id,
+
+        }
+
+        receiving = self.env['stock.picking'].create(receiving_vals)
         receiving.action_confirm()
+
         # Agora vincula manualmente a produção de origem (evita triggers automáticos durante create/copy)
         receiving.write({
             'origin_production_id': self.production_id.id,
@@ -163,9 +209,7 @@ class MrpProductionTransferWizard(models.TransientModel):
         })
 
         # Confirma e tenta reservar o recebimento (fica em assigned)
-
         try:
-            # receiving.action_assign()
             receiving.state = 'assigned'
         except Exception as e:
             _logger.warning("Não foi possível reservar automaticamente o recebimento: %s", e)

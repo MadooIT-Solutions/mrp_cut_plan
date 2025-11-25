@@ -311,6 +311,7 @@ class MrpCutPlan(models.Model):
             'origin': self.name,
             'source_procurement_group_id': venda.id if venda else False,
             'related_type': self.product_id.blue_area_calc,
+
         }
 
         if data_plan:
