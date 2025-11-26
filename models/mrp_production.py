@@ -1313,22 +1313,6 @@ class BlueMrpProduction(models.Model):
                     _logger.error(f"❌ Erro no onchange: {str(e)}")
                     self._restore_complete_moves_backup(backup_data)
 
-        # Método fallback seguro
-        def _safe_onchange_fallback(self, record):
-            """Fallback seguro para quando o onchange padrão falha"""
-            try:
-                # Atualização manual básica dos movimentos
-                if record.move_finished_ids:
-                    for move in record.move_finished_ids:
-                        if move.product_id == record.product_id:
-                            move.product_uom_qty = record.product_qty
-
-                # Para componentes, usa BOM se disponível
-                if record.bom_id and record.product_qty > 0:
-                    record._onchange_bom_id()
-
-            except Exception as e:
-                _logger.error(f"❌ Fallback também falhou: {str(e)}")
 
         # Método fallback seguro
     def _safe_onchange_fallback(self, record):
