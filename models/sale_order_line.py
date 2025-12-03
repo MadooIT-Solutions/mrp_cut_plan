@@ -124,7 +124,7 @@ class SaleOrderLine(models.Model):
             else:
                 line.blue_m3 = 0
 
-    @api.depends('blue_I','blue_II','blue_I_uom','blue_II_uom','quantity','blue_advance','blue_wall','blue_advance_uom','blue_wall_uom','product_id','blue_h','blue_h_uom')
+    @api.depends('blue_I','blue_II','blue_I_uom','blue_II_uom','blue_advance','blue_wall','blue_advance_uom','blue_wall_uom','product_id','blue_h','blue_h_uom')
     def _compute_blue_m2(self):
         meter_uom = self.env.ref('uom.product_uom_meter')
         for line in self:
