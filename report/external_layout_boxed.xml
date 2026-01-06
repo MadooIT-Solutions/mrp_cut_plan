@@ -37,9 +37,9 @@
                     <span>E-mail: </span><li t-if="company.email" class="list-inline-item"><span t-field="company.email"/></li>
                     </ul>
                     <ul class="list-inline">
-                    <li t-if="company.cnpj_cpf" class="list-inline-item">CNPJ: <span t-field="company.cnpj_cpf"/></li>
-                    <li t-if="company.inscr_est" class="list-inline-item">I.E.: <span t-field="company.inscr_est"/></li>
-                    <li t-if="company.inscr_mun" class="list-inline-item">I. Mun.: <span t-field="company.inscr_mun"/></li>
+                    <li t-if="company.vat" class="list-inline-item">CNPJ: <span t-field="company.vat"/></li>
+                    <li t-if="company.l10n_br_ie_code" class="list-inline-item">I.E.: <span t-field="company.l10n_br_ie_code"/></li>
+                    <li t-if="company.l10n_br_im_code" class="list-inline-item">I. Mun.: <span t-field="company.l10n_br_im_code"/></li>
                     </ul>
                     <ul class="list-inline">
                     <li t-if="company.website" class="list-inline-item"><span t-field="company.website"/></li>
