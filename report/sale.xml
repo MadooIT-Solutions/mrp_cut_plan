@@ -96,8 +96,6 @@
 
             <!-- Is there a discount on at least one line? -->
             <t t-set="display_discount" t-value="any(l.discount for l in doc.order_line)"/>
-            <t t-set="mp_line" t-value="any(l.mp_line for l in doc.order_line)"/>
-            <t t-set="mo_line" t-value="any(l.mo_line for l in doc.order_line)"/>
             <t t-set="icms_percent" t-value="any(l.icms_percent for l in doc.order_line)"/>
             <t t-set="ipi_percent" t-value="any(l.ipi_percent for l in doc.order_line)"/>
 
@@ -107,8 +105,6 @@
                     <tr>
                         <th name="th_description" class="text-center">Description</th>
                         <th name="th_quantity" class="text-center">Quantity</th>
-                        <th name="th_mo_line" t-if="mo_line" class="text-center">Mão de Obra</th>
-                        <th name="th_mp_line" t-if="mp_line" class="text-center">Materia Prima</th>
                         <th name="th_priceunit" class="text-center">Unit Price</th>
                         <th name="th_discount" t-if="display_discount" class="text-center" groups="product.group_discount_per_so_line">
                             <span>Disc.%</span>
@@ -148,12 +144,7 @@
                                     <span t-esc="product_qty"/>
                                     <span t-field="line.product_uom.name" groups="uom.group_uom"/>
                                 </td>
-                               <td t-if="mo_line" class="text-end">
-                                    <span t-field="line.mo_line" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: line.currency_id}"/>
-                                </td>
-                                <td t-if="mp_line" class="text-end">
-                                    <span t-field="line.mp_line" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: line.currency_id}"/>
-                                </td>
+
                                 <td name="td_priceunit" class="text-end">
                                     <span t-field="line.price_unit" t-options="{&quot;widget&quot;: &quot;monetary&quot;, &quot;display_currency&quot;: line.currency_id}"/>
                                 </td>
