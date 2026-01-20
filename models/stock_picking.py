@@ -56,7 +56,7 @@ class StockPicking(models.Model):
     branch_backorder_id = fields.Many2one("stock.picking", string="Backorder Vinculado")
 
     customer = fields.Many2one('res.partner', string='Partner', compute="_compute_customer")
-    sale_order = fields.Many2one('sale.order', string='Sale Order', compute="_compute_sale_order", store=True)
+
 
     def _compute_customer(self):
         """Computa o nome do cliente a partir do partner_id"""
