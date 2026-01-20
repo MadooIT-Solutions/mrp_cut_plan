@@ -78,6 +78,19 @@
             <field name="name">mrp_cut_plan.mrp_cut_plan_tree</field>
             <field name="model">mrp_cut_plan.mrp_cut_plan</field>
             <field name="arch" type="xml">
+                <header>
+
+                    <button
+                name="button_create_po_multi"
+                string="Criar Todas as OPs"
+                type="object"
+                class="btn-primary"
+                icon="fa-industry"
+                groups="mrp.group_mrp_manager"
+                confirm="Deseja criar ordens de produção para todos os registros selecionados?"
+            />
+
+                </header>
                 <tree string="Cut Plans">
                     <field name="related_type"/>
                     <field name="name" optional="show"/>
@@ -91,6 +104,7 @@
                     <field name="blue_m3" optional="show"/>
                     <field name="blue_origin" string="Pedido de Venda" optional="show"/>
                     <field name="state" optional="show"/>
+
                 </tree>
             </field>
         </record>
@@ -117,6 +131,53 @@
                 </search>
             </field>
         </record>
+
+         <record id="view_wizard_create_all_production_orders_form" model="ir.ui.view">
+            <field name="name">wizard.create.all.production.orders.form</field>
+            <field name="model">wizard.create.all.production.orders</field>
+            <field name="arch" type="xml">
+                <form string="Confirmar Criação de Ordens de Produção">
+                    <sheet>
+                        <div class="oe_title">
+                            <h1>Criar Todas as Ordens de Produção</h1>
+                        </div>
+
+                        <group>
+                            <group>
+                                <field name="note" readonly="1" nolabel="1"/>
+                                <field name="confirm" string="Confirmo que desejo criar as ordens de produção"/>
+                            </group>
+                        </group>
+
+                        <footer>
+                            <button
+                                name="action_confirm_create_all"
+                                string="Criar Todas"
+                                type="object"
+                                class="btn-primary"
+                                attrs="{'invisible': [('confirm', '=', False)]}"
+                            />
+                            <button
+                                string="Cancelar"
+                                class="btn-secondary"
+                                special="cancel"
+                            />
+                        </footer>
+                    </sheet>
+                </form>
+            </field>
+        </record>
+
+        <!-- Action do Wizard -->
+        <record id="action_wizard_create_all_production_orders" model="ir.actions.act_window">
+            <field name="name">Criar Todas as Ordens de Produção</field>
+            <field name="res_model">wizard.create.all.production.orders</field>
+            <field name="view_mode">form</field>
+            <field name="target">new</field>
+            <field name="binding_model_id" eval="False"/>
+            <field name="binding_view_types">list</field>
+        </record>
+
 
 
         <record id="action_mrp_cut_plan_tree" model="ir.actions.act_window">

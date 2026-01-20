@@ -56,7 +56,7 @@ class StockPicking(models.Model):
     branch_backorder_id = fields.Many2one("stock.picking", string="Backorder Vinculado")
 
     customer = fields.Many2one('res.partner', string='Partner', compute="_compute_customer")
-    sale_order = fields.Many2one('sale.order', string='Sale Order', compute="_compute_sale_order")
+    sale_order = fields.Many2one('sale.order', string='Sale Order', compute="_compute_sale_order", store=True)
 
     def _compute_customer(self):
         """Computa o nome do cliente a partir do partner_id"""
@@ -85,30 +85,30 @@ class StockPicking(models.Model):
             for move in picking.move_ids_without_package:
                 print(f"  • {move.product_id.display_name} -> '{move.name}'")
 
-    def _compute_sale_order(self):
-        """Computa o pedido de venda a partir da origem ou da OP de produção"""
-        for picking in self:
-            sale_order = False
-
-            # 1. Busca pelo origin_production_id
-            if picking.origin_production_id and picking.origin_production_id.sale_order_id:
-                sale_order = picking.origin_production_id.sale_order_id
-
-            # 2. Busca pelo nome do pedido no origin
-            elif picking.origin:
-                origin_clean = picking.origin.split(' - ')[0]
-                sale_order = self.env['sale.order'].search([
-                    ('name', '=', origin_clean)
-                ], limit=1)
-
-            # 3. Busca pelo partner_id se for um picking de cliente
-            elif picking.partner_id and picking.picking_type_code == 'outgoing':
-                sale_order = self.env['sale.order'].search([
-                    ('partner_id', '=', picking.partner_id.id),
-                    ('state', 'in', ['sale', 'done'])
-                ], order='date_order desc', limit=1)
-
-            picking.sale_order = sale_order
+    # def _compute_sale_order(self):
+    #     """Computa o pedido de venda a partir da origem ou da OP de produção"""
+    #     for picking in self:
+    #         sale_order = False
+    #
+    #         # 1. Busca pelo origin_production_id
+    #         if picking.origin_production_id and picking.origin_production_id.sale_order_id:
+    #             sale_order = picking.origin_production_id.sale_order_id
+    #
+    #         # 2. Busca pelo nome do pedido no origin
+    #         elif picking.origin:
+    #             origin_clean = picking.origin.split(' - ')[0]
+    #             sale_order = self.env['sale.order'].search([
+    #                 ('name', '=', origin_clean)
+    #             ], limit=1)
+    #
+    #         # 3. Busca pelo partner_id se for um picking de cliente
+    #         elif picking.partner_id and picking.picking_type_code == 'outgoing':
+    #             sale_order = self.env['sale.order'].search([
+    #                 ('partner_id', '=', picking.partner_id.id),
+    #                 ('state', 'in', ['sale', 'done'])
+    #             ], order='date_order desc', limit=1)
+    #
+    #         picking.sale_order = sale_order
 
     def _get_related_sale_order(self):
         """Obtém o pedido de venda relacionado ao picking"""
@@ -194,10 +194,11 @@ class StockPicking(models.Model):
         # Fallback: usa a descrição padrão do produto
         return production.product_id.get_product_multiline_description_sale()
 
+
     def button_validate(self):
         """Button validate com forçamento de descrição"""
 
-         # Bloqueio: impedir validação se houver envio pendente
+        # Bloqueio: impedir validação se houver envio pendente
         for picking in self:
             if (picking.picking_type_code == 'incoming'
                     and picking.sending_transfer_id
@@ -210,9 +211,13 @@ class StockPicking(models.Model):
 
         # Preserva comportamento de outros módulos
         result = super(StockPicking, self).button_validate()
-
-        #RECEBIMENTO FILIAL!!!!
-        # Lógica de criação de recebimento / OP filial (mantenha sua lógica existente)
+        # Mantem o sale_id
+        for picking in self:
+            if picking.origin_production_id and picking.origin_production_id.sale_id:
+                picking.write({
+                    'sale_id': picking.origin_production_id.sale_id.id,
+                })
+        # RECEBIMENTO FILIAL!!!!
         for picking in self:
             if (picking.picking_type_code == 'outgoing'
                     and picking.state == 'done'
@@ -222,7 +227,7 @@ class StockPicking(models.Model):
                 try:
                     origin_mo = picking.origin_production_id
                     warehouse = origin_mo.branch_location_id and origin_mo.branch_location_id.warehouse_id
-
+                    sale_order = origin_mo.sale_id.id
                     if not warehouse:
                         continue
 
@@ -243,7 +248,7 @@ class StockPicking(models.Model):
                         continue
                     product_description = self._get_sale_order_description(origin_mo)
 
-                    # Cria recebimento
+                    # PREPARA VALORES - VERSÃO CORRIGIDA
                     receiving_vals = {
                         "picking_type_id": picking_type.id,
                         "location_id": picking.location_dest_id.id,
@@ -256,16 +261,18 @@ class StockPicking(models.Model):
                             "product_uom": origin_mo.product_uom_id.id,
                             "location_id": picking.location_dest_id.id,
                             "location_dest_id": origin_mo.branch_location_id.id,
-                            "description_picking": product_description,  # ✅ DESCRIÇÃO ADICIONAL
-
+                            "description_picking": product_description,
                         })],
                         "custom_block_validate": False,
                         "show_validate": True,
                         "origin_production_id": origin_mo.id,
                         "sending_transfer_id": [(4, picking.id)],
-                        "sale_id": picking.origin_production_id.sale_id.id,
-                        "partner_id": picking.origin_production_id.partner_id.id
+                        "sale_id": sale_order,
+                        "partner_id": picking.partner_id.id if picking.partner_id else False,
+
                     }
+
+
 
                     receiving = self.env['stock.picking'].with_context(
                         bypass_branch_creation=True
@@ -311,6 +318,7 @@ class StockPicking(models.Model):
                         continue
 
                     origin_mo = picking.origin_production_id
+                    sale_order = origin_mo.sale_id.id
 
                     # Verifica quantidade recebida
                     qty_received = sum(
@@ -328,7 +336,9 @@ class StockPicking(models.Model):
                     branch_mo = origin_mo._create_mo_from_receipt(qty=qty_received, receipt_picking=picking)
 
                     if branch_mo:
-                        picking.write({'branch_mo_id': [(4, branch_mo.id)]})
+                        picking.write({'branch_mo_id': [(4, branch_mo.id)],'sale_id': sale_order,
+                        'partner_id': picking.partner_id.id if picking.partner_id else False})
+
                         _logger.warning(f"✅ OP filial criada: {branch_mo.name} ({qty_received})")
                         origin_mo._compute_message_state()
                     else:
@@ -411,8 +421,10 @@ class StockPicking(models.Model):
             "show_validate": False,
             "origin_production_id": origin_mo.id,
             "sending_transfer_id": [(4, backorder_picking.id)],
-            "sale_id": picking.origin_production_id.sale_id.id,
-            "partner_id": picking.origin_production_id.partner_id.id
+            # ✅ CORREÇÃO: Usar sale_id do backorder_picking
+            "sale_id": backorder_picking.sale_id.id if backorder_picking.sale_id else False,
+            # ✅ CORREÇÃO: Usar partner_id do backorder_picking
+            "partner_id": backorder_picking.partner_id.id if backorder_picking.partner_id else False
         }
 
         receiving = self.env['stock.picking'].with_context(
@@ -485,7 +497,7 @@ class StockMove(models.Model):
         for move in self:
             move.planned_uom_qty = move.product_uom_qty
 
-    @api.depends('picking_id.sale_order', 'picking_id.origin', 'product_id')
+    @api.depends('picking_id.sale_id', 'picking_id.origin', 'product_id')
     def _compute_sale_line_description(self):
         """Computa a descrição buscando diretamente no pedido de venda do picking - VERSÃO AGUESSIVA"""
         for move in self:

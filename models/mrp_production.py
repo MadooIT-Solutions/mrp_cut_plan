@@ -523,23 +523,7 @@ class BlueMrpProduction(models.Model):
             if record.related_type != 'm':
                 raise UserError("Este botão só pode ser usado para Mold Calculation.")
 
-            # # ⚠️ VERIFICA SE HÁ COMPONENTES JÁ CONSUMIDOS
-            # consumed_components = record.move_raw_ids.filtered(
-            #     lambda m: m.quantity_done > 0
-            # )
-            # if consumed_components:
-            #     component_names = ", ".join(consumed_components.mapped('product_id.display_name'))
-            #     raise UserError(
-            #         f"Não é possível enviar para filial com componentes já consumidos:\n\n"
-            #         f"• {component_names}\n\n"
-            #         f"Zere as quantidades consumidas antes do envio."
-            #     )
-            #
-            # # ⚠️ VERIFICA SE A OP ESTÁ NO ESTADO CORRETO
-            # if record.state != 'confirmed':
-            #     raise UserError(
-            #         f"A OP deve estar no estado 'Confirmado' para envio à filial. Estado atual: {record.state}"
-            #     )
+
 
             if not record.branch_location_id:
                 return {
@@ -804,10 +788,10 @@ class BlueMrpProduction(models.Model):
 
         return receiving
 
-    def _create_mo_from_receipt(self, qty, receipt_picking=None):
+    def _create_mo_from_receipt(self, qty, receipt_picking):
         """Cria a OP da filial APÓS o recebimento na filial ser validado"""
         self.ensure_one()
-
+        sale_order = receipt_picking.sale_id.id
         # 0) Bypass por contexto — usado pelo wizard ao escrever a OP matriz para não disparar criação
         if self.env.context.get('bypass_branch_creation'):
             _logger.warning(f"⛔ Bypass ativo - criação de OP filial ignorada (context) para OP matriz {self.name}")
@@ -909,6 +893,7 @@ class BlueMrpProduction(models.Model):
             "state": "draft",
             "sending_transfer_id": [(6, 0, self.sending_transfer_id.ids)],
             "branch_receipt_id": [(6, 0, [receipt_picking.id])],
+            "sale_id": sale_order,
 
         }
 
@@ -926,12 +911,14 @@ class BlueMrpProduction(models.Model):
 
         # Vincula a OP filial a si mesma
         mo.write({
-            'branch_production_id': [(4, mo.id)]
+            'branch_production_id': [(4, mo.id)],
+            'sale_id': sale_order,
         })
 
         # Vincula a OP filial ao recebimento
         receipt_picking.write({
-            'branch_mo_id': [(4, mo.id)]
+            'branch_mo_id': [(4, mo.id)],
+            'sale_id':sale_order,
         })
 
         # Vincula a OP filial à OP matriz

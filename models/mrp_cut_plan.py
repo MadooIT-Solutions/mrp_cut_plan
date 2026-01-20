@@ -383,6 +383,149 @@ class MrpCutPlan(models.Model):
             'flags': {'reload': True},
         }
 
+    def button_create_po_multi(self):
+        # Verificar se há registros selecionados
+        if not self.env.context.get('active_ids'):
+            raise UserError(_("Por favor, selecione pelo menos um registro na listagem."))
+
+        # 🔹 Preparar dados comuns apenas uma vez
+        company_matrix = self.env['res.company'].search([('name', '=', 'Polispan')], limit=1)
+        if not company_matrix:
+            raise UserError("❌ Empresa matriz (Polispan) não encontrada.")
+
+        warehouse_matrix = self.env['stock.warehouse'].search([('company_id', '=', company_matrix.id)], limit=1)
+        if not warehouse_matrix:
+            raise UserError("❌ Nenhum armazém encontrado para a matriz (Polispan).")
+
+        # 🎯 ENCONTRAR O picking_type_id CORRETO DA MATRIZ
+        picking_type_matrix = self.env['stock.picking.type'].search([
+            ('warehouse_id', '=', warehouse_matrix.id),
+            ('code', '=', 'mrp_operation')
+        ], limit=1)
+
+        if not picking_type_matrix:
+            # Fallback: qualquer tipo de operação de fabricação na matriz
+            picking_type_matrix = self.env['stock.picking.type'].search([
+                ('warehouse_id', '=', warehouse_matrix.id),
+                ('sequence_code', '=', 'MO')
+            ], limit=1)
+
+        if not picking_type_matrix:
+            picking_type_matrix = self.env['stock.picking.type'].search([
+                ('warehouse_id', '=', warehouse_matrix.id),
+            ], limit=1)
+
+        if not picking_type_matrix:
+            raise UserError("❌ Tipo de operação de fabricação não encontrado para a matriz.")
+
+        _logger.warning(f"🔍 DEBUG: Usando picking_type_id da matriz: {picking_type_matrix.name}")
+
+        created_orders = []
+
+        # 🔹 Iterar sobre TODOS os registros selecionados
+        for record in self:
+            try:
+                # Atualizar estado do registro atual
+                record.state = 'prod_order'
+
+                venda = record.sale_order_id.procurement_group_id if record.sale_order_id else False
+                data_plan = record.sale_order_id.commitment_date if record.sale_order_id else False
+
+                # 🔹 Criação da OP para o registro atual
+                production_data = {
+                    'company_id': company_matrix.id,
+                    'location_src_id': warehouse_matrix.lot_stock_id.id,
+                    'location_dest_id': warehouse_matrix.lot_stock_id.id,
+                    'picking_type_id': picking_type_matrix.id,
+                    'cut_plan_id': record.id,
+                    'product_id': record.product_id.id,
+                    'product_uom_id': record.product_id.uom_id.id,
+                    'bom_id': record.blue_bom_template_id.id,
+                    'product_qty': record.blue_qty,
+                    'partner_id': record.partner_id.id,
+                    'origin': record.name,
+                    'source_procurement_group_id': venda.id if venda else False,
+                    'related_type': record.product_id.blue_area_calc,
+                }
+
+                if data_plan:
+                    production_data['date_planned_start'] = data_plan
+
+                # 🎯 Criar com contexto explícito
+                production_order = self.env['mrp.production'].with_company(company_matrix).with_context(
+                    allowed_company_ids=[company_matrix.id],
+                    company_id=company_matrix.id
+                ).create(production_data)
+
+                # 🎯 AGORA SIM: Define o origin_production_id com o ID da própria OP
+                production_order.write({
+                    'origin_production_id': production_order.id
+                })
+
+                _logger.warning(f"✅ OP CRIADA NA MATRIZ: {production_order.name} para registro {record.name}")
+
+                # 🔹 Gera os movimentos (substitui os antigos onchange)
+                production_order.action_confirm()
+
+                # 🔹 Ajusta manualmente as quantidades conforme lógica do Odoo 15
+                for bom_line in record.blue_bom_template_id.bom_line_ids:
+                    for move in production_order.move_raw_ids:
+                        if move.product_id == bom_line.product_id:
+                            if move.product_id.blue_area_calc in ['llh', 'm']:
+                                if bom_line.blue_multiplier:
+                                    move.product_uom_qty = bom_line.product_qty
+                                else:
+                                    move.product_uom_qty = record.blue_m3
+                            else:
+                                if bom_line.blue_multiplier:
+                                    move.product_uom_qty = bom_line.product_qty
+                                else:
+                                    move.product_uom_qty = (
+                                            (
+                                                        record.blue_qty / record.blue_bom_template_id.product_qty) * bom_line.product_qty
+                                    )
+
+                            if record.related_type == 'm':
+                                if move.product_id.boolean_coefficient_or_screen == 'tl':
+                                    move.product_uom_qty = record.blue_m2
+                                elif move.product_id.boolean_coefficient_or_screen == 'coe':
+                                    template_price_config_id = self.env['mrp_cut_plan.template_price_config'].search([
+                                        ('product_id', '=', record.product_id.id)
+                                    ], limit=1)
+                                    if template_price_config_id:
+                                        move.product_uom_qty = record.blue_m2 * template_price_config_id.mortar_coefficient
+                                    else:
+                                        move.product_uom_qty = record.blue_m2 * 0
+
+                # 🔹 Refaz as reservas conforme as novas quantidades
+                production_order.move_raw_ids._action_assign()
+
+                created_orders.append(production_order)
+
+            except Exception as e:
+                _logger.error(f"❌ Erro ao criar OP para registro {record.name}: {str(e)}")
+                # Continuar com os próximos registros mesmo se um falhar
+                continue
+
+        # 🔹 Atualizar contador de OPs para todos os registros
+        for record in self:
+            record._update_count_sale_mrp()
+
+        # 🔹 Retornar ação para visualizar as OPs criadas (opcional)
+        if created_orders:
+            return {
+                'type': 'ir.actions.act_window',
+                'name': 'Ordens de Produção Criadas',
+                'res_model': 'mrp.production',
+                'view_mode': 'tree,form',
+                'domain': [('id', 'in', [op.id for op in created_orders])],
+                'context': {'create': False},
+            }
+
+        # Se nenhuma OP foi criada, mostrar aviso
+        if not created_orders:
+            raise UserError("❌ Nenhuma ordem de produção foi criada. Verifique os logs para mais detalhes.")
+
     def _force_generate_moves(self, production_order):
         """Garante que a MO terá moves raw e finished"""
         if not production_order.bom_id:
@@ -635,3 +778,59 @@ class MrpCutPlan(models.Model):
         """
         total_duration = sum(wo.duration_expected for wo in self.workorder_ids)
         self.duration_expected = total_duration
+
+
+class WizardCreateAllProductionOrders(models.TransientModel):
+    _name = 'wizard.create.all.production.orders'
+    _description = 'Wizard para criar todas as ordens de produção'
+
+    confirm = fields.Boolean(string='Confirmar criação?', default=True)
+    note = fields.Text(
+        string='Observação',
+        default='Deseja criar ordens de produção para todos os registros selecionados? Esta ação não pode ser desfeita.'
+    )
+
+    def action_confirm_create_all(self):
+        self.ensure_one()
+
+        # Obter o modelo atual do contexto
+        active_model = self.env.context.get('active_model')
+        active_ids = self.env.context.get('active_ids')
+
+        if not active_model or not active_ids:
+            raise UserError(_("Nenhum registro selecionado!"))
+
+        # Buscar todos os registros selecionados
+        records = self.env[active_model].browse(active_ids)
+
+        # Filtrar apenas registros que podem ter OP criada
+        valid_records = records.filtered(lambda r: r.state not in ['prod_order', 'done', 'cancel'])
+
+        if not valid_records:
+            raise UserError(_("Nenhum registro válido para criar ordem de produção!"))
+
+        # Criar OPs para cada registro
+        created_orders = []
+        for record in valid_records:
+            try:
+                # Chamar o método original em cada registro
+                result = record.button_create_po()
+                if result and result.get('res_id'):
+                    created_orders.append(result['res_id'])
+            except Exception as e:
+                # Log do erro e continuar com os próximos
+                _logger.error(f"Erro ao criar OP para {record.name}: {str(e)}")
+                continue
+
+        # Retornar ação para mostrar resultados
+        if created_orders:
+            return {
+                'name': _('Ordens de Produção Criadas'),
+                'type': 'ir.actions.act_window',
+                'res_model': 'mrp.production',
+                'view_mode': 'tree,form',
+                'domain': [('id', 'in', created_orders)],
+                'target': 'current',
+            }
+        else:
+            raise UserError(_("Nenhuma ordem de produção foi criada."))

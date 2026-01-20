@@ -7,6 +7,7 @@
         'sale',
         'sale_management',
         'mrp',
+        'mrp_sale_info',
         'stock',
     ],
     'data': [
@@ -16,15 +17,18 @@
         'views/mrp_bom_views.xml',
         'views/product_template_views.xml',
         'views/sale_order_views.xml',
+        'views/stock_picking.xml',
         'wizards/sale_order_line_config_views.xml',
         'wizards/transfer_wizard_view.xml',
         'views/template_price_config_view.xml',
         'report/external_layout_boxed.xml',
         'report/mrp_production_template.xml',
-        'report/sale.xml',
+        # 'report/sale.xml',
         'report/purchase.xml',
         'views/mrp_production.xml',
-        'report/mrp_cut_plan_mrp_cut_plan_report_pdf.xml'
+        'views/purchase.xml',
+        'report/mrp_cut_plan_mrp_cut_plan_report_pdf.xml',
+        'report/purchase.xml'
     ],
     'license': 'LGPL-3',
     'installable': True,

@@ -107,6 +107,13 @@ class MrpProductionTransferWizard(models.TransientModel):
         # ✅ DESCRIÇÃO IGUAL AO PEDIDO DE VENDA
         product_description = self._get_sale_order_description(self.production_id)
 
+        # ✅ OBTER SALE_ORDER CORRETAMENTE
+
+        if self.production_id.sale_id:
+            sale_order = self.production_id.sale_id
+        elif self.production_id.sale_order_id:
+            sale_order = self.production_id.sale_order_id
+
         # ⚠️ ENVIA APENAS O PRODUTO FINALIZADO, NÃO OS COMPONENTES
         move_lines = []
         for move in self.production_id.move_finished_ids:
@@ -120,6 +127,7 @@ class MrpProductionTransferWizard(models.TransientModel):
                     "location_dest_id": self.location_dest_id.id,
                     "description_picking": product_description,  # ✅ DESCRIÇÃO ADICIONAL
                     "sale_line_description": product_description,
+
 
                 }))
 
@@ -135,7 +143,7 @@ class MrpProductionTransferWizard(models.TransientModel):
             "custom_block_validate": True,
             # 🎯 CRÍTICO: Define origin_production_id no picking
             "origin_production_id": self.production_id.id,
-            "sale_id": self.production_id.sale_id.id,
+            "sale_id": sale_order.id if sale_order else False,
             "partner_id": self.production_id.partner_id.id,
         }
 

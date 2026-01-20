@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="mrp_cut_purchase_order_form" model="ir.ui.view">
+        <field name="name">mrp.cut.purchase.order.form</field>
+        <field name="model">purchase.order</field>
+        <field name="inherit_id" ref="purchase.purchase_order_form"/>
+        <field name="arch" type="xml">
+
+            <xpath expr="//field[@name='order_line']/tree" position="attributes">
+                <attribute name="limit">200</attribute>
+            </xpath>
+
+            <xpath expr="//field[@name='user_id']" position="replace"/>
+            <xpath expr="//field[@name='partner_ref']" position="replace"/>
+            <xpath expr="//field[@name='payment_term_id']" position="replace"/>
+            <xpath expr="//field[@name='payment_mode_id']" position="replace"/>
+            <xpath expr="//field[@name='fiscal_position_id']" position="replace"/>
+
+            <xpath expr="//field[@name='partner_id']" position="after">
+                <group>
+                    <field name="partner_ref" position="move"/>
+                    <field name="incoterm_id" position="move"/>
+                    <field name="fiscal_position_id" position="move"/>
+                </group>
+                <group name="pagamentos">
+                    <field name="payment_term_id" position="move"/>
+                    <field name="payment_mode_id" required="1"/>
+                    <field name="payment_mode_id_name" invisible="1"/>
+                    <field name="chave_pix" attrs="{'invisible': ['|', ('payment_mode_id_name', '!=', 'PIX'), ('partner_id', '=', False), ('chave_pix', '!=', False)]}"/>
+                </group>
+                <group>
+                    <field name="user_id" domain="[('share', '=', False)]" widget="many2one_avatar_user" style="width: 100%;"/>
+                    <field name="date_order" attrs="{'invisible': [('state', 'in', ('purchase', 'done'))]}"/>
+                    <label for="date_approve" attrs="{'invisible': [('state', 'not in', ('purchase', 'done'))]}"/>
+                    <div name="date_approve" attrs="{'invisible': [('state', 'not in', ('purchase', 'done'))]}" class="o_row">
+                        <field name="date_approve"/>
+                        <field name="mail_reception_confirmed" invisible="1"/>
+                        <span class="text-muted" attrs="{'invisible': [('mail_reception_confirmed', '=', False)]}">(confirmed by vendor)</span>
+                    </div>
+                    <label for="date_planned"/>
+                    <div name="date_planned_div" class="o_row">
+                        <field name="date_planned" attrs="{'readonly': [('state', 'not in', ('draft', 'sent', 'to approve', 'purchase'))]}"/>
+                        <field name="mail_reminder_confirmed" invisible="1"/>
+                        <span class="text-muted" attrs="{'invisible': [('mail_reminder_confirmed', '=', False)]}">(confirmed by vendor)</span>
+                    </div>
+                    <label for="receipt_reminder_email" class="d-none" groups="purchase.group_send_reminder"/>
+                    <div name="reminder" class="o_row" groups="purchase.group_send_reminder" title="Automatically send a confirmation email to the vendor X days before the expected receipt date, asking him to confirm the exact date.">
+                        <field name="receipt_reminder_email"/>
+                        <span>Ask confirmation</span>
+                        <div class="o_row oe_inline" attrs="{'invisible': [('receipt_reminder_email', '=', False)]}">
+                            <field name="reminder_date_before_receipt"/>
+                            day(s) before
+                            <widget name="toaster_button" button_name="send_reminder_preview" title="Preview the reminder email by sending it to yourself." attrs="{'invisible': [('id', '=', False)]}"/>
+                        </div>
+                    </div>
+                </group>
+            </xpath>
+
+            <!-- Campos obrigatórios após move -->
+            <xpath expr="//field[@name='incoterm_id']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='fiscal_position_id']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+            <xpath expr="//field[@name='payment_term_id']" position="attributes">
+                <attribute name="required">1</attribute>
+            </xpath>
+
+            <xpath expr="//form" position="inside">
+                <field name="effective_date" invisible="1"/>
+            </xpath>
+
+            <!-- Alterar ordenação padrão -->
+            <xpath expr="//tree" position="attributes">
+                <attribute name="default_order">qty_received asc</attribute>
+            </xpath>
+
+            <xpath expr="//group[field[@name='date_order']]" position="replace"/>
+        </field>
+    </record>
+</odoo>

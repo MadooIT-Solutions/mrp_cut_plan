@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+      <!-- VIEW PICKING — controle de campos invisíveis e botão validate -->
+    <record id="mrp_cut_picking_form_flow_control" model="ir.ui.view">
+        <field name="name">stock.picking.form.flow.control</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+
+
+            <!-- Campos invisíveis para controle -->
+            <xpath expr="//form" position="inside">
+                <field name="origin_production_id" invisible="1"/>
+                <field name="custom_block_validate" invisible="1"/>
+                <field name="show_validate" invisible="1"/>
+                <field name="picking_type_code" invisible="1"/>
+                <field name="branch_mo_id" invisible="1"/>
+            </xpath>
+            <xpath expr="//field[@name='product_uom_qty']" position="attributes">
+                <attribute name="attrs">{'readonly': ['|', ('is_initial_demand_editable', '=', False), '&amp;', '&amp;', ('show_operations', '=', True), ('is_locked', '=', True), ('is_initial_demand_editable', '=', False)]}</attribute>
+            </xpath>
+            <page name="detailed_operations" position="before">
+                <page name="operations" position="move"/>
+            </page>
+
+            <!-- Adicionar campos do pedido de venda e cliente NO LOCAL CORRETO -->
+            <xpath expr="//field[@name='location_id']" position="after">
+                <field name="sale_id" string="Pedido de Venda" readonly="1"/>
+                <field name="customer" string="Cliente" readonly="1"/>
+            </xpath>
+
+            <xpath expr="//field[@name='move_ids_without_package']/tree/field[@name='description_picking']" position="replace">
+
+            </xpath>
+            <!-- Para move_ids_without_package (stock.move) - MOSTRAR descrição da linha de venda -->
+            <xpath expr="//field[@name='move_ids_without_package']/tree/field[@name='product_id']" position="after">
+                <field name="description_picking" readonly="1"/>
+            </xpath>
+
+            <!-- Botão validate condicional -->
+            <button name="button_validate" position="attributes">
+                <attribute name="attrs">{'invisible':[('show_validate','=',False)]}</attribute>
+            </button>
+
+        </field>
+    </record>
+</odoo>
