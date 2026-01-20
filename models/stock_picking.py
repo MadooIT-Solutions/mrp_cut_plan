@@ -506,16 +506,9 @@ class StockMove(models.Model):
 
             sale_line_description = move.product_id.display_name  # Fallback
 
-            # Busca em MÚLTIPLAS fontes
-            sale_order = False
-
-            # 1. Busca através do sale_order do picking
-            if move.picking_id and move.picking_id.sale_order:
-                sale_order = move.picking_id.sale_order
-                _logger.info(f"   📦 Pedido encontrado via sale_order: {sale_order.name}")
 
             # 2. Busca através do origin do picking (nome do pedido)
-            elif move.picking_id and move.picking_id.origin:
+            if move.picking_id and move.picking_id.origin:
                 origin_clean = move.picking_id.origin.split(' - ')[0]
                 _logger.info(f"   🔍 Buscando por origin: {origin_clean}")
 
