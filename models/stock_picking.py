@@ -57,7 +57,6 @@ class StockPicking(models.Model):
 
     customer = fields.Many2one('res.partner', string='Partner', compute="_compute_customer")
 
-
     def _compute_customer(self):
         """Computa o nome do cliente a partir do partner_id"""
         for picking in self:
@@ -443,27 +442,27 @@ class StockPicking(models.Model):
         return receiving
 
 
-    @api.model
-    def create(self, vals):
-        """Override do create para estabelecer relacionamentos"""
-        picking = super(StockPicking, self).create(vals)
-
-        # Estabelece relacionamentos e aplica descrições
-        picking._link_sale_order_lines_to_moves()
-
-
-        return picking
-
-    def write(self, vals):
-        """Override do write para manter relacionamentos atualizados"""
-        result = super(StockPicking, self).write(vals)
-
-        # Se está alterando campos relevantes, atualiza relacionamentos
-        if any(field in vals for field in ['origin_production_id', 'origin', 'move_ids_without_package']):
-            self._link_sale_order_lines_to_moves()
-
-
-        return result
+    # @api.model
+    # def create(self, vals):
+    #     """Override do create para estabelecer relacionamentos"""
+    #     picking = super(StockPicking, self).create(vals)
+    #
+    #     # Estabelece relacionamentos e aplica descrições
+    #     picking._link_sale_order_lines_to_moves()
+    #
+    #
+    #     return picking
+    #
+    # def write(self, vals):
+    #     """Override do write para manter relacionamentos atualizados"""
+    #     result = super(StockPicking, self).write(vals)
+    #
+    #     # Se está alterando campos relevantes, atualiza relacionamentos
+    #     if any(field in vals for field in ['origin_production_id', 'origin', 'move_ids_without_package']):
+    #         self._link_sale_order_lines_to_moves()
+    #
+    #
+    #     return result
 
     def action_assign(self):
         """Ação de assign com aplicação de descrições"""
