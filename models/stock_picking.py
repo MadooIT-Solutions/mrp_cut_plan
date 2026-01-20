@@ -63,51 +63,8 @@ class StockPicking(models.Model):
             sale_order = picking._get_related_sale_order()
             picking.customer = sale_order.partner_id if sale_order else picking.partner_id
 
-    def debug_picking_sale_info(self):
-        """Debug específico para pickings de entrega"""
-        for picking in self:
-            print(f"=== DEBUG PICKING: {picking.name} ===")
-            print(f"Origin: {picking.origin}")
-            print(f"Picking Type: {picking.picking_type_code}")
-            print(f"Partner: {picking.partner_id.name}")
-            print(f"Sale Order (campo): {picking.sale_order.name if picking.sale_order else 'None'}")
 
-            # Buscar pedidos possíveis
-            if picking.origin:
-                origin_clean = picking.origin.split(' - ')[0]
-                possible_orders = env['sale.order'].search([('name', '=', origin_clean)])
-                print(f"Pedidos encontrados por origin '{origin_clean}': {len(possible_orders)}")
-                for order in possible_orders:
-                    print(f"  • {order.name} - {order.partner_id.name}")
 
-            print("Movimentos:")
-            for move in picking.move_ids_without_package:
-                print(f"  • {move.product_id.display_name} -> '{move.name}'")
-
-    # def _compute_sale_order(self):
-    #     """Computa o pedido de venda a partir da origem ou da OP de produção"""
-    #     for picking in self:
-    #         sale_order = False
-    #
-    #         # 1. Busca pelo origin_production_id
-    #         if picking.origin_production_id and picking.origin_production_id.sale_order_id:
-    #             sale_order = picking.origin_production_id.sale_order_id
-    #
-    #         # 2. Busca pelo nome do pedido no origin
-    #         elif picking.origin:
-    #             origin_clean = picking.origin.split(' - ')[0]
-    #             sale_order = self.env['sale.order'].search([
-    #                 ('name', '=', origin_clean)
-    #             ], limit=1)
-    #
-    #         # 3. Busca pelo partner_id se for um picking de cliente
-    #         elif picking.partner_id and picking.picking_type_code == 'outgoing':
-    #             sale_order = self.env['sale.order'].search([
-    #                 ('partner_id', '=', picking.partner_id.id),
-    #                 ('state', 'in', ['sale', 'done'])
-    #             ], order='date_order desc', limit=1)
-    #
-    #         picking.sale_order = sale_order
 
     def _get_related_sale_order(self):
         """Obtém o pedido de venda relacionado ao picking"""
@@ -123,58 +80,6 @@ class StockPicking(models.Model):
             ], limit=1)
 
         return False
-
-    # def _link_sale_order_lines_to_moves(self):
-    #     """Estabelece o relacionamento entre sale.order.line e stock.move"""
-    #     for picking in self:
-    #         _logger.warning(f"🔗 VINCULANDO LINHAS PEDIDO: {picking.name}")
-    #
-    #         sale_order = False
-    #
-    #         # MÉTODO 1: Busca através do campo sale_order
-    #         if picking.sale_order:
-    #             sale_order = picking.sale_order
-    #             _logger.warning(f"   📦 Pedido encontrado via sale_order: {sale_order.name}")
-    #
-    #         # MÉTODO 2: Busca através do origin_production_id
-    #         elif picking.origin_production_id and picking.origin_production_id.sale_order_id:
-    #             sale_order = picking.origin_production_id.sale_order_id
-    #             _logger.warning(f"   📦 Pedido encontrado via OP: {sale_order.name}")
-    #
-    #         # MÉTODO 3: Busca através do origin (nome do pedido)
-    #         elif picking.origin:
-    #             origin_clean = picking.origin.split(' - ')[0]
-    #             _logger.warning(f"   🔍 Buscando por origin: {origin_clean}")
-    #
-    #             sale_order = self.env['sale.order'].search([
-    #                 ('name', '=', origin_clean)
-    #             ], limit=1)
-    #
-    #             if sale_order:
-    #                 _logger.warning(f"   📦 Pedido encontrado via origin: {sale_order.name}")
-    #
-    #         if sale_order:
-    #             _logger.warning(f"   📋 Linhas do pedido {sale_order.name}:")
-    #             for line in sale_order.order_line:
-    #                 _logger.warning(f"      • {line.product_id.display_name} -> '{line.name}'")
-    #
-    #             for move in picking.move_ids_without_package:
-    #                 _logger.warning(f"   🔍 Buscando linha para movimento: {move.product_id.display_name}")
-    #
-    #                 # Busca a linha do pedido para este produto específico
-    #                 order_line = sale_order.order_line.filtered(
-    #                     lambda l: l.product_id.id == move.product_id.id
-    #                 )
-    #
-    #                 if order_line:
-    #                     move.sale_order_line_id = order_line[0]
-    #                     _logger.warning(f"   ✅ VINCULADO: {move.product_id.display_name} -> '{order_line[0].name}'")
-    #                 else:
-    #                     _logger.warning(f"   ❌ NENHUMA LINHA ENCONTRADA para: {move.product_id.display_name}")
-    #         else:
-    #             _logger.warning(f"   ⚠️ NENHUM PEDIDO ENCONTRADO para este picking")
-    #
-    #
 
 
 
@@ -441,29 +346,6 @@ class StockPicking(models.Model):
 
         return receiving
 
-
-    # @api.model
-    # def create(self, vals):
-    #     """Override do create para estabelecer relacionamentos"""
-    #     picking = super(StockPicking, self).create(vals)
-    #
-    #     # Estabelece relacionamentos e aplica descrições
-    #     picking._link_sale_order_lines_to_moves()
-    #
-    #
-    #     return picking
-    #
-    # def write(self, vals):
-    #     """Override do write para manter relacionamentos atualizados"""
-    #     result = super(StockPicking, self).write(vals)
-    #
-    #     # Se está alterando campos relevantes, atualiza relacionamentos
-    #     if any(field in vals for field in ['origin_production_id', 'origin', 'move_ids_without_package']):
-    #         self._link_sale_order_lines_to_moves()
-    #
-    #
-    #     return result
-
     def action_assign(self):
         """Ação de assign com aplicação de descrições"""
 
@@ -481,7 +363,7 @@ class StockMove(models.Model):
 
     sale_line_description = fields.Char(
         string='Descrição do Pedido',
-        compute='_compute_sale_line_description',
+        # compute='_compute_sale_line_description',
         store=True
     )
 
@@ -496,94 +378,7 @@ class StockMove(models.Model):
         for move in self:
             move.planned_uom_qty = move.product_uom_qty
 
-    @api.depends('picking_id.sale_id', 'picking_id.origin', 'product_id')
-    def _compute_sale_line_description(self):
-        """Computa a descrição buscando diretamente no pedido de venda do picking - VERSÃO AGUESSIVA"""
-        for move in self:
-            _logger.info(f"🔍 COMPUTANDO DESCRIÇÃO PARA MOVIMENTO: {move.id}")
-            _logger.info(f"   • Produto: {move.product_id.display_name}")
-            _logger.info(f"   • Picking: {move.picking_id.name if move.picking_id else 'None'}")
 
-            sale_line_description = move.product_id.display_name  # Fallback
-
-
-            # 2. Busca através do origin do picking (nome do pedido)
-            if move.picking_id and move.picking_id.origin:
-                origin_clean = move.picking_id.origin.split(' - ')[0]
-                _logger.info(f"   🔍 Buscando por origin: {origin_clean}")
-
-                sale_order = self.env['sale.order'].search([
-                    ('name', '=', origin_clean)
-                ], limit=1)
-
-                if sale_order:
-                    _logger.info(f"   📦 Pedido encontrado via origin: {sale_order.name}")
-
-            # 3. Busca através do group_id (procurement group)
-            elif move.group_id:
-                sale_order = self.env['sale.order'].search([
-                    ('procurement_group_id', '=', move.group_id.id)
-                ], limit=1)
-
-                if sale_order:
-                    _logger.info(f"   📦 Pedido encontrado via procurement group: {sale_order.name}")
-
-            # Se encontrou o pedido, busca a descrição exata
-            if sale_order:
-                order_line = sale_order.order_line.filtered(
-                    lambda l: l.product_id.id == move.product_id.id
-                )
-
-                if order_line:
-                    sale_line_description = order_line[0].name
-                    _logger.info(f"   ✅ DESCRIÇÃO ENCONTRADA: '{order_line[0].name}'")
-
-                    # ⚠️ ATUALIZAÇÃO AGUESSIVA: Força a atualização do campo name
-                    if move.name != order_line[0].name:
-                        move.name = order_line[0].name
-                        _logger.info(f"   🔄 Campo 'name' atualizado para: '{order_line[0].name}'")
-
-                    # Atualiza o relacionamento
-                    move.sale_order_line_id = order_line[0]
-                else:
-                    _logger.warning(f"   ❌ PRODUTO NÃO ENCONTRADO NO PEDIDO: {move.product_id.display_name}")
-
-            move.sale_line_description = sale_line_description
-
-    def action_force_update_description(self):
-        """Ação manual para forçar atualização da descrição"""
-        for move in self:
-            # Recomputa a descrição
-            move._compute_sale_line_description()
-
-            # Força a escrita se necessário
-            if move.sale_order_line_id and move.name != move.sale_order_line_id.name:
-                move.name = move.sale_order_line_id.name
-
-        return True
-
-    # @api.model
-    # def create(self, vals):
-    #     """Override do create para vincular linha do pedido automaticamente"""
-    #     move = super(StockMove, self).create(vals)
-    #
-    #     # Se o movimento tem um picking, tenta vincular
-    #     if move.picking_id:
-    #         move.picking_id._link_sale_order_lines_to_moves()
-    #
-    #     return move
-    #
-    # def write(self, vals):
-    #     """Override do write para manter relacionamentos"""
-    #     result = super(StockMove, self).write(vals)
-    #
-    #     # Se está mudando o picking, tenta vincular
-    #     if 'picking_id' in vals:
-    #         for move in self:
-    #             if move.picking_id:
-    #                 move.picking_id._link_sale_order_lines_to_moves()
-    #
-    #     return result
 
 class StockMoveLine(models.Model):
     _inherit = 'stock.move.line'
