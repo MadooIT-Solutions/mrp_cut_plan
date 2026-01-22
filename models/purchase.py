@@ -64,3 +64,12 @@ class OsPurchase(models.Model):
                 }
         else:
             self.chave_pix = False
+
+    @api.model
+    def _prepare_stock_move_vals(self, picking, price_unit, product_uom_qty, product_uom):
+        vals = super(OsPurchaseLine, self)._prepare_stock_move_vals(picking, price_unit, product_uom_qty, product_uom)
+        vals['payment_mode_id'] = self.payment_mode_id.id
+
+        # vals['secondary_uom_qty'] = self.secondary_uom_qty
+        # vals['secondary_uom_id'] = self.secondary_uom_id
+        return vals
