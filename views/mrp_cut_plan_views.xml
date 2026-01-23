@@ -86,7 +86,6 @@
                 type="object"
                 class="btn-primary"
                 icon="fa-industry"
-                groups="mrp.group_mrp_manager"
                 confirm="Deseja criar ordens de produção para todos os registros selecionados?"
             />
 
