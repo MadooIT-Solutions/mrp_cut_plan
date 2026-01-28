@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2025-11-26 16:59+0000\n"
-"PO-Revision-Date: 2025-11-26 14:05-0300\n"
+"POT-Creation-Date: 2026-01-28 13:01+0000\n"
+"PO-Revision-Date: 2026-01-28 10:04-0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: pt\n"
@@ -30,12 +30,12 @@ msgstr ""
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<b>Dt. Pedido: </b>"
-msgstr ""
+msgstr "<b>Cotação:</b>"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<b>Pedido Aguardando Confirmação:</b>"
-msgstr ""
+msgstr "<b>Cotação:</b>"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
@@ -45,12 +45,12 @@ msgstr ""
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<b>Pedido de Compra:</b>"
-msgstr ""
+msgstr "<b>Cotação:</b>"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<b>Prazo: </b>"
-msgstr ""
+msgstr "<b>Cotação:</b>"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
@@ -123,43 +123,67 @@ msgid "<span class=\"o_stat_text\">Plano De Corte</span>"
 msgstr ""
 
 #. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_purchase_order_form
+msgid ""
+"<span class=\"text-muted\" attrs=\"{'invisible': [('mail_reception_confirmed', '=', False)]}"
+"\">(confirmed by vendor)</span>"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_purchase_order_form
+msgid ""
+"<span class=\"text-muted\" attrs=\"{'invisible': [('mail_reminder_confirmed', '=', False)]}"
+"\">(confirmed by vendor)</span>"
+msgstr ""
+
+#. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid ""
-"<span groups=\"account.group_show_line_subtotals_tax_excluded\">Amount</span>\n"
-"                            <span groups=\"account.group_show_line_subtotals_tax_included\">Total Price</span>"
+"<span groups=\"account.group_show_line_subtotals_tax_excluded\">SubTotal</span>\n"
+"                            <span groups=\"account.group_show_line_subtotals_tax_included\">Total</span>"
 msgstr ""
-"<span groups=\"account.group_show_line_subtotals_tax_excluded\">Subtotal</span>\r\n"
+"<span groups=\"account.group_show_line_subtotals_tax_excluded\">Subtotal</span>\n"
 "                            <span groups=\"account.group_show_line_subtotals_tax_included\">Total</span>"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
-msgid "<span>Atenciosamente,</span><br/><br/>"
+msgid "<span><strong>Contato: </strong></span>"
 msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_purchase_order_form
+msgid "<span>Ask confirmation</span>"
+msgstr "<span>Subtotal</span>"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
+msgid "<span>Atenciosamente,</span><br/><br/>"
+msgstr "<span>Subtotal</span>"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.os_web_external_layout_boxed
 msgid "<span>Celular/Whatsapp: </span>"
-msgstr ""
+msgstr "<span>Subtotal</span>"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
-msgid "<span>Disc.%</span>"
+msgid "<span>Desc.%</span>"
 msgstr ""
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.os_web_external_layout_boxed
 msgid "<span>E-mail: </span>"
-msgstr ""
+msgstr "<span>Total devido:</span>"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "<span>Pro-Forma Invoice # </span>"
-msgstr ""
+msgstr "<span>Subtotal</span>"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.os_web_external_layout_boxed
 msgid "<span>Telefone: </span>"
-msgstr ""
+msgstr "<span>Total devido:</span>"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
@@ -172,18 +196,18 @@ msgid "<strong>Amount</strong>"
 msgstr "<strong>Total</strong>"
 
 #. module: mrp_cut_plan
-#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
-msgid "<strong>Commitiment: </strong>"
-msgstr "<strong>Confirmado: </strong>"
-
-#. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<strong>Comprador(a): </strong>"
 msgstr ""
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
-msgid "<strong>Contato: </strong>"
+msgid "<strong>Data da Cotação: </strong>"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
+msgid "<strong>Data do Pedido: </strong>"
 msgstr ""
 
 #. module: mrp_cut_plan
@@ -202,14 +226,14 @@ msgid "<strong>Endereço: </strong>"
 msgstr ""
 
 #. module: mrp_cut_plan
-#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
-msgid "<strong>Entrega</strong>"
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
+msgid "<strong>Entrega: </strong>"
 msgstr ""
 
 #. module: mrp_cut_plan
-#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
-msgid "<strong>Expiration: </strong>"
-msgstr "<strong>Validade da Proposta: </strong>"
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
+msgid "<strong>Entrega</strong>"
+msgstr ""
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
@@ -227,29 +251,19 @@ msgid "<strong>OS</strong>"
 msgstr ""
 
 #. module: mrp_cut_plan
-#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
-msgid "<strong>Order Date: </strong>"
-msgstr "<strong>Data do pedido: </strong>"
-
-#. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<strong>P.Unit</strong>"
 msgstr ""
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
-msgid "<strong>Payment: </strong>"
-msgstr "<strong>Pagamento: </strong>"
+msgid "<strong>Pagamento: </strong>"
+msgstr ""
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<strong>Qty</strong>"
 msgstr "<strong>Qtd</strong>"
-
-#. module: mrp_cut_plan
-#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
-msgid "<strong>Quotation Date: </strong>"
-msgstr "<strong>Data da Cotação: </strong>"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
@@ -268,6 +282,11 @@ msgstr "<strong>Assinatura</strong>"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
+msgid "<strong>Sua referência: </strong>"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "<strong>Subtotal</strong>"
 msgstr ""
 
@@ -279,8 +298,8 @@ msgstr ""
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
-msgid "<strong>Your Reference: </strong>"
-msgstr "<strong>Sua Referencia: </strong>"
+msgid "<strong>Válida até: </strong>"
+msgstr ""
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_needaction
@@ -328,6 +347,13 @@ msgid "Attachment Count"
 msgstr "Contagem de anexos"
 
 #. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_purchase_order_form
+msgid ""
+"Automatically send a confirmation email to the vendor X days before the expected receipt date, asking "
+"him to confirm the exact date."
+msgstr ""
+
+#. module: mrp_cut_plan
 #: model:ir.model,name:mrp_cut_plan.model_report_mrp_report_bom_structure
 msgid "BOM Overview Report"
 msgstr "Relatório geral da LM"
@@ -366,7 +392,7 @@ msgstr "Quantidade"
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_mrp_cut_plan_mrp_cut_plan_document_pdf
 msgid "Breakages Count"
-msgstr ""
+msgstr "Cotação Contagem"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
@@ -412,6 +438,7 @@ msgstr "Cancelar Ordem de Serviço"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_production_transfer_wizard
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_wizard_create_all_production_orders_form
 msgid "Cancelar"
 msgstr ""
 
@@ -426,6 +453,11 @@ msgid "Canvas/Mortar Product"
 msgstr "Produto Tela/Argamassa"
 
 #. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_purchase_order__chave_pix
+msgid "Chave Pix"
+msgstr ""
+
+#. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
 msgid "Check Availability"
 msgstr "Verificar Disponibilidade"
@@ -434,6 +466,7 @@ msgstr "Verificar Disponibilidade"
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__cotation_partner_id
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__partner_id
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__cotation_partner_id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__partner_id
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_picking_form_flow_control
 msgid "Cliente"
 msgstr ""
@@ -469,6 +502,21 @@ msgid "Confirm"
 msgstr "Confirmar"
 
 #. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_wizard_create_all_production_orders_form
+msgid "Confirmar Criação de Ordens de Produção"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders__confirm
+msgid "Confirmar criação?"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_wizard_create_all_production_orders_form
+msgid "Confirmo que desejo criar as ordens de produção"
+msgstr ""
+
+#. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "Conforme vossa solicitação apresentamos nossa proposta."
 msgstr ""
@@ -491,12 +539,12 @@ msgstr "Custo da Argamassa m2"
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__sale_order_id
 msgid "Cotação"
-msgstr ""
+msgstr "<b>Cotação:</b>"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "Cotação -"
-msgstr ""
+msgstr "<b>Cotação:</b>"
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_consumption_recalc_wizard__create_uid
@@ -505,6 +553,7 @@ msgstr ""
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__create_uid
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard__create_uid
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__create_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders__create_uid
 msgid "Created by"
 msgstr "Criado por"
 
@@ -515,12 +564,29 @@ msgstr "Criado por"
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__create_date
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard__create_date
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__create_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders__create_date
 msgid "Created on"
 msgstr "Criado em"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
 msgid "Criar OP"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_wizard_create_all_production_orders_form
+msgid "Criar Todas"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_tree
+msgid "Criar Todas as OPs"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.actions.act_window,name:mrp_cut_plan.action_wizard_create_all_production_orders
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_wizard_create_all_production_orders_form
+msgid "Criar Todas as Ordens de Produção"
 msgstr ""
 
 #. module: mrp_cut_plan
@@ -554,7 +620,6 @@ msgid "Custo de Mão de Obra"
 msgstr ""
 
 #. module: mrp_cut_plan
-#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__partner_id
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_search
 msgid "Customer"
 msgstr "Cliente"
@@ -592,13 +657,18 @@ msgstr "Unidade de medida padrão usada para todas as operações de estoque."
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
-msgid "Description"
-msgstr "Descrição"
+msgid "Descrição"
+msgstr ""
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_move__sale_line_description
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_move_line__sale_line_description
 msgid "Descrição do Pedido"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_tree
+msgid "Deseja criar ordens de produção para todos os registros selecionados?"
 msgstr ""
 
 #. module: mrp_cut_plan
@@ -624,6 +694,7 @@ msgstr "Desconto"
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__display_name
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard__display_name
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__display_name
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders__display_name
 msgid "Display Name"
 msgstr "Nome de Exibição"
 
@@ -674,6 +745,11 @@ msgid "Filial"
 msgstr ""
 
 #. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_purchase_order__fiscal_position_id
+msgid "Fiscal Position"
+msgstr "Posição Fiscal"
+
+#. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
 msgid "Fluxo Filial"
 msgstr ""
@@ -694,6 +770,16 @@ msgstr "Seguidores"
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_partner_ids
 msgid "Followers (Partners)"
 msgstr "Seguidores (Parceiros)"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_purchase_order__forma_pagamento
+msgid "Forma de Pagamento"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_inherit_mrp_cut_plan
+msgid "Frete"
+msgstr ""
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_search
@@ -718,6 +804,7 @@ msgstr ""
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "ICMS"
 msgstr ""
 
@@ -728,11 +815,13 @@ msgstr ""
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__id
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard__id
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders__id
 msgid "ID"
-msgstr ""
+msgstr "Numero Id do Produto"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "IPI"
 msgstr ""
 
@@ -773,11 +862,6 @@ msgid "Imagem"
 msgstr ""
 
 #. module: mrp_cut_plan
-#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
-msgid "Impostos"
-msgstr ""
-
-#. module: mrp_cut_plan
 #: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_eps_cost
 #: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_tela_cost
 msgid ""
@@ -788,13 +872,28 @@ msgid ""
 msgstr ""
 "No Preço Padrão e AVCO: valor do produto (calculado automaticamente no AVCO).\n"
 "        No FIFO: valor da próxima unidade que sairá do estoque (calculado automaticamente).\n"
-"        Usado para valorar o produto quando o custo de compra não é conhecido (ex: ajuste de inventário).\n"
+"        Usado para valorar o produto quando o custo de compra não é conhecido (ex: ajuste de "
+"inventário).\n"
 "        Usado para calcular margens em pedidos de venda."
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_purchase_order__incoterm_id
+msgid "Incoterm"
+msgstr ""
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_production_transfer_wizard
 msgid "Iniciar Fluxo"
+msgstr "Fluxo Matriz → Filial → Matriz"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_purchase_order__incoterm_id
+msgid ""
+"International Commercial Terms are a series of predefined commercial terms used in international "
+"transactions."
 msgstr ""
+"International Commercial Terms são uma série de termos comerciais pré-definidos utilizados em "
+"transações internacionais."
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_is_follower
@@ -810,7 +909,7 @@ msgstr "É cálculo LLH"
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_mrp_cut_plan_mrp_cut_plan_document_pdf
 msgid "Is Lot Number Propagated"
-msgstr ""
+msgstr "Número de erros"
 
 #. module: mrp_cut_plan
 #: model:ir.model.constraint,message:mrp_cut_plan.constraint_mrp_cut_plan_template_price_config_product_id
@@ -835,6 +934,7 @@ msgstr "Custo de Mão de Obra"
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config____last_update
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard____last_update
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config____last_update
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders____last_update
 msgid "Last Modified on"
 msgstr "Última Modificação em"
 
@@ -845,6 +945,7 @@ msgstr "Última Modificação em"
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__write_uid
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard__write_uid
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__write_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders__write_uid
 msgid "Last Updated by"
 msgstr "Última Atualização por"
 
@@ -855,6 +956,7 @@ msgstr "Última Atualização por"
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__write_date
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard__write_date
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__write_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders__write_date
 msgid "Last Updated on"
 msgstr "Última Atualização em"
 
@@ -954,9 +1056,35 @@ msgid "Name"
 msgstr "Nome"
 
 #. module: mrp_cut_plan
+#. odoo-python
+#: code:addons/mrp_cut_plan/models/mrp_cut_plan.py:0
+#, python-format
+msgid "Nenhum registro selecionado!"
+msgstr ""
+
+#. module: mrp_cut_plan
+#. odoo-python
+#: code:addons/mrp_cut_plan/models/mrp_cut_plan.py:0
+#, python-format
+msgid "Nenhum registro válido para criar ordem de produção!"
+msgstr ""
+
+#. module: mrp_cut_plan
+#. odoo-python
+#: code:addons/mrp_cut_plan/models/mrp_cut_plan.py:0
+#, python-format
+msgid "Nenhuma ordem de produção foi criada."
+msgstr ""
+
+#. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_bom_line__blue_multiplier
 msgid "No Multiply"
 msgstr "Sem Multiplicar"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_purchase_order__payment_mode_id_name
+msgid "Nome da Forma de Pagamento"
+msgstr ""
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields.selection,name:mrp_cut_plan.selection__mrp_production__related_type__n
@@ -1000,6 +1128,11 @@ msgid "OPs da Filial"
 msgstr "OP da Filial"
 
 #. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders__note
+msgid "Observação"
+msgstr ""
+
+#. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__hide_check_availability
 msgid "Ocultar Verificar Disponibilidade"
 msgstr ""
@@ -1015,6 +1148,13 @@ msgid "Ordem de Produção de Origem"
 msgstr "OP de Origem"
 
 #. module: mrp_cut_plan
+#. odoo-python
+#: code:addons/mrp_cut_plan/models/mrp_cut_plan.py:0
+#, python-format
+msgid "Ordens de Produção Criadas"
+msgstr ""
+
+#. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_picking__branch_mo_id
 msgid "Ordens de Produção da Filial"
 msgstr "OP Filial Gerada"
@@ -1027,7 +1167,7 @@ msgstr "Cálculo de Área da Linha da Venda"
 #. module: mrp_cut_plan
 #: model:ir.actions.report,name:mrp_cut_plan.report_mrp_cut_plan_mrp_cut_plan_pdf
 msgid "PDF Report"
-msgstr ""
+msgstr "Relatório PDF"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.os_web_external_layout_boxed
@@ -1038,6 +1178,11 @@ msgstr "Pagina: <span class=\"page\"/> / <span class=\"topage\"/>"
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_picking__customer
 msgid "Partner"
 msgstr "Cliente"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_purchase_order__payment_term_id
+msgid "Payment Terms"
+msgstr "Condições de pagamento"
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__sale_order_id
@@ -1080,8 +1225,25 @@ msgid "Plano de Corte"
 msgstr ""
 
 #. module: mrp_cut_plan
+#. odoo-python
+#: code:addons/mrp_cut_plan/models/mrp_cut_plan.py:0
+#, python-format
+msgid "Por favor, selecione pelo menos um registro na listagem."
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_purchase_order_form
+msgid "Preview the reminder email by sending it to yourself."
+msgstr ""
+
+#. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "Prezado Sr(a).:"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
+msgid "Preço Unit."
 msgstr ""
 
 #. module: mrp_cut_plan
@@ -1177,6 +1339,16 @@ msgid "Propagated Lot Producing"
 msgstr ""
 
 #. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_purchase_order
+msgid "Purchase Order"
+msgstr "Pedido de Compra"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
+msgid "Qtd"
+msgstr ""
+
+#. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
 msgid "Qty Planejada"
 msgstr "Qtd Planejada"
@@ -1199,17 +1371,16 @@ msgstr ""
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__total_qty_produced
 msgid "Quantidade Total Produzida"
-msgstr ""
+msgstr "<span>Total</span>"
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__total_qty_received
 msgid "Quantidade Total Recebida"
-msgstr ""
+msgstr "<span>Total</span>"
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_qty
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__quantity
-#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "Quantity"
 msgstr "Quantidade"
 
@@ -1266,7 +1437,6 @@ msgstr "Erro de Entrega SMS"
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_production_sale_order__sale_order_id
-#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_picking__sale_order
 msgid "Sale Order"
 msgstr ""
 "#-#-#-#-#  catalog.po (Odoo Server 16.0)  #-#-#-#-#\n"
@@ -1284,12 +1454,12 @@ msgstr "Linha do Pedido de Venda"
 #. module: mrp_cut_plan
 #: model:ir.model,name:mrp_cut_plan.model_sale_order
 msgid "Sales Order"
-msgstr "Pedido de venda"
+msgstr "Pedido de Vendas"
 
 #. module: mrp_cut_plan
 #: model:ir.model,name:mrp_cut_plan.model_sale_order_line
 msgid "Sales Order Line"
-msgstr "Linha do pedido de vendas"
+msgstr "Linha do Pedido de Vendas"
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_origin
@@ -1347,7 +1517,6 @@ msgstr "Movimento de Estoque"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
-#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "Taxes"
 msgstr "Impostos"
 
@@ -1378,12 +1547,12 @@ msgstr ""
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "Total Bruto"
-msgstr ""
+msgstr "<span>Total</span>"
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__total_components_consumed
 msgid "Total Componentes Consumidos"
-msgstr ""
+msgstr "<span>Total</span>"
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_m2
@@ -1459,11 +1628,6 @@ msgstr "UdM"
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
 msgid "Unbuild"
 msgstr "Desmontar"
-
-#. module: mrp_cut_plan
-#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
-msgid "Unit Price"
-msgstr "Preço Unitário"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
@@ -1544,6 +1708,16 @@ msgid "Website communication history"
 msgstr "Histórico de comunicação do website"
 
 #. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_wizard_create_all_production_orders
+msgid "Wizard para criar todas as ordens de produção"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_purchase_order_form
+msgid "day(s) before"
+msgstr "'%s' % 'Relatório - ' + str(object.id)"
+
+#. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_tree_template_price_config
 msgid "main product"
 msgstr "Produto Principal"
@@ -1551,7 +1725,7 @@ msgstr "Produto Principal"
 #. module: mrp_cut_plan
 #: model:ir.model,name:mrp_cut_plan.model_mrp_cut_plan_production_sale_order
 msgid "mrp_cut_plan.production_sale_order"
-msgstr ""
+msgstr "Pedido de Vendas"
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_wall
@@ -1560,7 +1734,8 @@ msgstr "Parede"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
-msgid "{'True':'Some product moves have already been confirmed. Are you sure?', 'False':''}[confirm_cancel]"
+msgid ""
+"{'True':'Some product moves have already been confirmed. Are you sure?', 'False':''}[confirm_cancel]"
 msgstr ""
 
 #. module: mrp_cut_plan
