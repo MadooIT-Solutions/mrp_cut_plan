@@ -95,10 +95,10 @@ class SaleOrder(models.Model):
                     continue
                 if line.product_id.blue_area_calc != 'n':
                     if line.product_id.blue_area_calc == 'llh':
-                        if not line.blue_I or line.blue_II or line.blue_h:
+                        if line.blue_I == 0 or line.blue_II == 0 or line.blue_h == 0:
                             raise UserError('Produto LLH faltando medidas.')
                     if line.product_id.blue_area_calc == 'm':
-                        if not line.blue_advance or line.blue_h:
+                        if line.blue_advance == 0 or line.blue_h == 0:
                             raise UserError('Produto Molde faltando medidas')
                     # Cria novo plano de corte
                     cut_plan = self.env['mrp_cut_plan.mrp_cut_plan'].create({
