@@ -74,114 +74,28 @@ class SaleOrder(models.Model):
             'view_mode': 'tree,form',
         }
 
-    def action_confirm(self):
-        # PRIMEIRO: VALIDAÇÃO DE MEDIDAS
-        for order in self:
-            for line in order.order_line.filtered(
-                    lambda l: l.product_id.blue_area_calc != 'n'
-            ):
-                # Validação para produtos LLH
-                if line.product_id.blue_area_calc == 'llh':
-                    missing = []
-                    if not line.blue_I or line.blue_I <= 0:
-                        missing.append('Medida I')
-                    if not line.blue_II or line.blue_II <= 0:
-                        missing.append('Medida II')
-                    if not line.blue_h or line.blue_h <= 0:
-                        missing.append('Medida H')
+    # Antes de criar OPs, verifique se os planos têm tudo necessário
+    valid_plans = self.env['mrp_cut_plan.mrp_cut_plan']
+    for plan in plans_without_mo:
+        if not plan.product_id:
+            _logger.error(f"Plano {plan.id} sem produto!")
+            continue
+        if not plan.blue_qty or plan.blue_qty <= 0:
+            _logger.error(f"Plano {plan.id} com quantidade inválida: {plan.blue_qty}")
+            continue
+        if not plan.blue_bom_template_id:
+            _logger.error(f"Plano {plan.id} sem lista de materiais!")
+            continue
 
-                    if missing:
-                        raise UserError(
-                            f"Produto LLH '{line.product_id.name}' na linha {line.name} "
-                            f"está faltando as seguintes medidas:\n- " + "\n- ".join(missing)
-                        )
+        _logger.info(f"Plano {plan.id} válido para criar OP")
+        valid_plans |= plan
 
-                # Validação para produtos Molde
-                if line.product_id.blue_area_calc == 'm':
-                    missing = []
-                    if not line.blue_advance or line.blue_advance <= 0:
-                        missing.append('Medida Avanço')
-                    if not line.blue_h or line.blue_h <= 0:
-                        missing.append('Medida H')
-
-                    if missing:
-                        raise UserError(
-                            f"Produto Molde '{line.product_id.name}' na linha {line.name} "
-                            f"está faltando as seguintes medidas:\n- " + "\n- ".join(missing)
-                        )
-
-        # SEGUNDO: CONFIRMA O PEDIDO (só executa se passou na validação)
-        res = super().action_confirm()
-
-        # TERCEIRO: CRIA OS PLANOS DE CORTE
-        for order in self:
-            cut_plans_created = self.env['mrp_cut_plan.mrp_cut_plan']
-
-            for line in order.order_line.filtered(
-                    lambda l: l.product_id.blue_area_calc != 'n'
-            ):
-                # Verifica se já existe plano de corte para esta linha
-                existing_cut_plan = self.env['mrp_cut_plan.mrp_cut_plan'].search([
-                    ('sale_id', '=', order.id),
-                    ('sale_line_id', '=', line.id)
-                ], limit=1)
-
-                if existing_cut_plan:
-                    _logger.info(f"⏭️ Plano de corte já existe para linha {line.id}")
-                    cut_plans_created |= existing_cut_plan
-                    continue
-
-                # Cria novo plano de corte
-                cut_plan = self.env['mrp_cut_plan.mrp_cut_plan'].create({
-                    'sale_id': order.id,
-                    'sale_line_id': line.id,
-                    'product_id': line.product_id.id,
-                    'blue_qty': line.product_uom_qty,
-                    'blue_bom_template_id': line.product_id.bom_ids[:1].id if line.product_id.bom_ids else False,
-                    'blue_origin': order.name,
-                    'blue_I': line.blue_I,
-                    'blue_II': line.blue_II,
-                    'blue_h': line.blue_h,
-                    'blue_advance': line.blue_advance,
-                    'blue_m2': line.blue_m2,
-                    'blue_m3': line.blue_m3,
-                    'blue_I_uom': line.blue_I_uom.id if line.blue_I_uom else False,
-                    'blue_II_uom': line.blue_II_uom.id if line.blue_II_uom else False,
-                    'blue_h_uom': line.blue_h_uom.id if line.blue_h_uom else False,
-                    'blue_advance_uom': line.blue_advance_uom.id if line.blue_advance_uom else False,
-                    'partner_id': order.partner_id.id,
-                })
-                cut_plans_created |= cut_plan
-
-            # 🔥 CRIAR A ORDEM DE ENTREGA PRIMEIRO
-            if cut_plans_created:
-                # Criar ordem de entrega para o pedido
-                first_plan = cut_plans_created[0]
-                delivery = first_plan._create_delivery_with_items(order)
-
-                if delivery:
-                    _logger.info(f"✅ Ordem de entrega criada: {delivery.name}")
-
-                # Criar OPs apenas para planos que NÃO têm OP
-                plans_without_mo = cut_plans_created.filtered(lambda p: not p.mo_id)
-                if plans_without_mo:
-                    _logger.info(f"🔍 Criando OPs para {len(plans_without_mo)} planos de corte")
-
-                    # Passar o contexto correto com active_ids
-                    plans_without_mo = plans_without_mo.with_context(
-                        active_ids=plans_without_mo.ids,
-                        active_model='mrp_cut_plan.mrp_cut_plan'
-                    )
-                    plans_without_mo.button_create_po_multi()
-
-                    # 🔥 VINCULAR A ENTREGA CRIADA AOS PLANOS
-                    for plan in plans_without_mo:
-                        if plan.sale_id:
-                            plan._force_link_sale_to_productions()
-                else:
-                    _logger.info("⏭️ Todos os planos já possuem OPs")
-
-        return res
+    if valid_plans:
+        # Cria OPs apenas para os planos válidos
+        valid_plans.with_context(
+            active_ids=valid_plans.ids,
+            active_model='mrp_cut_plan.mrp_cut_plan'
+        ).button_create_po_multi()
 
     def _create_cut_plan_flow(self, lines):
         CutPlan = self.env['mrp_cut_plan.mrp_cut_plan']
