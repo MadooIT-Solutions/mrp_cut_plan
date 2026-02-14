@@ -97,9 +97,8 @@ class SaleOrder(models.Model):
                     if line.blue_I == 0 or line.blue_II == 0 or line.blue_h == 0:
                         raise UserError('Produto LLH faltando medidas.')
                 if line.product_id.blue_area_calc == 'm':
-
-                if line.blue_advance == 0 or line.blue_h == 0:
-                    raise UserError('Produto Molde faltando medidas')
+                    if line.blue_advance == 0 or line.blue_h == 0:
+                        raise UserError('Produto Molde faltando medidas')
 
                 res = super().action_confirm()
 
