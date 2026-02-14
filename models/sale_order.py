@@ -94,6 +94,7 @@ class SaleOrder(models.Model):
                     cut_plans_created |= existing_cut_plan
                     continue
                 if line.product_id.blue_area_calc != 'n':
+                    _logger.info(f"✅ Entrou no area calc")
                     if line.product_id.blue_area_calc == 'llh':
                         if line.blue_I == 0 or line.blue_II == 0 or line.blue_h == 0:
                             raise UserError('Produto LLH faltando medidas.')
