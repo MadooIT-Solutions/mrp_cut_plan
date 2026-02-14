@@ -1,165 +1,53 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- mrp_cut_plan - views/mrp_production.xml (versão revisada) -->
 
     <record id="mrp_cut_production_inherit" model="ir.ui.view">
-        <field name="name">mrp.production.inherit</field>
+        <field name="name">mrp.cut.production.inherit</field>
         <field name="model">mrp.production</field>
         <field name="inherit_id" ref="mrp.mrp_production_form_view"/>
         <field name="arch" type="xml">
 
-            <!-- Substitui header com controles seguros -->
-            <xpath expr="//header" position="replace">
-                <header>
-                    <!-- Campos invisíveis usados em attrs/logic -->
-                    <field name="show_lock" invisible="1"/>
-                    <field name="is_locked" invisible="1"/>
-                    <field name="confirm_cancel" invisible="1"/>
-                    <field name="show_serial_mass_produce" invisible="1"/>
-
-                    <field name="branch_location_id" invisible="1"/>
-                    <field name="sending_transfer_id" invisible="1"/>
-                    <field name="total_qty_received" invisible="1"/>
-                    <field name="related_type" invisible="1"/>
-                    <field name="origin_production_id" invisible="1"/>
-                    <field name="is_planned" invisible="1"/>
-                    <field name="product_qty" invisible="1"/>
-                    <field name="product_id" invisible="1"/>
-                    <field name="hide_check_availability" invisible="1"/>
-
-                    <!-- Botões: attrs simples e seguros -->
-                    <button name="button_send_to_branch" type="object" class="oe_highlight"
-                            string="Send to Branch"
-                            attrs="{'invisible': ['|','|',('related_type','!=','m'),('branch_location_id','!=',False),('state','in',['done'])]}"/>
-
-                    <button name="action_confirm" type="object" class="oe_highlight" string="Confirm"
-                            attrs="{'invisible':[('state','!=','draft')]}"/>
-                    <button name="button_mark_done" type="object" class="oe_highlight" string="Validate"
-                            attrs="{'invisible':[('state','not in',['progress','to_close','confirmed'])]}"/>
-
-                    <button name="button_plan" type="object" class="oe_highlight" string="Plan"
-                            attrs="{'invisible':['|','|','|',('state','not in',['confirmed','progress','to_close']),('workorder_ids','=',[]),('is_planned','=',True),('origin_production_id','!=',False)]}"/>
-
-                    <button name="button_unplan"
-                            type="object"
-                            class="oe_highlight"
-                            string="Unplan"
-                            attrs="{'invisible': [
-            '|', '|',
-            ['is_planned', '=', False],
-            ['state', '=', 'cancel'],
-            ['origin_production_id', '!=', False],
-            ['related_type', '=', 'm']
-        ]}"/>
-
-                    <button name="action_assign" type="object" string="Check Availability"
-                            attrs="{'invisible':[('hide_check_availability','=',True)]}"/>
-
-                    <button name="do_unreserve" type="object" string="Unreserve"
-                            attrs="{'invisible':[('unreserve_visible','=',False)]}"/>
-
-                    <button name="button_scrap" type="object" string="Scrap"
-                            attrs="{'invisible':[('state','in',['cancel','draft'])]}"/>
-
-                    <button name="action_toggle_is_locked" type="object" string="Unlock"
-                            groups="mrp.group_mrp_manager"
-                            attrs="{'invisible':[('show_lock','=',False),('is_locked','=',False)]}"/>
-
-                    <button name="action_toggle_is_locked" type="object" string="Lock"
-                            groups="mrp.group_mrp_manager"
-                            attrs="{'invisible':[('show_lock','=',False),('is_locked','=',True)]}"/>
-
-                    <button name="action_serial_mass_produce_wizard" type="object" string="Mass Produce"
-                            attrs="{'invisible':[('show_serial_mass_produce','=',False)]}"/>
-
-                    <button name="action_cancel" type="object" string="Cancel"
-                            attrs="{'invisible':[('state','in',['done','cancel'])]}"
-                            confirm="{'True':'Some product moves have already been confirmed. Are you sure?', 'False':''}[confirm_cancel]"/>
-
-                    <button name="button_unbuild" type="object" string="Unbuild"
-                            attrs="{'invisible':[('state','!=','done')]}"/>
-
-                    <!-- Statusbar -->
-                    <field name="state" widget="statusbar" statusbar_visible="draft,confirmed,progress,done"/>
-                </header>
+            <!-- CAMPO TÉCNICO -->
+            <xpath expr="//form/header" position="inside">
+                <field name="has_child_production" invisible="1"/>
             </xpath>
 
-            <!-- Fluxo filial: campos inseridos dentro do bloco onde product_id está -->
-            <xpath expr="//group[field[@name='product_id']]" position="inside">
-                <separator string="Fluxo Filial"/>
-                <field name="origin_production_id" readonly="1"/>
-                <field name="sending_transfer_id" widget="many2many_tags" readonly="1"/>
-                <field name="branch_receipt_id" widget="many2many_tags" readonly="1"/>
-                <field name="branch_production_id" widget="many2many_tags" readonly="1"/>
-                <field name="return_transfer_id" widget="many2many_tags" readonly="1"/>
-                <field name="final_receipt_id" widget="many2many_tags" readonly="1"/>
-                <field name="total_qty_received" readonly="1"/>
-            </xpath>
-
-            <!-- Medidas (após user_id) -->
+            <!-- RELACIONAMENTOS -->
             <xpath expr="//field[@name='user_id']" position="after">
-                <group string="Medidas">
-                    <field name="related_type"/>
+                <group string="Relacionamentos">
+
                     <group>
-                        <field name="blue_I"/>
-                        <field name="blue_II"/>
-                        <field name="blue_h"/>
+                        <field name="cut_plan_id" readonly="1"/>
+                        <field name="parent_production_id"
+                               readonly="1"
+                               attrs="{'invisible': [('parent_production_id', '=', False)]}"/>
                     </group>
-                    <group>
-                        <field name="blue_I_uom"/>
-                        <field name="blue_II_uom"/>
-                        <field name="blue_h_uom"/>
+
+                    <group attrs="{'invisible': [('child_production_ids', '=', [])]}">
+                        <field name="child_production_ids" readonly="1"/>
                     </group>
-                    <group>
-                        <field name="blue_advance"/>
-                    </group>
-                    <group>
-                        <field name="blue_advance_uom"/>
-                    </group>
-                    <group>
-                        <field name="blue_m2"/>
-                        <field name="blue_m3"/>
-                    </group>
+
                 </group>
             </xpath>
 
-            <!-- Aba adicional: Consumo em Filiais -->
-            <xpath expr="//notebook/page[@name='components']" position="after">
-                <page string="Consumo em Filiais" name="branch_consumption_page">
-                    <field name="component_moves_branch_ids" colspan="4">
-                        <tree editable="false">
-                            <field name="product_id"/>
-                            <field name="product_uom_qty" readonly="1" string="Qty Planejada"/>
-                            <field name="quantity_done" string="Consumido"/>
-                            <field name="location_id"/>
-                            <field name="state" invisible="1"/>
-                        </tree>
-                    </field>
-
-                    <group colspan="4">
-                        <div class="o_form_field_text">
-                            <p>
-                                Estes registros representam o consumo REAL realizado nas filiais.
-                                Não alteram estoque da matriz e não fazem parte da Lista de Materiais.
-                            </p>
-                        </div>
+            <!-- MEDIDAS -->
+            <xpath expr="//sheet/notebook" position="inside">
+                <page string="Medidas">
+                    <group>
+                        <field name="blue_m2" readonly="1"/>
+                        <field name="blue_m3" readonly="1"/>
                     </group>
                 </page>
             </xpath>
 
-        </field>
-    </record>
 
+            <!-- BLOQUEIO DE EDIÇÃO -->
+            <xpath expr="//field[@name='move_raw_ids']" position="attributes">
+                <attribute name="attrs">
+                    {'readonly': [('has_child_production', '=', True)]}
+                </attribute>
+            </xpath>
 
-    <!-- List view small tweak -->
-    <record id="mrp_cut_production_tree" model="ir.ui.view">
-        <field name="name">mrp.production.cut.production.tree</field>
-        <field name="model">mrp.production</field>
-        <field name="inherit_id" ref="mrp.mrp_production_tree_view"/>
-        <field name="arch" type="xml">
-            <field name="state" position="before">
-                <field name="message_state"/>
-            </field>
         </field>
     </record>
 

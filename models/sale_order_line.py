@@ -1,4 +1,7 @@
 from odoo import fields, models, _, api
+import logging
+
+_logger = logging.getLogger(__name__)
 
 class SaleOrderLine(models.Model):
     _inherit = "sale.order.line"
@@ -41,6 +44,52 @@ class SaleOrderLine(models.Model):
     binany_field = fields.Image(string="Imagem")
     blue_m3_final = fields.Float(string="Total m³ Final", compute="_compute_final_values", store=True)
     blue_m2_final = fields.Float(string="Total m² Final", compute="_compute_final_values", store=True)
+
+    categ_display_name = fields.Char(
+        string='Categoria (Hierárquica)',
+        related='product_id.categ_id.display_name',
+        store=True  # Importante para performance no pivô
+    )
+
+    def _action_launch_stock_rule(self, previous_product_uom_qty=False):
+        lines_with_cut_plan = self.filtered(
+            lambda l: l.product_id.product_tmpl_id.blue_area_calc != 'n'
+        )
+
+        normal_lines = self - lines_with_cut_plan
+
+        # 🔥 linhas normais seguem o fluxo padrão
+        if normal_lines:
+            super(SaleOrderLine, normal_lines)._action_launch_stock_rule(
+                previous_product_uom_qty=previous_product_uom_qty
+            )
+
+        # 🔥 linhas com cut plan NÃO DISPARAM estoque
+        # (o Cut Plan cuidará de tudo)
+        return True
+
+    def _run_cut_plan_flow(self, procurement):
+        product = procurement.product_id
+        sale_line = procurement.values.get('sale_line_id')
+
+        if not sale_line:
+            return
+
+        _logger.error(
+            "✂️ Criando Cut Plan | produto=%s | linha=%s",
+            product.display_name,
+            sale_line.id
+        )
+
+        self.env['mrp_cut_plan.mrp_cut_plan'].create({
+            'sale_id': sale_line.order_id.id,
+            'sale_line_id': sale_line.id,
+            'product_id': product.id,
+            'blue_qty': procurement.product_qty,
+            'blue_bom_template_id': product.bom_ids[:1].id,
+            'blue_origin': sale_line.order_id.name,
+        })
+
 
     @api.depends('blue_m3', 'blue_m2', 'product_uom_qty')
     def _compute_final_values(self):
@@ -91,19 +140,83 @@ class SaleOrderLine(models.Model):
             'name': _('Configure'),
             'type': 'ir.actions.act_window',
             'res_model': 'sale.order.line.config',
-            'view_id': self.env.ref('mrp_cut_plan.sale_order_line_prod_config_view_form').id,
+            'view_id': self.env.ref('mrp_cut.sale_order_line_prod_config_view_form').id,
             'context': context,
             'view_mode': 'form',
             'target': 'new',
         }
 
-    # def set_uom_values(self):
-        # uom_list = ['blue_I_uom', 'blue_II_uom', 'blue_h_uom', 'blue_advance_uom']
-        # for line in self:
-        #     if line.product_id.secondary_uom_ids in line.env.ref('uom.product_uom_meter').category_id.uom_ids:
-        #         for uom in uom_list:
-        #             if not getattr(line, uom):
-        #                 setattr(line, uom, line.product_id.secondary_uom_id.id)
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        """Sobrescreve read_group para somar subcategorias dentro das categorias pai"""
+
+        # Verifica se estamos agrupando por categoria no pivô
+        is_category_group = any('categ_id' in g for g in groupby)
+
+        if not is_category_group:
+            return super().read_group(domain, fields, groupby, offset, limit, orderby, lazy)
+
+        # 1. Executa o agrupamento original
+        res = super().read_group(domain, fields, groupby, offset, limit, orderby, lazy)
+
+        # 2. Se agrupamento for por categoria, processa hierarquia
+        category_group = [g for g in groupby if 'categ_id' in g]
+        if category_group and 'complete_name_store' in str(category_group):
+            return self._process_category_hierarchy(res, fields)
+
+        return res
+
+    def _process_category_hierarchy(self, read_group_results, fields):
+        """Processa os resultados do read_group para somar pais com filhos"""
+
+        # Mapeia cada caminho completo para seu total
+        category_totals = {}
+        category_names = {}
+
+        for result in read_group_results:
+            # Extrai o caminho completo
+            path = result.get('product_id.categ_id.complete_name_store')
+            if not path:
+                continue
+
+            category_totals[path] = result.get('price_subtotal', 0)
+            category_names[path] = result.get('product_id.categ_id.complete_name_store_display_name', path)
+
+        # Calcula totais para pais (soma de todos os filhos)
+        parent_totals = {}
+        for path, total in category_totals.items():
+            parts = path.split(' / ')
+            for i in range(len(parts)):
+                parent_path = ' / '.join(parts[:i + 1])
+                parent_totals[parent_path] = parent_totals.get(parent_path, 0) + total
+
+        # Recria os resultados incluindo os pais
+        new_results = []
+        processed_paths = set()
+
+        for path, total in parent_totals.items():
+            if path not in processed_paths:
+                # Cria um resultado fictício para o pai
+                parent_result = {
+                    'product_id.categ_id.complete_name_store': path,
+                    'product_id.categ_id.complete_name_store_display_name': path,
+                    'price_subtotal': total,
+                    '__count': 0,  # Pode não ser preciso
+                    '__domain': [],  # Será preenchido automaticamente
+                }
+
+                # Adiciona campos adicionais que existirem nos fields
+                for field in fields:
+                    if field not in parent_result:
+                        parent_result[field] = 0
+
+                new_results.append(parent_result)
+                processed_paths.add(path)
+
+        # Ordena por hierarquia (pais primeiro)
+        new_results.sort(key=lambda x: x['product_id.categ_id.complete_name_store'])
+
+        return new_results
 
     # ---------------------------------------------
     # Computes para medidas (blue_m3 e blue_m2)
@@ -139,3 +252,37 @@ class SaleOrderLine(models.Model):
                 line.blue_m2 = wall + H + adv + adv
             else:
                 line.blue_m2 = 0
+
+    @api.model
+    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
+        """Soma valores dos filhos nas categorias pai"""
+        if 'categ_display_name' in str(groupby):
+            res = super().read_group(domain, fields, groupby, offset, limit, orderby, lazy)
+
+            # Soma os filhos nos pais
+            parent_totals = {}
+            for line in res:
+                path = line.get('categ_display_name')
+                if path:
+                    parts = path.split(' / ')
+                    for i in range(len(parts)):
+                        parent_path = ' / '.join(parts[:i + 1])
+                        parent_totals[parent_path] = parent_totals.get(parent_path, 0) + line.get('price_subtotal', 0)
+
+            # Recria resultados
+            new_res = []
+            seen = set()
+            for path, total in parent_totals.items():
+                if path not in seen:
+                    new_res.append({
+                        'categ_display_name': path,
+                        'categ_display_name_display_name': path,
+                        'price_subtotal': total,
+                        '__count': 0,
+                    })
+                    seen.add(path)
+
+            new_res.sort(key=lambda x: x['categ_display_name'])
+            return new_res
+
+        return super().read_group(domain, fields, groupby, offset, limit, orderby, lazy)

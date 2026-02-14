@@ -11,6 +11,8 @@
             </field>
             <xpath expr="//page[1]/field[1]/tree[1]/field[2]" position="after">
                 <field name="blue_multiplier" widget="boolean_toggle" />
+                <field name="mandatory" widget="boolean_toggle"/>
+                <field name="calc" widget="boolean_toggle"/>
             </xpath>
         </field>
     </record>    

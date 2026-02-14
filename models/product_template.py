@@ -28,3 +28,8 @@ class BlueProductTemplate(models.Model):
         string="Use MTO Route",
         help="If checked, uses Make To Order strategy without creating production orders"
     )
+
+    force_manufacture = fields.Boolean(
+        string="Fabricar sempre",
+        help="Sempre cria OP quando usado como componente"
+    )

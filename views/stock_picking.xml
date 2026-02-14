@@ -10,7 +10,6 @@
 
             <!-- Campos invisíveis para controle -->
             <xpath expr="//form" position="inside">
-                <field name="origin_production_id" invisible="1"/>
                 <field name="custom_block_validate" invisible="1"/>
                 <field name="show_validate" invisible="1"/>
                 <field name="picking_type_code" invisible="1"/>

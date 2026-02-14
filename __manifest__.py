@@ -1,7 +1,7 @@
 {
     'name': "Plano de Corte Polispan",
-    'version': '16.0.1.0.3',
-    'description': """Plano de Corte Polispan""",
+    'version': '16.0.2.0.0',
+    'description': """Plano de Corte Polispan Simplificado""",
     'author': "Rodrigo Abrão Madureira.",
     'depends': [
         'sale',
@@ -15,11 +15,11 @@
         'data/ir_sequence_data.xml',
         'views/mrp_cut_plan_views.xml',
         'views/mrp_bom_views.xml',
+        'views/product_category.xml',
         'views/product_template_views.xml',
         'views/sale_order_views.xml',
         'views/stock_picking.xml',
         'wizards/sale_order_line_config_views.xml',
-        'wizards/transfer_wizard_view.xml',
         'views/template_price_config_view.xml',
         'report/account.xml',
         'report/external_layout_boxed.xml',

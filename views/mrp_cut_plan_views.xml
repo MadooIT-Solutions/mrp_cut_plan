@@ -16,7 +16,7 @@
                     <sheet>
                         <div class="oe_button_box" name="button_box" attrs="{'invisible': [('blue_po_count', '=', 0)]}">
                             <button class="oe_stat_button" name="open_linked_po_orders"
-                                type="object" icon="fa-flask">
+                                    type="object" icon="fa-flask">
                                 <div class="o_stat_info">
                                     <field name="blue_po_count" nolabel="1" widget="statinfo"/>
                                     <span class="o_stat_text">OP</span>
@@ -38,7 +38,7 @@
 
                                 <field name="blue_bom_template_id" required='1'/>
 
-                                <field name="sale_order_id"/>
+                                <field name="sale_id"/>
                                 <field name="related_type" invisible="True"/>
                             </group>
                         </group>
@@ -78,18 +78,18 @@
             <field name="name">mrp_cut_plan.mrp_cut_plan_tree</field>
             <field name="model">mrp_cut_plan.mrp_cut_plan</field>
             <field name="arch" type="xml">
-                <header>
+                <!--                <header>-->
 
-                    <button
-                name="button_create_po_multi"
-                string="Criar Todas as OPs"
-                type="object"
-                class="btn-primary"
-                icon="fa-industry"
-                confirm="Deseja criar ordens de produção para todos os registros selecionados?"
-            />
+                <!--                    <button-->
+                <!--                name="button_create_po_multi"-->
+                <!--                string="Criar Todas as OPs"-->
+                <!--                type="object"-->
+                <!--                class="btn-primary"-->
+                <!--                icon="fa-industry"-->
+                <!--                confirm="Deseja criar ordens de produção para todos os registros selecionados?"-->
+                <!--            />-->
 
-                </header>
+                <!--                </header>-->
                 <tree string="Cut Plans">
                     <field name="related_type"/>
                     <field name="name" optional="show"/>
@@ -113,15 +113,15 @@
             <field name="model">mrp_cut_plan.mrp_cut_plan</field>
             <field name="arch" type="xml">
                 <search string="Cut Plan Search">
-                    
+
                     <field name="name"/>
 
                     <field name="product_id"/>
                     <field name="partner_id"/>
-                    <field name="sale_order_id"/>
+                    <field name="sale_id"/>
                     <field name="state"/>
                     <field name="blue_origin" string="Pedido de Venda"/>
-                    
+
                     <group expand="0" string="Group By">
                         <filter name="group_by_product" string="Product" context="{'group_by': 'product_id'}"/>
                         <filter name="group_by_partner" string="Customer" context="{'group_by': 'partner_id'}"/>
@@ -131,7 +131,7 @@
             </field>
         </record>
 
-         <record id="view_wizard_create_all_production_orders_form" model="ir.ui.view">
+        <record id="view_wizard_create_all_production_orders_form" model="ir.ui.view">
             <field name="name">wizard.create.all.production.orders.form</field>
             <field name="model">wizard.create.all.production.orders</field>
             <field name="arch" type="xml">
@@ -150,22 +150,33 @@
 
                         <footer>
                             <button
-                                name="action_confirm_create_all"
-                                string="Criar Todas"
-                                type="object"
-                                class="btn-primary"
-                                attrs="{'invisible': [('confirm', '=', False)]}"
+                                    name="action_confirm_create_all"
+                                    string="Criar Todas"
+                                    type="object"
+                                    class="btn-primary"
+                                    attrs="{'invisible': [('confirm', '=', False)]}"
                             />
                             <button
-                                string="Cancelar"
-                                class="btn-secondary"
-                                special="cancel"
+                                    string="Cancelar"
+                                    class="btn-secondary"
+                                    special="cancel"
                             />
                         </footer>
                     </sheet>
                 </form>
             </field>
         </record>
+
+        <record id="action_create_po_multi" model="ir.actions.server">
+            <field name="name">Criar Todas as OPs</field>
+            <field name="model_id" ref="model_mrp_cut_plan_mrp_cut_plan"/>
+            <field name="binding_model_id" ref="model_mrp_cut_plan_mrp_cut_plan"/>
+            <field name="state">code</field>
+            <field name="code">
+                action = records.button_create_po_multi()
+            </field>
+        </record>
+
 
         <!-- Action do Wizard -->
         <record id="action_wizard_create_all_production_orders" model="ir.actions.act_window">
@@ -187,5 +198,18 @@
 
         <menuitem id="menu_mrp_cut_plan" name="Cut Plan" parent="mrp.mrp_planning_menu_root"
                   action="action_mrp_cut_plan_tree"/>
+
+        <record id="mrp_cut_plan_multi_company" model="ir.rule">
+    <field name="name">mrp_cut_plan multi-company</field>
+    <field name="model_id" ref="model_mrp_cut_plan_mrp_cut_plan"/>
+    <field name="domain_force">
+        [('company_id', 'in', company_ids + [False])]
+    </field>
+    <field name="perm_read" eval="True"/>
+    <field name="perm_write" eval="True"/>
+    <field name="perm_create" eval="True"/>
+    <field name="perm_unlink" eval="True"/>
+</record>
+
     </data>
 </odoo>
