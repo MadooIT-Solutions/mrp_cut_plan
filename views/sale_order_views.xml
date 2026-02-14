@@ -14,9 +14,6 @@
                 </button>
             </xpath>
 
-
-
-
             <xpath expr="//notebook/page[@name='order_lines']//tree[1]/field[1]" position="after">
                 <field name="related_blue_area_calc" invisible="1"/>
                 <button name="button_configure_product"

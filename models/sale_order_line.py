@@ -140,7 +140,7 @@ class SaleOrderLine(models.Model):
             'name': _('Configure'),
             'type': 'ir.actions.act_window',
             'res_model': 'sale.order.line.config',
-            'view_id': self.env.ref('mrp_cut.sale_order_line_prod_config_view_form').id,
+            'view_id': self.env.ref('mrp_cut_plan.sale_order_line_prod_config_view_form').id,
             'context': context,
             'view_mode': 'form',
             'target': 'new',

@@ -93,27 +93,33 @@ class SaleOrder(models.Model):
                     _logger.info(f"⏭️ Plano de corte já existe para linha {line.id}")
                     cut_plans_created |= existing_cut_plan
                     continue
-
-                # Cria novo plano de corte
-                cut_plan = self.env['mrp_cut_plan.mrp_cut_plan'].create({
-                    'sale_id': order.id,
-                    'sale_line_id': line.id,
-                    'product_id': line.product_id.id,
-                    'blue_qty': line.product_uom_qty,
-                    'blue_bom_template_id': line.product_id.bom_ids[:1].id if line.product_id.bom_ids else False,
-                    'blue_origin': order.name,
-                    'blue_I': line.blue_I,
-                    'blue_II': line.blue_II,
-                    'blue_h': line.blue_h,
-                    'blue_advance': line.blue_advance,
-                    'blue_m2': line.blue_m2,
-                    'blue_m3': line.blue_m3,
-                    'blue_I_uom': line.blue_I_uom.id if line.blue_I_uom else False,
-                    'blue_II_uom': line.blue_II_uom.id if line.blue_II_uom else False,
-                    'blue_h_uom': line.blue_h_uom.id if line.blue_h_uom else False,
-                    'blue_advance_uom': line.blue_advance_uom.id if line.blue_advance_uom else False,
-                    'partner_id': order.partner_id.id,
-                })
+                if line.product_id.blue_area_calc != 'n':
+                    if line.product_id.blue_area_calc == 'llh':
+                        if not line.blue_I or line.blue_II or line.blue_h:
+                            raise UserError('Produto LLH faltando medidas.')
+                    if line.product_id.blue_area_calc == 'm':
+                        if not line.blue_advance or line.blue_h:
+                            raise UserError('Produto Molde faltando medidas')
+                    # Cria novo plano de corte
+                    cut_plan = self.env['mrp_cut_plan.mrp_cut_plan'].create({
+                        'sale_id': order.id,
+                        'sale_line_id': line.id,
+                        'product_id': line.product_id.id,
+                        'blue_qty': line.product_uom_qty,
+                        'blue_bom_template_id': line.product_id.bom_ids[:1].id if line.product_id.bom_ids else False,
+                        'blue_origin': order.name,
+                        'blue_I': line.blue_I,
+                        'blue_II': line.blue_II,
+                        'blue_h': line.blue_h,
+                        'blue_advance': line.blue_advance,
+                        'blue_m2': line.blue_m2,
+                        'blue_m3': line.blue_m3,
+                        'blue_I_uom': line.blue_I_uom.id if line.blue_I_uom else False,
+                        'blue_II_uom': line.blue_II_uom.id if line.blue_II_uom else False,
+                        'blue_h_uom': line.blue_h_uom.id if line.blue_h_uom else False,
+                        'blue_advance_uom': line.blue_advance_uom.id if line.blue_advance_uom else False,
+                        'partner_id': order.partner_id.id,
+                    })
                 cut_plans_created |= cut_plan
 
             # 🔥 CRIAR A ORDEM DE ENTREGA PRIMEIRO
