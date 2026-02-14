@@ -1,7 +1,7 @@
 {
     'name': "Plano de Corte Polispan",
-    'version': '16.0.2.0.0',
-    'description': """Plano de Corte Polispan Simplificado""",
+    'version': '16.0.1.0.3',
+    'description': """Plano de Corte Polispan""",
     'author': "Rodrigo Abrão Madureira.",
     'depends': [
         'sale',
