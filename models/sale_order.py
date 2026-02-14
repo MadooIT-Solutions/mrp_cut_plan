@@ -75,45 +75,8 @@ class SaleOrder(models.Model):
         }
 
     def action_confirm(self):
-        # PRIMEIRO: VALIDAÇÃO DE MEDIDAS
-        for order in self:
-            for line in order.order_line.filtered(
-                    lambda l: l.product_id.blue_area_calc != 'n'
-            ):
-                # Validação para produtos LLH
-                if line.product_id.blue_area_calc == 'llh':
-                    missing = []
-                    if not line.blue_I or line.blue_I <= 0:
-                        missing.append('Medida I')
-                    if not line.blue_II or line.blue_II <= 0:
-                        missing.append('Medida II')
-                    if not line.blue_h or line.blue_h <= 0:
-                        missing.append('Medida H')
-
-                    if missing:
-                        raise UserError(
-                            f"Produto LLH '{line.product_id.name}' na linha {line.name} "
-                            f"está faltando as seguintes medidas:\n- " + "\n- ".join(missing)
-                        )
-
-                # Validação para produtos Molde
-                if line.product_id.blue_area_calc == 'm':
-                    missing = []
-                    if not line.blue_advance or line.blue_advance <= 0:
-                        missing.append('Medida Avanço')
-                    if not line.blue_h or line.blue_h <= 0:
-                        missing.append('Medida H')
-
-                    if missing:
-                        raise UserError(
-                            f"Produto Molde '{line.product_id.name}' na linha {line.name} "
-                            f"está faltando as seguintes medidas:\n- " + "\n- ".join(missing)
-                        )
-
-        # SEGUNDO: CONFIRMA O PEDIDO (só executa se passou na validação)
         res = super().action_confirm()
 
-        # TERCEIRO: CRIA OS PLANOS DE CORTE
         for order in self:
             cut_plans_created = self.env['mrp_cut_plan.mrp_cut_plan']
 
