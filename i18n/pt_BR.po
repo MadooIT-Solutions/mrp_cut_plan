@@ -1,13 +1,13 @@
 # Translation of Odoo Server.
 # This file contains the translation of the following modules:
-# 	* mrp_cut
+# 	* mrp_cut_plan
 #
 msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-02-14 17:20+0000\n"
-"PO-Revision-Date: 2026-02-14 14:34-0300\n"
+"POT-Creation-Date: 2026-01-28 13:01+0000\n"
+"PO-Revision-Date: 2026-01-28 10:04-0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: pt\n"
@@ -17,1734 +17,1728 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n > 1);\n"
 "X-Generator: Poedit 3.8\n"
 
-#. module: mrp_cut
-#: model:ir.actions.report,print_report_name:mrp_cut.report_mrp_cut_plan_mrp_cut_plan_pdf
+#. module: mrp_cut_plan
+#: model:ir.actions.report,print_report_name:mrp_cut_plan.report_mrp_cut_plan_mrp_cut_plan_pdf
 msgid "'%s' % 'Report - ' + str(object.id)"
-msgstr ""
+msgstr "'%s' % 'Relatório - ' + str(object.id)"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<b>Cotação:</b>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<b>Dt. Pedido: </b>"
-msgstr ""
+msgstr "<b>Cotação:</b>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<b>Pedido Aguardando Confirmação:</b>"
-msgstr ""
+msgstr "<b>Cotação:</b>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<b>Pedido de Compra Cancelado:</b>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<b>Pedido de Compra:</b>"
-msgstr ""
+msgstr "<b>Cotação:</b>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<b>Prazo: </b>"
-msgstr ""
+msgstr "<b>Cotação:</b>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid ""
-"<br/>\n"
-"                                    nesta conta:"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid ""
 "<br/>\n"
 "                            <span class=\"m-0\"><strong>Chave: </strong></span>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid ""
 "<br/>\n"
 "                          <strong>E-mail: </strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid ""
 "<br/>\n"
 "                    <strong>E-mail: </strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid ""
 "<br/>\n"
 "                    <strong>Telefone: </strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_production_transfer_wizard
+msgid ""
+"<i class=\"fa fa-info-circle\"/>\n"
+"                        <b>Fluxo que será criado:</b><br/>\n"
+"                        1. Envio para o armazém selecionado<br/>\n"
+"                        2. Recebimento no armazém destino<br/>\n"
+"                        3. Processamento no armazém destino<br/>\n"
+"                        4. Retorno para matriz<br/>\n"
+"                        5. Recebimento final e conclusão"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<span class=\"m-0\"><strong>Finalidade: </strong></span>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<span class=\"m-0\"><strong>Frete: </strong></span>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<span class=\"m-0\"><strong>Pagamento: </strong></span>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<span class=\"m-0\"><strong>Tipo: </strong></span>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
 msgid "<span class=\"o_stat_text\">OP</span>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.sale_order_line_inherit_mrp_cut_plan
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_inherit_mrp_cut_plan
 msgid "<span class=\"o_stat_text\">Plano De Corte</span>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.mrp_cut_purchase_order_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_purchase_order_form
 msgid ""
-"<span class=\"text-muted\" attrs=\"{'invisible': [('mail_reception_confirmed', '=', False)]}\">(confirmed by vendor)</span>"
+"<span class=\"text-muted\" attrs=\"{'invisible': [('mail_reception_confirmed', '=', False)]}"
+"\">(confirmed by vendor)</span>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.mrp_cut_purchase_order_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_purchase_order_form
 msgid ""
-"<span class=\"text-muted\" attrs=\"{'invisible': [('mail_reminder_confirmed', '=', False)]}\">(confirmed by vendor)</span>"
+"<span class=\"text-muted\" attrs=\"{'invisible': [('mail_reminder_confirmed', '=', False)]}"
+"\">(confirmed by vendor)</span>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid ""
-"<span groups=\"account.group_show_line_subtotals_tax_excluded\">Total</span>\n"
+"<span groups=\"account.group_show_line_subtotals_tax_excluded\">SubTotal</span>\n"
 "                            <span groups=\"account.group_show_line_subtotals_tax_included\">Total</span>"
 msgstr ""
+"<span groups=\"account.group_show_line_subtotals_tax_excluded\">Subtotal</span>\n"
+"                            <span groups=\"account.group_show_line_subtotals_tax_included\">Total</span>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid ""
-"<span groups=\"account.group_show_line_subtotals_tax_excluded\">Valor</span>\n"
-"                                            <span groups=\"account.group_show_line_subtotals_tax_included\">Valor Total</span>"
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
+msgid "<span><strong>Contato: </strong></span>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.mrp_cut_purchase_order_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_purchase_order_form
 msgid "<span>Ask confirmation</span>"
-msgstr "<span>Pedir confirmação</span>"
+msgstr "<span>Subtotal</span>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "<span>Atenciosamente,</span><br/><br/>"
-msgstr ""
+msgstr "<span>Subtotal</span>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.os_web_external_layout_boxed
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.os_web_external_layout_boxed
 msgid "<span>Celular/Whatsapp: </span>"
-msgstr ""
+msgstr "<span>Subtotal</span>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "<span>Desc.%</span>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "<span>Descrição</span>"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.os_web_external_layout_boxed
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.os_web_external_layout_boxed
 msgid "<span>E-mail: </span>"
-msgstr ""
+msgstr "<span>Total devido:</span>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "<span>Impostos</span>"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "<span>Preço Unit.</span>"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "<span>Pro-Forma Invoice # </span>"
-msgstr ""
+msgstr "<span>Subtotal</span>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "<span>Quantidade</span>"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.os_web_external_layout_boxed
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.os_web_external_layout_boxed
 msgid "<span>Telefone: </span>"
-msgstr ""
+msgstr "<span>Total devido:</span>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<strong class=\"mr16\">Subtotal</strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "<strong class=\"text-center\">Escaneie-me com seu aplicativo bancário.</strong><br/><br/>"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<strong>Amount</strong>"
 msgstr "<strong>Total</strong>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<strong>Comprador(a): </strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
-msgid "<strong>Contato: </strong>"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "<strong>Código do Cliente:</strong>"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "<strong>Data da Cotação: </strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "<strong>Data da Fatura:</strong>"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "<strong>Data da Nota de Crédito:</strong>"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "<strong>Data do Pedido: </strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "<strong>Data do Recebimento:</strong>"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "<strong>Data do Vencimento:</strong>"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "<strong>Data:</strong>"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<strong>Desc.%</strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<strong>Description</strong>"
-msgstr ""
+msgstr "<strong>Descrição</strong>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<strong>Endereço: </strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "<strong>Entrega: </strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<strong>Entrega</strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "<strong>Fiscal Position Remark:</strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "<strong>Frete: </strong>"
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
+msgid "<strong>Imp.</strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
-msgid "<strong>Icms</strong>"
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
+msgid "<strong>OS</strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
-msgid "<strong>Ipi</strong>"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "<strong>Origem:</strong>"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<strong>P.Unit</strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "<strong>Pagamento: </strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<strong>Qty</strong>"
 msgstr "<strong>Qtd</strong>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<strong>Referencia: </strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "<strong>Referência:</strong>"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "<strong>Shipping address:</strong>"
-msgstr ""
+msgstr "<strong>Endereço de Entrega:</strong>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "<strong>Signature</strong>"
 msgstr "<strong>Assinatura</strong>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "<strong>Sua referência: </strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "<strong>Subtotal</strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "<strong>Total</strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "<strong>Válida até: </strong>"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__message_needaction
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__message_needaction
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_needaction
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_needaction
 msgid "Action Needed"
-msgstr ""
+msgstr "Ação Necessária"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__blue_curve_cost
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_curve_cost
 msgid "Additional Cost Curve"
-msgstr "Curva de Custo Adicional"
+msgstr "Custo Adicional Curva"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__blue_advance
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__blue_advance
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__blue_advance
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_advance
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__blue_advance
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_advance
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_advance
 msgid "Advance"
 msgstr "Avanço"
 
-#. module: mrp_cut
-#: model:ir.actions.act_window,name:mrp_cut.action_report_sale_product_hierarchy
-msgid "Análise de Produtos por Hierarquia"
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__is_waiting_return
+msgid "Aguardando Retorno"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.ui.menu,name:mrp_cut.menu_sale_report_hierarchy
-msgid "Análise por Hierarquia"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.sale_order_line_prod_config_view_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_prod_config_view_form
 msgid "Areas"
+msgstr "Áreas"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard__location_dest_warehouse_name
+msgid "Armazém"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__message_attachment_count
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__message_attachment_count
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__branch_location_id
+msgid "Armazém de Processamento"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_attachment_count
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_attachment_count
 msgid "Attachment Count"
-msgstr "Contagem de Anexos"
+msgstr "Contagem de anexos"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.mrp_cut_purchase_order_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_purchase_order_form
 msgid ""
-"Automatically send a confirmation email to the vendor X days before the expected receipt date, asking him to confirm the "
-"exact date."
+"Automatically send a confirmation email to the vendor X days before the expected receipt date, asking "
+"him to confirm the exact date."
 msgstr ""
-"Enviar automaticamente um e-mail de confirmação ao fornecedor X dias antes da data prevista de recebimento, solicitando que "
-"ele confirme a data exata."
 
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_report_mrp_report_bom_structure
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_report_mrp_report_bom_structure
 msgid "BOM Overview Report"
 msgstr "Relatório geral da LM"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_stock_picking__branch_backorder_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_picking__branch_backorder_id
 msgid "Backorder Vinculado"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "Bairro:"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_mrp_bom
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_mrp_bom
 msgid "Bill of Material"
 msgstr "Lista de Materiais"
 
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_mrp_bom_line
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_mrp_bom_line
 msgid "Bill of Material Line"
 msgstr "Linha da Lista de Materiais"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_stock_picking__custom_block_validate
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_picking__custom_block_validate
 msgid "Bloquear Validação"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_production__blue_m2
-msgid "Blue M2"
-msgstr "M2"
-
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_production__blue_m3
-msgid "Blue M3"
-msgstr "M3"
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_mrp_cut_plan_mrp_cut_plan_document_pdf
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_mrp_cut_plan_mrp_cut_plan_document_pdf
 msgid "Blue qty"
 msgstr "Quantidade"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_mrp_cut_plan_mrp_cut_plan_document_pdf
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_mrp_cut_plan_mrp_cut_plan_document_pdf
 msgid "Breakages Count"
-msgstr "Contagens de quebra"
+msgstr "Cotação Contagem"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "CEP:"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.os_web_external_layout_boxed
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.os_web_external_layout_boxed
 msgid "CNPJ:"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_stock_move__calc
-msgid "Calcular por Área"
-msgstr ""
-
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_bom_line__calc
-msgid "Calculated"
-msgstr "Calculado"
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.product_template_form_view_inherit
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.product_template_form_view_inherit
 msgid "Calculation"
 msgstr "Cálculo"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__related_type
-#: model:ir.model.fields,field_description:mrp_cut.field_product_product__blue_area_calc
-#: model:ir.model.fields,field_description:mrp_cut.field_product_template__blue_area_calc
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__related_blue_area_calc
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__related_type
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__related_type
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_product_product__blue_area_calc
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_product_template__blue_area_calc
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__related_blue_area_calc
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__related_type
 msgid "Calculation Type"
-msgstr "Tipo de Cálculo"
+msgstr "Tipo de cálculo"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_product_category__complete_name_store
-msgid "Caminho Completo"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.sale_order_line_prod_config_view_form
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_prod_config_view_form
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
 msgid "Cancel"
 msgstr "Cancelar"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_mrp_cut_plan_mrp_cut_plan_document_pdf
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_mrp_cut_plan_mrp_cut_plan_document_pdf
 msgid "Cancel Inventory Moves"
 msgstr "Cancelar Movimentos do Inventário"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_mrp_cut_plan_mrp_cut_plan_document_pdf
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_mrp_cut_plan_mrp_cut_plan_document_pdf
 msgid "Cancel Workorder"
 msgstr "Cancelar Ordem de Serviço"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_wizard_create_all_production_orders_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_production_transfer_wizard
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_wizard_create_all_production_orders_form
 msgid "Cancelar"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields.selection,name:mrp_cut.selection__mrp_cut_plan_mrp_cut_plan__state__canceled
+#. module: mrp_cut_plan
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__mrp_cut_plan_mrp_cut_plan__state__canceled
 msgid "Canceled"
 msgstr "Cancelado"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__blue_tela_product_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_tela_product_id
 msgid "Canvas/Mortar Product"
-msgstr "Produto de tela/argamassa"
+msgstr "Produto Tela/Argamassa"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__categ_display_name
-msgid "Categoria (Hierárquica)"
-msgstr ""
-
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_purchase_order__chave_pix
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_purchase_order__chave_pix
 msgid "Chave Pix"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__cotation_partner_id
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__partner_id
-#: model_terms:ir.ui.view,arch_db:mrp_cut.mrp_cut_picking_form_flow_control
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid "Check Availability"
+msgstr "Verificar Disponibilidade"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__cotation_partner_id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__partner_id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__cotation_partner_id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__partner_id
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_picking_form_flow_control
 msgid "Cliente"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__mortar_coefficient
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__mortar_coefficient
 msgid "Coeficiente Argamassa"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_product_product__boolean_coefficient_or_screen
-#: model:ir.model.fields,field_description:mrp_cut.field_product_template__boolean_coefficient_or_screen
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_product_product__boolean_coefficient_or_screen
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_product_template__boolean_coefficient_or_screen
 msgid "Coeficiente ou Tela"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "Compl:"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_mrp_bom_line__calc
-msgid "Componente com quantidade calculada a partir de medidas"
-msgstr ""
-
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_mrp_bom_line__mandatory
-msgid "Componente obrigatório deve ter consumo informado"
-msgstr ""
-
-#. module: mrp_cut
+#. module: mrp_cut_plan
 #. odoo-python
-#: code:addons/mrp_cut/models/mrp_production.py:0
-#, python-format
-msgid "Componentes obrigatórios sem consumo."
-msgstr ""
-
-#. module: mrp_cut
-#. odoo-python
-#: code:addons/mrp_cut/models/sale_order_line.py:0
+#: code:addons/mrp_cut_plan/models/sale_order_line.py:0
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_inherit_mrp_cut_plan
 #, python-format
 msgid "Configure"
 msgstr "Configurar"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_wizard_create_all_production_orders_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid "Confirm"
+msgstr "Confirmar"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_wizard_create_all_production_orders_form
 msgid "Confirmar Criação de Ordens de Produção"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_wizard_create_all_production_orders__confirm
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders__confirm
 msgid "Confirmar criação?"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_wizard_create_all_production_orders_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_wizard_create_all_production_orders_form
 msgid "Confirmo que desejo criar as ordens de produção"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "Conforme vossa solicitação apresentamos nossa proposta."
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__blue_tela_multi2
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid "Consumido"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid "Consumo em Filiais"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_tela_multi2
 msgid "Cost of Mortar m2"
-msgstr ""
+msgstr "Custo da Argamassa m2"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__sale_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__sale_order_id
 msgid "Cotação"
-msgstr ""
+msgstr "<b>Cotação:</b>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "Cotação -"
-msgstr ""
+msgstr "<b>Cotação:</b>"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__create_uid
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_production_sale_order__create_uid
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__create_uid
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__create_uid
-#: model:ir.model.fields,field_description:mrp_cut.field_wizard_create_all_production_orders__create_uid
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_consumption_recalc_wizard__create_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__create_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_production_sale_order__create_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__create_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard__create_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__create_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders__create_uid
 msgid "Created by"
 msgstr "Criado por"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__create_date
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_production_sale_order__create_date
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__create_date
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__create_date
-#: model:ir.model.fields,field_description:mrp_cut.field_wizard_create_all_production_orders__create_date
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_consumption_recalc_wizard__create_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__create_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_production_sale_order__create_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__create_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard__create_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__create_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders__create_date
 msgid "Created on"
 msgstr "Criado em"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
 msgid "Criar OP"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_wizard_create_all_production_orders_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_wizard_create_all_production_orders_form
 msgid "Criar Todas"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.actions.server,name:mrp_cut.action_create_po_multi
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_tree
 msgid "Criar Todas as OPs"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.actions.act_window,name:mrp_cut.action_wizard_create_all_production_orders
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_wizard_create_all_production_orders_form
+#. module: mrp_cut_plan
+#: model:ir.actions.act_window,name:mrp_cut_plan.action_wizard_create_all_production_orders
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_wizard_create_all_production_orders_form
 msgid "Criar Todas as Ordens de Produção"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__currency_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__currency_id
 msgid "Currency"
 msgstr "Moeda"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__blue_curve_cost
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__blue_curve_cost
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_curve_cost
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_curve_cost
 msgid "Curve Cost"
-msgstr "Custo da Curva"
+msgstr ""
+"#-#-#-#-#  catalog.po (Odoo Server 16.0)  #-#-#-#-#\n"
+"Custo Curvo\n"
+"#-#-#-#-#  catalog.po (Odoo Server 16.0)  #-#-#-#-#\n"
+"Custo Curva"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.sale_order_line_prod_config_view_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_prod_config_view_form
 msgid "Custo Curva"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_form_template_price_config
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_form_template_price_config
 msgid "Custo da Argamassa m2"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_form_template_price_config
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_form_template_price_config
 msgid "Custo de Mão de Obra"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_search
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_search
 msgid "Customer"
 msgstr "Cliente"
 
-#. module: mrp_cut
+#. module: mrp_cut_plan
 #. odoo-python
-#: code:addons/mrp_cut/models/sale_order.py:0 model:ir.ui.menu,name:mrp_cut.menu_mrp_cut_plan
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_form
+#: code:addons/mrp_cut_plan/models/sale_order.py:0
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__cut_plan_id
+#: model:ir.ui.menu,name:mrp_cut_plan.menu_mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
 #, python-format
 msgid "Cut Plan"
 msgstr "Plano de Corte"
 
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_mrp_cut_plan_mrp_cut_plan
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_mrp_cut_plan_mrp_cut_plan
 msgid "Cut Plan Model"
-msgstr "Modelo de Plano de Corte"
+msgstr "Modelo Plano de Corte"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_search
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_search
 msgid "Cut Plan Search"
-msgstr "Busca Plano de Corte"
+msgstr "Busca de Plano de Corte"
 
-#. module: mrp_cut
-#: model:ir.actions.act_window,name:mrp_cut.action_mrp_cut_plan_tree
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_tree
+#. module: mrp_cut_plan
+#: model:ir.actions.act_window,name:mrp_cut_plan.action_mrp_cut_plan_tree
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_tree
 msgid "Cut Plans"
 msgstr "Planos de Corte"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "Data de Vencimento"
-msgstr ""
-
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__product_uom_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__product_uom_id
 msgid "Default unit of measure used for all stock operations."
-msgstr "Unidade de medida padrão utilizada em todas as operações de estoque."
+msgstr "Unidade de medida padrão usada para todas as operações de estoque."
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "Desconto"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "Descrição"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_stock_move__sale_line_description
-#: model:ir.model.fields,field_description:mrp_cut.field_stock_move_line__sale_line_description
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_move__sale_line_description
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_move_line__sale_line_description
 msgid "Descrição do Pedido"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.sale_order_line_prod_config_view_form
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_tree
+msgid "Deseja criar ordens de produção para todos os registros selecionados?"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_production_transfer_wizard
+msgid "Destino"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_prod_config_view_form
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
 msgid "Dimentions"
 msgstr "Dimensões"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "Discount"
 msgstr "Desconto"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__display_name
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_production_sale_order__display_name
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__display_name
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__display_name
-#: model:ir.model.fields,field_description:mrp_cut.field_wizard_create_all_production_orders__display_name
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_consumption_recalc_wizard__display_name
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__display_name
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_production_sale_order__display_name
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__display_name
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard__display_name
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__display_name
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders__display_name
 msgid "Display Name"
-msgstr "Nome"
+msgstr "Nome de Exibição"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__blue_po_count
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order__count_po
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_po_count
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__count_po
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order__count_po
 msgid "Documents Count"
 msgstr "Contagem de Documentos"
 
-#. module: mrp_cut
-#: model:ir.model.fields.selection,name:mrp_cut.selection__mrp_cut_plan_mrp_cut_plan__state__draft
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard__domain_location_ids
+msgid "Domain Location"
+msgstr "Localização do Domínio"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__mrp_cut_plan_mrp_cut_plan__state__draft
 msgid "Draft"
 msgstr "Rascunho"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__blue_eps_cost
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__blue_eps_cost
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__blue_eps_cost
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_eps_cost
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_eps_cost
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_eps_cost
 msgid "EPS Cost"
 msgstr "Custo EPS"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__blue_eps_product_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_eps_product_id
 msgid "EPS Product"
 msgstr "Produto EPS"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__company_id
-msgid "Empresa"
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid ""
+"Estes registros representam o consumo REAL realizado nas filiais.\n"
+"                                Não alteram estoque da matriz e não fazem parte da Lista de Materiais."
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_stock_picking__show_validate
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_picking__show_validate
 msgid "Exibir Botão de Validação"
 msgstr "Mostrar validar"
 
-#. module: mrp_cut
-#. odoo-python
-#: code:addons/mrp_cut/models/mrp_production.py:0
-#, python-format
-msgid "Existem OPs filhas pendentes."
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard__location_dest_id
+msgid "Filial"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_product_product__force_manufacture
-#: model:ir.model.fields,field_description:mrp_cut.field_product_template__force_manufacture
-msgid "Fabricar sempre"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "Fatura"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "Fatura Cancelada"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "Fatura de Fornecedor"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "Fatura em Rascunho"
-msgstr ""
-
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_purchase_order__fiscal_position_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_purchase_order__fiscal_position_id
 msgid "Fiscal Position"
 msgstr "Posição Fiscal"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__message_follower_ids
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__message_follower_ids
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid "Fluxo Filial"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_mrp_production_transfer_wizard
+msgid "Fluxo Matriz → Filial → Matriz"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_follower_ids
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_follower_ids
 msgid "Followers"
 msgstr "Seguidores"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__message_partner_ids
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__message_partner_ids
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_partner_ids
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_partner_ids
 msgid "Followers (Partners)"
-msgstr "Seguidores(Clientes)"
+msgstr "Seguidores (Parceiros)"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_purchase_order__forma_pagamento
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_purchase_order__forma_pagamento
 msgid "Forma de Pagamento"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.sale_order_line_inherit_mrp_cut_plan
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_inherit_mrp_cut_plan
 msgid "Frete"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_search
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_search
 msgid "Group By"
-msgstr "Agrupado por"
+msgstr "Agrupar Por"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_production__has_child_production
-msgid "Has Child Production"
-msgstr "Tem produção filha"
-
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__has_message
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__has_message
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__has_message
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__has_message
 msgid "Has Message"
-msgstr "Tem mensagem"
+msgstr "Tem Mensagem"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.os_web_external_layout_boxed
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.os_web_external_layout_boxed
 msgid "I. Mun.:"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.os_web_external_layout_boxed
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.os_web_external_layout_boxed
 msgid "I.E.:"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "ICMS"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__id
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_production_sale_order__id
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__id
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__id
-#: model:ir.model.fields,field_description:mrp_cut.field_wizard_create_all_production_orders__id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_consumption_recalc_wizard__id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_production_sale_order__id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard__id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders__id
 msgid "ID"
-msgstr ""
+msgstr "Numero Id do Produto"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "IPI"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__product_id_number
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__product_id_number
 msgid "Id of Product"
 msgstr "Id do Produto"
 
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__blue_mto_strategy
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_mto_strategy
 msgid "If True, uses MTO strategy without creating production orders"
-msgstr "Se verdadeiro, utiliza a estratégia MTO sem criar ordens de produção."
+msgstr "Se Verdadeiro, usa estratégia MTO sem criar ordens de produção"
 
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__message_needaction
-#: model:ir.model.fields,help:mrp_cut.field_mrp_cut_plan_template_price_config__message_needaction
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_needaction
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_needaction
 msgid "If checked, new messages require your attention."
-msgstr "Se selecionada, significa que novas mensagens exigem sua atenção."
+msgstr "Se marcada, novas mensagens requerem sua atenção."
 
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__message_has_error
-#: model:ir.model.fields,help:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__message_has_sms_error
-#: model:ir.model.fields,help:mrp_cut.field_mrp_cut_plan_template_price_config__message_has_error
-#: model:ir.model.fields,help:mrp_cut.field_mrp_cut_plan_template_price_config__message_has_sms_error
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_has_error
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_has_sms_error
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_has_error
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_has_sms_error
 msgid "If checked, some messages have a delivery error."
-msgstr "Se selecionada, algumas mensagens apresentarão erro de entrega."
+msgstr "Se marcada, algumas mensagens têm erro de entrega."
 
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_product_product__blue_mto_route
-#: model:ir.model.fields,help:mrp_cut.field_product_template__blue_mto_route
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_product_product__blue_mto_route
+#: model:ir.model.fields,help:mrp_cut_plan.field_product_template__blue_mto_route
 msgid "If checked, uses Make To Order strategy without creating production orders"
-msgstr "Se selecionada, utiliza a estratégia de produção sob encomenda sem criar ordens de produção."
+msgstr "Se marcada, usa estratégia Make To Order sem criar ordens de produção"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__binany_field
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__binany_field
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__binany_field
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__binany_field
 msgid "Imagem"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_mrp_cut_plan_template_price_config__blue_eps_cost
-#: model:ir.model.fields,help:mrp_cut.field_mrp_cut_plan_template_price_config__blue_tela_cost
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_eps_cost
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_tela_cost
 msgid ""
 "In Standard Price & AVCO: value of the product (automatically computed in AVCO).\n"
 "        In FIFO: value of the next unit that will leave the stock (automatically computed).\n"
 "        Used to value the product when the purchase cost is not known (e.g. inventory adjustment).\n"
 "        Used to compute margins on sale orders."
 msgstr ""
+"No Preço Padrão e AVCO: valor do produto (calculado automaticamente no AVCO).\n"
+"        No FIFO: valor da próxima unidade que sairá do estoque (calculado automaticamente).\n"
+"        Usado para valorar o produto quando o custo de compra não é conhecido (ex: ajuste de "
+"inventário).\n"
+"        Usado para calcular margens em pedidos de venda."
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_purchase_order__incoterm_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_purchase_order__incoterm_id
 msgid "Incoterm"
-msgstr "Frete"
-
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_stock_move__calc
-msgid "Indica que o consumo será calculado automaticamente (blue_m3)"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_purchase_order__incoterm_id
-msgid "International Commercial Terms are a series of predefined commercial terms used in international transactions."
-msgstr ""
-"International Commercial Terms são uma série de termos comerciais pré-definidos utilizados em transações internacionais."
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_production_transfer_wizard
+msgid "Iniciar Fluxo"
+msgstr "Fluxo Matriz → Filial → Matriz"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__message_is_follower
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__message_is_follower
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_purchase_order__incoterm_id
+msgid ""
+"International Commercial Terms are a series of predefined commercial terms used in international "
+"transactions."
+msgstr ""
+"International Commercial Terms são uma série de termos comerciais pré-definidos utilizados em "
+"transações internacionais."
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_is_follower
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_is_follower
 msgid "Is Follower"
 msgstr "É Seguidor"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__is_llh_calculation
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__is_llh_calculation
 msgid "Is LLH Calculation"
-msgstr "É Cálculo LLH"
+msgstr "É cálculo LLH"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_mrp_cut_plan_mrp_cut_plan_document_pdf
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_mrp_cut_plan_mrp_cut_plan_document_pdf
 msgid "Is Lot Number Propagated"
-msgstr "O número do lote foi propagado?"
+msgstr "Número de erros"
 
-#. module: mrp_cut
-#: model:ir.model.constraint,message:mrp_cut.constraint_mrp_cut_plan_template_price_config_product_id
+#. module: mrp_cut_plan
+#: model:ir.model.constraint,message:mrp_cut_plan.constraint_mrp_cut_plan_template_price_config_product_id
 msgid "Já existe um template configurado para esse produto"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields.selection,name:mrp_cut.selection__product_template__blue_area_calc__llh
+#. module: mrp_cut_plan
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__mrp_production__related_type__llh
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__product_template__blue_area_calc__llh
 msgid "LLH Calculation"
 msgstr "Cálculo LLH"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__blue_tela_multi
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_tela_multi
 msgid "Labor Cost"
-msgstr "Custo da mão de obra"
+msgstr "Custo de Mão de Obra"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan____last_update
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_production_sale_order____last_update
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config____last_update
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config____last_update
-#: model:ir.model.fields,field_description:mrp_cut.field_wizard_create_all_production_orders____last_update
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_consumption_recalc_wizard____last_update
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan____last_update
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_production_sale_order____last_update
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config____last_update
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard____last_update
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config____last_update
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders____last_update
 msgid "Last Modified on"
-msgstr ""
+msgstr "Última Modificação em"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__write_uid
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_production_sale_order__write_uid
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__write_uid
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__write_uid
-#: model:ir.model.fields,field_description:mrp_cut.field_wizard_create_all_production_orders__write_uid
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_consumption_recalc_wizard__write_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__write_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_production_sale_order__write_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__write_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard__write_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__write_uid
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders__write_uid
 msgid "Last Updated by"
-msgstr ""
+msgstr "Última Atualização por"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__write_date
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_production_sale_order__write_date
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__write_date
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__write_date
-#: model:ir.model.fields,field_description:mrp_cut.field_wizard_create_all_production_orders__write_date
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_consumption_recalc_wizard__write_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__write_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_production_sale_order__write_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__write_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard__write_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__write_date
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders__write_date
 msgid "Last Updated on"
-msgstr ""
+msgstr "Última Atualização em"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__sale_line_id
-#: model:ir.model.fields,field_description:mrp_cut.field_stock_move__sale_order_line_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_move__sale_order_line_id
 msgid "Linha do Pedido de Venda"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.os_web_external_layout_boxed
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid "Lock"
+msgstr "Fechar"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.os_web_external_layout_boxed
 msgid "Logo"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__blue_mto_strategy
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_mto_strategy
 msgid "MTO Strategy"
-msgstr ""
+msgstr "Estratégia MTO"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__message_main_attachment_id
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__message_main_attachment_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_main_attachment_id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_main_attachment_id
 msgid "Main Attachment"
+msgstr "Anexo Principal"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_margin_percent
+msgid "Marge Percentage"
+msgstr "Percentual de Margem"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid "Mass Produce"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_bom_line__mandatory
-msgid "Mandatory"
-msgstr "Obrigatório"
-
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__blue_margin_percent
-msgid "Marge Percentage"
-msgstr "Percentagem de margem"
-
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__blue_bom_template_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_bom_template_id
 msgid "Material List Model"
-msgstr "Lista de Materiais Modelo"
+msgstr "Modelo Lista de Materiais"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.mrp_cut_production_inherit
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
 msgid "Medidas"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__message_has_error
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__message_has_error
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_has_error
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_has_error
 msgid "Message Delivery error"
-msgstr ""
+msgstr "Erro de Entrega de Mensagem"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__message_ids
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__message_ids
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_ids
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_ids
 msgid "Messages"
+msgstr "Mensagens"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_prod_config_view_form
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
+msgid "Model price configuration not configured for this product:"
+msgstr "Configuração de preço do modelo não configurada para este produto:"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__mrp_production__related_type__m
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__product_template__blue_area_calc__m
+msgid "Mold Calculation"
+msgstr "Cálculo de Molde"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__component_moves_branch_ids
+msgid "Movimentos Consumidos na Filial"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.sale_order_line_prod_config_view_form
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_form
-msgid "Model price configuration not configured for this product:"
-msgstr "A configuração de preço do modelo não está configurada para este produto:"
-
-#. module: mrp_cut
-#: model:ir.model.fields.selection,name:mrp_cut.selection__product_template__blue_area_calc__m
-msgid "Mold Calculation"
-msgstr "Cálculo Molde"
-
-#. module: mrp_cut
-#: model:ir.model.fields.selection,name:mrp_cut.selection__product_template__boolean_coefficient_or_screen__coe
+#. module: mrp_cut_plan
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__product_template__boolean_coefficient_or_screen__coe
 msgid "Multiplica Pelo Coeficiente"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__name
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__blue_m2
+msgid "M²"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__blue_m3
+msgid "M³"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__name
 msgid "Name"
 msgstr "Nome"
 
-#. module: mrp_cut
+#. module: mrp_cut_plan
 #. odoo-python
-#: code:addons/mrp_cut/models/mrp_cut_plan.py:0
+#: code:addons/mrp_cut_plan/models/mrp_cut_plan.py:0
 #, python-format
 msgid "Nenhum registro selecionado!"
 msgstr ""
 
-#. module: mrp_cut
+#. module: mrp_cut_plan
 #. odoo-python
-#: code:addons/mrp_cut/models/mrp_cut_plan.py:0
+#: code:addons/mrp_cut_plan/models/mrp_cut_plan.py:0
 #, python-format
 msgid "Nenhum registro válido para criar ordem de produção!"
 msgstr ""
 
-#. module: mrp_cut
+#. module: mrp_cut_plan
 #. odoo-python
-#: code:addons/mrp_cut/models/mrp_cut_plan.py:0
+#: code:addons/mrp_cut_plan/models/mrp_cut_plan.py:0
 #, python-format
 msgid "Nenhuma ordem de produção foi criada."
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_bom_line__blue_multiplier
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_bom_line__blue_multiplier
 msgid "No Multiply"
-msgstr "Não Multiplica"
+msgstr "Sem Multiplicar"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_purchase_order__payment_mode_id_name
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_purchase_order__payment_mode_id_name
 msgid "Nome da Forma de Pagamento"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields.selection,name:mrp_cut.selection__product_template__blue_area_calc__n
-#: model:ir.model.fields.selection,name:mrp_cut.selection__product_template__boolean_coefficient_or_screen__n
+#. module: mrp_cut_plan
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__mrp_production__related_type__n
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__product_template__blue_area_calc__n
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__product_template__boolean_coefficient_or_screen__n
 msgid "None"
-msgstr ""
+msgstr "Nenhum"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "Nota de Crédito"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "Nota de Crédito Fornecedor"
-msgstr ""
-
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__message_needaction_counter
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__message_needaction_counter
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_needaction_counter
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_needaction_counter
 msgid "Number of Actions"
-msgstr ""
+msgstr "Número de Ações"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__message_has_error_counter
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__message_has_error_counter
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_has_error_counter
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_has_error_counter
 msgid "Number of errors"
-msgstr ""
+msgstr "Número de erros"
 
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__message_needaction_counter
-#: model:ir.model.fields,help:mrp_cut.field_mrp_cut_plan_template_price_config__message_needaction_counter
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_needaction_counter
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_needaction_counter
 msgid "Number of messages requiring action"
-msgstr ""
+msgstr "Número de mensagens requerendo ação"
 
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__message_has_error_counter
-#: model:ir.model.fields,help:mrp_cut.field_mrp_cut_plan_template_price_config__message_has_error_counter
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_has_error_counter
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_has_error_counter
 msgid "Number of messages with delivery error"
+msgstr "Número de mensagens com erro de entrega"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__origin_production_id
+msgid "OP de Origem"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_production__parent_production_id
-msgid "OP Pai"
-msgstr ""
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__branch_production_id
+msgid "OPs da Filial"
+msgstr "OP da Filial"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_production__child_production_ids
-msgid "OPs Filhas"
-msgstr ""
-
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_wizard_create_all_production_orders__note
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_wizard_create_all_production_orders__note
 msgid "Observação"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__mo_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__hide_check_availability
+msgid "Ocultar Verificar Disponibilidade"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_production_transfer_wizard
 msgid "Ordem de Produção"
 msgstr ""
 
-#. module: mrp_cut
-#. odoo-python
-#: code:addons/mrp_cut/models/sale_order.py:0
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order__mrp_production_count
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order__mrp_production_ids
-#, python-format
-msgid "Ordens de Produção"
-msgstr "Contagem de MO gerados"
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_picking__origin_production_id
+msgid "Ordem de Produção de Origem"
+msgstr "OP de Origem"
 
-#. module: mrp_cut
+#. module: mrp_cut_plan
 #. odoo-python
-#: code:addons/mrp_cut/models/mrp_cut_plan.py:0
+#: code:addons/mrp_cut_plan/models/mrp_cut_plan.py:0
 #, python-format
 msgid "Ordens de Produção Criadas"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_stock_picking__branch_mo_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_picking__branch_mo_id
 msgid "Ordens de Produção da Filial"
-msgstr ""
+msgstr "OP Filial Gerada"
 
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_sale_order_line_config
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_sale_order_line_config
 msgid "Order Line Area Calculation"
-msgstr ""
+msgstr "Cálculo de Área da Linha da Venda"
 
-#. module: mrp_cut
-#: model:ir.actions.report,name:mrp_cut.report_mrp_cut_plan_mrp_cut_plan_pdf
+#. module: mrp_cut_plan
+#: model:ir.actions.report,name:mrp_cut_plan.report_mrp_cut_plan_mrp_cut_plan_pdf
 msgid "PDF Report"
-msgstr ""
+msgstr "Relatório PDF"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.os_web_external_layout_boxed
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.os_web_external_layout_boxed
 msgid "Page: <span class=\"page\"/> / <span class=\"topage\"/>"
-msgstr "Página: <span class=\"page\"/> / <span class=\"topage\"/>"
+msgstr "Pagina: <span class=\"page\"/> / <span class=\"topage\"/>"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "Pago em"
-msgstr ""
-
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_stock_picking__customer
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_picking__customer
 msgid "Partner"
 msgstr "Cliente"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_purchase_order__payment_term_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_purchase_order__payment_term_id
 msgid "Payment Terms"
 msgstr "Condições de pagamento"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.mrp_cut_picking_form_flow_control
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_search model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_tree
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__sale_order_id
+msgid "Pedido"
+msgstr ""
+"#-#-#-#-#  catalog.po (Odoo Server 16.0)  #-#-#-#-#\n"
+"Pedido\n"
+"#-#-#-#-#  catalog.po (Odoo Server 16.0)  #-#-#-#-#\n"
+"Pedido de Venda\n"
+"#-#-#-#-#  catalog.po (Odoo Server 16.0)  #-#-#-#-#\n"
+"Pedido de Venda"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_picking_form_flow_control
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_search
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_tree
 msgid "Pedido de Venda"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "Pedido de Venda -"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_stock_move__planned_uom_qty
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid "Plan"
+msgstr "Plano"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_move__planned_uom_qty
 msgid "Planned Quantity"
 msgstr "Quantidade Planejada"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_production__cut_plan_id
+#. module: mrp_cut_plan
+#. odoo-python
+#: code:addons/mrp_cut_plan/models/mrp_production.py:0
+#, python-format
 msgid "Plano de Corte"
 msgstr ""
 
-#. module: mrp_cut
+#. module: mrp_cut_plan
 #. odoo-python
-#: code:addons/mrp_cut/models/mrp_cut_plan.py:0
-#, python-format
-msgid "Plano de corte sem OP pai."
-msgstr ""
-
-#. module: mrp_cut
-#. odoo-python
-#: code:addons/mrp_cut/models/mrp_cut_plan.py:0
-#, python-format
-msgid "Plano de corte sem pedido de venda."
-msgstr ""
-
-#. module: mrp_cut
-#. odoo-python
-#: code:addons/mrp_cut/models/sale_order.py:0
-#, python-format
-msgid "Planos de Corte"
-msgstr ""
-
-#. module: mrp_cut
-#. odoo-python
-#: code:addons/mrp_cut/models/mrp_cut_plan.py:0
+#: code:addons/mrp_cut_plan/models/mrp_cut_plan.py:0
 #, python-format
 msgid "Por favor, selecione pelo menos um registro na listagem."
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "Por favor, utilize o seguinte canal para efetuar o pagamento. :"
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.mrp_cut_purchase_order_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_purchase_order_form
 msgid "Preview the reminder email by sending it to yourself."
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "Prezado Sr(a).:"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "Preço Unit."
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__price_unit
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__price_unit
 msgid "Price"
-msgstr ""
+msgstr "Preço"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__price_unit_m
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__price_unit_m
 msgid "Price Unit"
 msgstr "Preço Unitário"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__price_unit_2
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__price_unit_2
 msgid "Price Unit 2"
 msgstr "Preço Unitário 2"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__price_unit_llh
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__price_unit_llh
 msgid "Price Unit llh"
 msgstr "Preço Unitário LLH"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__pricelist_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__pricelist_id
 msgid "Pricelist"
-msgstr "Lista de preço"
+msgstr "Lista de Preços"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_production_sale_order__produced_quantity
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_production_sale_order__produced_quantity
 msgid "Produced Quantity"
 msgstr "Quantidade Produzida"
 
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_product_template
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__product_id
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__product_id
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__product_template_id
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_search
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_product_template
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__product_id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__product_id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__product_template_id
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_search
 msgid "Product"
 msgstr "Produto"
 
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_product_category
-msgid "Product Category"
-msgstr "Categoria de Produtos"
-
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_stock_move_line
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_stock_move_line
 msgid "Product Moves (Stock Move Line)"
 msgstr "Movimentos do produto (Linha do Movimento do Estoque)"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_mrp_cut_plan_mrp_cut_plan_document_pdf
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_mrp_cut_plan_mrp_cut_plan_document_pdf
 msgid "Product id number"
-msgstr "Numero id do Produto"
+msgstr "Numero Id do Produto"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_form
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_consumption_recalc_wizard__production_id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production_transfer_wizard__production_id
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
 msgid "Production"
 msgstr "Produção"
 
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_mrp_production
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__production_order_id
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_production_sale_order__production_order_id
-#: model:ir.model.fields.selection,name:mrp_cut.selection__mrp_cut_plan_mrp_cut_plan__state__prod_order
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_mrp_production
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__production_order_id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_production_sale_order__production_order_id
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__mrp_cut_plan_mrp_cut_plan__state__prod_order
 msgid "Production Order"
 msgstr "Ordem de Produção"
 
-#. module: mrp_cut
+#. module: mrp_cut_plan
 #. odoo-python
-#: code:addons/mrp_cut/models/mrp_cut_plan.py:0
+#: code:addons/mrp_cut_plan/models/mrp_cut_plan.py:0
 #, python-format
 msgid "Production Orders"
 msgstr "Ordens de Produção"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__product_id
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_form_template_price_config
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__product_id
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_form_template_price_config
 msgid "Produto"
 msgstr ""
 
-#. module: mrp_cut
-#. odoo-python
-#: code:addons/mrp_cut/models/sale_order.py:0
-#, python-format
-msgid "Produto %s não possui BOM definida."
-msgstr ""
-
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_form_template_price_config
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_form_template_price_config
 msgid "Produto Tela/Argamassa"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields.selection,name:mrp_cut.selection__product_template__boolean_coefficient_or_screen__tl
+#. module: mrp_cut_plan
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__product_template__boolean_coefficient_or_screen__tl
 msgid "Produto é Tela"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_mrp_cut_plan_mrp_cut_plan_document_pdf
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_mrp_cut_plan_mrp_cut_plan_document_pdf
 msgid "Propagated Lot Producing"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_purchase_order
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_purchase_order
 msgid "Purchase Order"
 msgstr "Pedido de Compra"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_saleorder_document_os
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "Qtd"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__blue_qty
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__quantity
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid "Qty Planejada"
+msgstr "Qtd Planejada"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__branch_consumed_qty
+msgid "Quantidade Consumida na Filial"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__matrix_consumed_qty
+msgid "Quantidade Consumida na Matriz"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__display_qty_producing
+msgid "Quantidade Produzindo"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__total_qty_produced
+msgid "Quantidade Total Produzida"
+msgstr "<span>Total</span>"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__total_qty_received
+msgid "Quantidade Total Recebida"
+msgstr "<span>Total</span>"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_qty
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__quantity
 msgid "Quantity"
 msgstr "Quantidade"
 
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_stock_move__sale_order_line_id
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_consumption_recalc_wizard
+msgid "Recalcular Consumos"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_picking__final_receipt_id
+msgid "Recebimento Final"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_picking__branch_receipt_id
+msgid "Recebimento na Filial"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__final_receipt_id
+msgid "Recebimentos Finais"
+msgstr "Recebimento Final"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__branch_receipt_id
+msgid "Recebimentos na Filial"
+msgstr "Recebimento na Filial"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_stock_move__sale_order_line_id
 msgid "Relacionamento direto com a linha do pedido de venda"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.mrp_cut_production_inherit
-msgid "Relacionamentos"
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__related_type
+msgid "Related Type"
+msgstr "Tipo Relacionado"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_picking__branch_return_id
+msgid "Retorno da Filial"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__message_has_sms_error
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__message_has_sms_error
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__return_transfer_id
+msgid "Retornos da Filial"
+msgstr "Retorno da Filial"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__message_has_sms_error
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__message_has_sms_error
 msgid "SMS Delivery error"
-msgstr ""
+msgstr "Erro de Entrega SMS"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_production_sale_order__sale_order_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_production_sale_order__sale_order_id
 msgid "Sale Order"
-msgstr "Pedido de Venda"
+msgstr ""
+"#-#-#-#-#  catalog.po (Odoo Server 16.0)  #-#-#-#-#\n"
+"Pedido\n"
+"#-#-#-#-#  catalog.po (Odoo Server 16.0)  #-#-#-#-#\n"
+"Pedido de Venda\n"
+"#-#-#-#-#  catalog.po (Odoo Server 16.0)  #-#-#-#-#\n"
+"Pedido de Venda"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__order_line_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__order_line_id
 msgid "Sale Order Line"
-msgstr "Linha Pedido de Venda"
+msgstr "Linha do Pedido de Venda"
 
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_sale_order
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_sale_order
 msgid "Sales Order"
 msgstr "Pedido de Vendas"
 
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_sale_order_line
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_sale_order_line
 msgid "Sales Order Line"
 msgstr "Linha do Pedido de Vendas"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__blue_origin
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_origin
 msgid "Sales order"
-msgstr "Pedidos de Vendas"
+msgstr "Pedido de Venda"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.sale_order_line_prod_config_view_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_prod_config_view_form
 msgid "Save"
 msgstr "Salvar"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__blue_tela_cost
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__blue_tela_cost
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__blue_tela_cost
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid "Scrap"
+msgstr "Sucata"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_tela_cost
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_tela_cost
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_tela_cost
 msgid "Screen Cost"
 msgstr "Custo Tela"
 
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_mrp_bom_line__blue_multiplier
-msgid "Se marcado, usa quantidade fixa da lista de materiais"
+#. module: mrp_cut_plan
+#: model:ir.actions.act_window,name:mrp_cut_plan.action_mrp_production_transfer_wizard
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_production_transfer_wizard
+msgid "Selecionar Armazém de Destino"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "Se pago antes"
-msgstr ""
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid "Send to Branch"
+msgstr "Enviar para Filial"
 
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_product_product__force_manufacture
-#: model:ir.model.fields,help:mrp_cut.field_product_template__force_manufacture
-msgid "Sempre cria OP quando usado como componente"
-msgstr ""
-
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__blue_wall
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_wall
 msgid "Standard Wall"
 msgstr "Parede Padrão"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__state
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_search
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__state
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_search
 msgid "State"
-msgstr "Status"
+msgstr "Estado"
 
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_stock_move
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__message_state
+msgid "Status"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_stock_move
 msgid "Stock Move"
 msgstr "Movimento de Estoque"
 
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_stock_rule
-msgid "Stock Rule"
-msgstr "Regra de estoque"
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
+msgid "Taxes"
+msgstr "Impostos"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "Tax 15%"
-msgstr "Taxa 15%"
-
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_stock_picking__show_validate
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_stock_picking__show_validate
 msgid "Technical field used to decide whether the button \"Validate\" should be displayed."
 msgstr "Campo técnico usado para decidir se o botão \"Validar\" deve ser exibido."
 
-#. module: mrp_cut
-#: model:ir.actions.act_window,name:mrp_cut.action_template_price_config
-#: model:ir.model,name:mrp_cut.model_mrp_cut_plan_template_price_config
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__template_price_config_id
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__template_price_config_id
-#: model:ir.ui.menu,name:mrp_cut.menu_template_price_config
+#. module: mrp_cut_plan
+#: model:ir.actions.act_window,name:mrp_cut_plan.action_template_price_config
+#: model:ir.model,name:mrp_cut_plan.model_mrp_cut_plan_template_price_config
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__template_price_config_id
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__template_price_config_id
+#: model:ir.ui.menu,name:mrp_cut_plan.menu_template_price_config
 msgid "Template Price Config"
-msgstr ""
+msgstr "Configuração de Preço de Modelo"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_bom__blue_template
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_bom__blue_template
 msgid "Template?"
 msgstr "Modelo?"
 
-#. module: mrp_cut
-#. odoo-python
-#: code:addons/mrp_cut/models/mrp_cut_plan.py:0
-#, python-format
-msgid "Todos os planos de corte selecionados já possuem ordens de produção."
-msgstr ""
-
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__price_total
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__price_total
 msgid "Total"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.ordem_servico_purchase
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.ordem_servico_purchase
 msgid "Total Bruto"
-msgstr ""
+msgstr "<span>Total</span>"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__blue_m2
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__blue_m2
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__blue_m2
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__total_components_consumed
+msgid "Total Componentes Consumidos"
+msgstr "<span>Total</span>"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_m2
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_m2
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_m2
 msgid "Total in m²"
-msgstr ""
+msgstr "Total em m²"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__blue_m3
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__blue_m3
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__blue_m3
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_m3
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_m3
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_m3
 msgid "Total in m³"
-msgstr ""
+msgstr "Total em m³"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__blue_m2_final
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_m2_final
 msgid "Total m² Final"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__blue_m3_final
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_m3_final
 msgid "Total m³ Final"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
 msgid "Totals"
 msgstr "Totais"
 
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_stock_picking
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_stock_picking
 msgid "Transfer"
 msgstr "Transferir"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__blue_advance_uom
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__blue_wall_uom
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__blue_wall_uom
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__blue_I_uom
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__blue_advance_uom
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__blue_wall_uom
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__blue_I_uom
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__blue_advance_uom
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__blue_wall_uom
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_picking__sending_transfer_id
+msgid "Transferência de Envio"
+msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__sending_transfer_id
+msgid "Transferências de Envio"
+msgstr "Transferência de Envio"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_advance_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_wall_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_wall_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__blue_advance_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_I_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_advance_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_wall_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_I_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_advance_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_wall_uom
 msgid "Udm"
-msgstr ""
+msgstr "UdM"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__blue_II_uom
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__blue_II_uom
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_II_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_II_uom
 msgid "Udm "
-msgstr ""
+msgstr "UdM"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__blue_h_uom
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__blue_h_uom
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_h_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_h_uom
 msgid "Udm  "
-msgstr ""
+msgstr "UdM"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.sale_order_line_prod_config_view_form
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_mrp_cut_plan_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid "Unbuild"
+msgstr "Desmontar"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid "Unlock"
+msgstr "Desbloquear"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid "Unplan"
+msgstr "Desplanejar"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid "Unreserve"
+msgstr "Remover reserva"
+
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.sale_order_line_prod_config_view_form
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_mrp_cut_plan_form
 msgid "UoM"
-msgstr ""
+msgstr "UdM"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__product_uom_id
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__product_uom_id
 msgid "Uom"
-msgstr ""
+msgstr "UdM"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__blue_I_uom
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_I_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__blue_I_uom
 msgid "Uom "
-msgstr ""
+msgstr "UdM"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__blue_II_uom
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_II_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__blue_II_uom
 msgid "Uom  "
-msgstr ""
+msgstr "UdM"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__blue_h_uom
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_h_uom
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__blue_h_uom
 msgid "Uom   "
-msgstr ""
+msgstr "UdM"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_product_product__blue_mto_route
-#: model:ir.model.fields,field_description:mrp_cut.field_product_template__blue_mto_route
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_product_product__blue_mto_route
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_product_template__blue_mto_route
 msgid "Use MTO Route"
-msgstr ""
+msgstr "Usar Rota MTO"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.report_invoice_document_polispan
-msgid "Valor devido"
-msgstr ""
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
+msgid "Validate"
+msgstr "Validar"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_sales_pivot_category_hierarchy
-msgid "Vendas por Categoria"
-msgstr ""
-
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__template_price_boolean
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__template_price_boolean
 msgid "Verificação"
 msgstr ""
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__blue_wall
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line__blue_wall
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_wall
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__blue_wall
 msgid "Wall"
 msgstr "Parede"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__website_message_ids
-#: model:ir.model.fields,field_description:mrp_cut.field_mrp_cut_plan_template_price_config__website_message_ids
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__website_message_ids
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__website_message_ids
 msgid "Website Messages"
-msgstr ""
+msgstr "Mensagens do Website"
 
-#. module: mrp_cut
-#: model:ir.model.fields,help:mrp_cut.field_mrp_cut_plan_mrp_cut_plan__website_message_ids
-#: model:ir.model.fields,help:mrp_cut.field_mrp_cut_plan_template_price_config__website_message_ids
+#. module: mrp_cut_plan
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__website_message_ids
+#: model:ir.model.fields,help:mrp_cut_plan.field_mrp_cut_plan_template_price_config__website_message_ids
 msgid "Website communication history"
-msgstr ""
+msgstr "Histórico de comunicação do website"
 
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_wizard_create_all_production_orders
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_wizard_create_all_production_orders
 msgid "Wizard para criar todas as ordens de produção"
 msgstr ""
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.mrp_cut_purchase_order_form
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_purchase_order_form
 msgid "day(s) before"
-msgstr ""
+msgstr "'%s' % 'Relatório - ' + str(object.id)"
 
-#. module: mrp_cut
-#: model_terms:ir.ui.view,arch_db:mrp_cut.view_tree_template_price_config
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_tree_template_price_config
 msgid "main product"
-msgstr "Produto principal"
+msgstr "Produto Principal"
 
-#. module: mrp_cut
-#: model:ir.model,name:mrp_cut.model_mrp_cut_plan_production_sale_order
+#. module: mrp_cut_plan
+#: model:ir.model,name:mrp_cut_plan.model_mrp_cut_plan_production_sale_order
 msgid "mrp_cut_plan.production_sale_order"
-msgstr ""
+msgstr "Pedido de Vendas"
 
-#. module: mrp_cut
-#: model:ir.model.fields,field_description:mrp_cut.field_sale_order_line_config__blue_wall
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line_config__blue_wall
 msgid "wall"
-msgstr "parede"
+msgstr "Parede"
 
-#. module: mrp_cut
-#. odoo-python
-#: code:addons/mrp_cut/models/stock.py:0
-#, python-format
+#. module: mrp_cut_plan
+#: model_terms:ir.ui.view,arch_db:mrp_cut_plan.mrp_cut_production_inherit
 msgid ""
-"❌ Edição manual de consumo bloqueada.\n"
-"\n"
-"Produto: %(product_name)s\n"
-"Este componente tem consumo calculado automaticamente (calc=True).\n"
-"Existe OP filha relacionada.\n"
-"\n"
-"OPs filhas: %(child_ops)s\n"
-"\n"
-"O consumo é atualizado automaticamente ao concluir a OP filha."
+"{'True':'Some product moves have already been confirmed. Are you sure?', 'False':''}[confirm_cancel]"
 msgstr ""
 
-#. module: mrp_cut
-#. odoo-python
-#: code:addons/mrp_cut/models/stock.py:0
-#, python-format
-msgid ""
-"❌ Produto ainda não disponível para entrega.\n"
-"\n"
-"Descrição: %(description)s\n"
-"Produto: %(product)s\n"
-"OP Pai: %(mo)s\n"
-"Status da OP: %(state)s\n"
-"\n"
-"A entrega só pode ser reservada após a conclusão da OP Pai."
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__is_branch_flow
+msgid "É Fluxo Filial"
 msgstr ""
