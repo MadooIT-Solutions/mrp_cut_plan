@@ -93,7 +93,7 @@ class SaleOrder(models.Model):
                     _logger.info(f"⏭️ Plano de corte já existe para linha {line.id}")
                     cut_plans_created |= existing_cut_plan
                     continue
-                if line.product_id.related_blue_area_calc != 'n':
+                if line.blue_I == 0 or line.blue_II == 0 or line.blue_h == 0 or line.blue_advance == 0:
                     _logger.info(f"✅ Entrou no area calc")
                     if line.product_id.blue_area_calc == 'llh':
                         if line.blue_I == 0 or line.blue_II == 0 or line.blue_h == 0:
