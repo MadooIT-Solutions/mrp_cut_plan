@@ -75,22 +75,45 @@ class SaleOrder(models.Model):
         }
 
     def action_confirm(self):
-        # PRIMEIRO: Validação antes de qualquer coisa
+        # PRIMEIRO: VALIDAÇÃO DE MEDIDAS
         for order in self:
             for line in order.order_line.filtered(
                     lambda l: l.product_id.blue_area_calc != 'n'
             ):
+                # Validação para produtos LLH
                 if line.product_id.blue_area_calc == 'llh':
-                    if not line.blue_I or not line.blue_II or not line.blue_h:
-                        raise UserError(f'Produto LLH faltando medidas na linha {line.name}.')
-                if line.product_id.blue_area_calc == 'm':
-                    if not line.blue_advance or not line.blue_h:
-                        raise UserError(f'Produto Molde faltando medidas na linha {line.name}.')
+                    missing = []
+                    if not line.blue_I or line.blue_I <= 0:
+                        missing.append('Medida I')
+                    if not line.blue_II or line.blue_II <= 0:
+                        missing.append('Medida II')
+                    if not line.blue_h or line.blue_h <= 0:
+                        missing.append('Medida H')
 
-        # SEGUNDO: Chama o super() UMA VEZ (fora do loop)
+                    if missing:
+                        raise UserError(
+                            f"Produto LLH '{line.product_id.name}' na linha {line.name} "
+                            f"está faltando as seguintes medidas:\n- " + "\n- ".join(missing)
+                        )
+
+                # Validação para produtos Molde
+                if line.product_id.blue_area_calc == 'm':
+                    missing = []
+                    if not line.blue_advance or line.blue_advance <= 0:
+                        missing.append('Medida Avanço')
+                    if not line.blue_h or line.blue_h <= 0:
+                        missing.append('Medida H')
+
+                    if missing:
+                        raise UserError(
+                            f"Produto Molde '{line.product_id.name}' na linha {line.name} "
+                            f"está faltando as seguintes medidas:\n- " + "\n- ".join(missing)
+                        )
+
+        # SEGUNDO: CONFIRMA O PEDIDO (só executa se passou na validação)
         res = super().action_confirm()
 
-        # TERCEIRO: Processa a criação dos planos de corte
+        # TERCEIRO: CRIA OS PLANOS DE CORTE
         for order in self:
             cut_plans_created = self.env['mrp_cut_plan.mrp_cut_plan']
 
@@ -130,7 +153,7 @@ class SaleOrder(models.Model):
                 })
                 cut_plans_created |= cut_plan
 
-            # Processa entregas e OPs
+            # 🔥 CRIAR A ORDEM DE ENTREGA PRIMEIRO
             if cut_plans_created:
                 # Criar ordem de entrega para o pedido
                 first_plan = cut_plans_created[0]
@@ -151,7 +174,7 @@ class SaleOrder(models.Model):
                     )
                     plans_without_mo.button_create_po_multi()
 
-                    # Vincular a entrega criada aos planos
+                    # 🔥 VINCULAR A ENTREGA CRIADA AOS PLANOS
                     for plan in plans_without_mo:
                         if plan.sale_id:
                             plan._force_link_sale_to_productions()
