@@ -75,7 +75,22 @@ class SaleOrder(models.Model):
         }
 
     def action_confirm(self):
+        # PRIMEIRO: Validação antes de qualquer coisa
+        for order in self:
+            for line in order.order_line.filtered(
+                    lambda l: l.product_id.blue_area_calc != 'n'
+            ):
+                if line.product_id.blue_area_calc == 'llh':
+                    if not line.blue_I or not line.blue_II or not line.blue_h:
+                        raise UserError(f'Produto LLH faltando medidas na linha {line.name}.')
+                if line.product_id.blue_area_calc == 'm':
+                    if not line.blue_advance or not line.blue_h:
+                        raise UserError(f'Produto Molde faltando medidas na linha {line.name}.')
 
+        # SEGUNDO: Chama o super() UMA VEZ (fora do loop)
+        res = super().action_confirm()
+
+        # TERCEIRO: Processa a criação dos planos de corte
         for order in self:
             cut_plans_created = self.env['mrp_cut_plan.mrp_cut_plan']
 
@@ -92,15 +107,6 @@ class SaleOrder(models.Model):
                     _logger.info(f"⏭️ Plano de corte já existe para linha {line.id}")
                     cut_plans_created |= existing_cut_plan
                     continue
-
-                if line.product_id.blue_area_calc == 'llh':
-                    if line.blue_I == 0 or line.blue_II == 0 or line.blue_h == 0:
-                        raise UserError('Produto LLH faltando medidas.')
-                if line.product_id.blue_area_calc == 'm':
-                    if line.blue_advance == 0 or line.blue_h == 0:
-                        raise UserError('Produto Molde faltando medidas')
-
-                res = super().action_confirm()
 
                 # Cria novo plano de corte
                 cut_plan = self.env['mrp_cut_plan.mrp_cut_plan'].create({
@@ -124,7 +130,7 @@ class SaleOrder(models.Model):
                 })
                 cut_plans_created |= cut_plan
 
-            # 🔥 CRIAR A ORDEM DE ENTREGA PRIMEIRO
+            # Processa entregas e OPs
             if cut_plans_created:
                 # Criar ordem de entrega para o pedido
                 first_plan = cut_plans_created[0]
@@ -145,7 +151,7 @@ class SaleOrder(models.Model):
                     )
                     plans_without_mo.button_create_po_multi()
 
-                    # 🔥 VINCULAR A ENTREGA CRIADA AOS PLANOS
+                    # Vincular a entrega criada aos planos
                     for plan in plans_without_mo:
                         if plan.sale_id:
                             plan._force_link_sale_to_productions()
