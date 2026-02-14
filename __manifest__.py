@@ -10,6 +10,7 @@
         'mrp_sale_info',
         'stock',
     ],
+
     'data': [
         'security/ir.model.access.csv',
         'data/ir_sequence_data.xml',
