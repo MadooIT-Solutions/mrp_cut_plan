@@ -17,15 +17,15 @@
 
 
 
-            <xpath expr="//notebook/page[@name='order_lines']//tree[1]/field[1]" position="after">
-                <field name="related_blue_area_calc" invisible="1"/>
-                <button name="button_configure_product"
-                    class="btn-secondary"
-                    type="object"
-                    string="Configure"
-                    attrs="{'invisible': ['|', ('related_blue_area_calc', '=', 'n'), ('related_blue_area_calc', '=', False)]}"
-                />
-            </xpath>
+<!--            <xpath expr="//notebook/page[@name='order_lines']//tree[1]/field[1]" position="after">-->
+<!--                <field name="related_blue_area_calc" invisible="1"/>-->
+<!--                <button name="button_configure_product"-->
+<!--                    class="btn-secondary"-->
+<!--                    type="object"-->
+<!--                    string="Configure"-->
+<!--                    attrs="{'invisible': ['|', ('related_blue_area_calc', '=', 'n'), ('related_blue_area_calc', '=', False)]}"-->
+<!--                />-->
+<!--            </xpath>-->
 
             <field name="incoterm" position="replace"/>
 
