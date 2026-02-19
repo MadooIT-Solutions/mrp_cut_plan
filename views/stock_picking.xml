@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-      <!-- VIEW PICKING — controle de campos invisíveis e botão validate -->
+    <!-- VIEW PICKING — controle de campos invisíveis e botão validate -->
     <record id="mrp_cut_picking_form_flow_control" model="ir.ui.view">
         <field name="name">stock.picking.form.flow.control</field>
         <field name="model">stock.picking</field>
@@ -37,10 +37,81 @@
             </xpath>
 
             <!-- Botão validate condicional -->
-            <button name="button_validate" position="attributes">
-                <attribute name="attrs">{'invisible':[('show_validate','=',False)]}</attribute>
-            </button>
+            <!--            <button name="button_validate" position="attributes">-->
+            <!--                <attribute name="attrs">{'invisible':[('show_validate','=',False)]}</attribute>-->
+            <!--            </button>-->
 
         </field>
     </record>
+
+    <record id="view_picking_form_hide_forecast_when_produced" model="ir.ui.view">
+        <field name="name">stock.picking.form.hide.forecast.produced</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+
+<!--            <xpath expr="//field[@name='move_ids_without_package']/tree" position="inside">-->
+<!--                <field name="is_produced_status"-->
+<!--                       widget="badge"-->
+<!--                       decoration-success="is_produced_status == 'yes'"-->
+<!--                       decoration-info="is_produced_status == 'started'"-->
+<!--                       decoration-danger="is_produced_status == 'no'"/>-->
+<!--            </xpath>-->
+<!--            <xpath expr="//field[@name='move_ids_without_package']/tree"-->
+<!--                   position="attributes">-->
+<!--                <attribute name="decoration-success">is_produced_status == 'yes'</attribute>-->
+<!--                <attribute name="decoration-info">is_produced_status == 'started'</attribute>-->
+<!--                <attribute name="decoration-danger">is_produced_status == 'no'</attribute>-->
+<!--            </xpath>-->
+
+
+<!--            <xpath expr="//field[@name='move_ids_without_package']/tree/field[@name='forecast_availability']"-->
+<!--                   position="attributes">-->
+<!--                <attribute name="attrs">{'invisible': [('is_produced_status', 'in', ('yes','started'))]}</attribute>-->
+<!--            </xpath>-->
+
+
+        </field>
+    </record>
+
+    <record id="view_picking_form_production_status_badge" model="ir.ui.view">
+        <field name="name">stock.picking.form.production.status.badge</field>
+        <field name="model">stock.picking</field>
+        <field name="inherit_id" ref="stock.view_picking_form"/>
+        <field name="arch" type="xml">
+
+            <!-- Insere status no cabeçalho -->
+            <xpath expr="//field[@name='origin']" position="after">
+                <field name="production_status"
+                       widget="badge"
+                       decoration-danger="production_status == 'not_started'"
+                       decoration-warning="production_status in ('started_partial', 'partial')"
+                       decoration-info="production_status == 'started'"
+                       decoration-success="production_status == 'ready'"
+                       readonly="1"/>
+            </xpath>
+
+        </field>
+    </record>
+
+    <record id="view_picking_tree_production_status_badge" model="ir.ui.view">
+    <field name="name">stock.picking.tree.production.status.badge</field>
+    <field name="model">stock.picking</field>
+    <field name="inherit_id" ref="stock.vpicktree"/>
+    <field name="arch" type="xml">
+
+        <!-- Inserir antes do campo Status -->
+        <xpath expr="//field[@name='state']" position="before">
+            <field name="production_status"
+                   widget="badge"
+                   decoration-danger="production_status == 'not_started'"
+                   decoration-warning="production_status in ('started_partial', 'partial')"
+                   decoration-info="production_status == 'started'"
+                   decoration-success="production_status == 'ready'"/>
+        </xpath>
+
+    </field>
+</record>
+
+
 </odoo>

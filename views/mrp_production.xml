@@ -13,21 +13,26 @@
             </xpath>
 
             <!-- RELACIONAMENTOS -->
+             <xpath expr="//field[@name='product_id']" position="after">
+                <field name="sale_line_description"/>
+             </xpath>
             <xpath expr="//field[@name='user_id']" position="after">
-                <group string="Relacionamentos">
+
 
                     <group>
-                        <field name="cut_plan_id" readonly="1"/>
+
                         <field name="parent_production_id"
                                readonly="1"
-                               attrs="{'invisible': [('parent_production_id', '=', False)]}"/>
+                               attrs="{'invisible': [('parent_production_id', '=', False)]}"
+
+                        />
                     </group>
 
                     <group attrs="{'invisible': [('child_production_ids', '=', [])]}">
-                        <field name="child_production_ids" readonly="1"/>
+                        <field name="child_production_ids" readonly="1" widget="many2many_tags"/>
                     </group>
 
-                </group>
+
             </xpath>
 
             <!-- MEDIDAS -->

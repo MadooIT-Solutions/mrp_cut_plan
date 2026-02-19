@@ -22,6 +22,12 @@ class MrpProduction(models.Model):
         copy=True, index=True
     )
 
+    sale_line_description = fields.Char(
+        string='Descrição do Pedido',
+        compute='_compute_sale_line_description',
+        store=True
+    )
+
     has_child_production = fields.Boolean(
         compute='_compute_has_child_production', store=True
     )
@@ -36,8 +42,18 @@ class MrpProduction(models.Model):
         readonly=False
     )
 
+
     # Flag para controle interno
     _parent_updating = False
+
+
+    @api.depends('cut_plan_id.sale_line_id')
+    def _compute_sale_line_description(self):
+        for line in self:
+            if line.cut_plan_id.sale_line_id:
+                line.sale_line_description = line.cut_plan_id.sale_line_id.name
+            else:
+                line.sale_line_description = line.cut_plan_id.sale_line_id.display_name
 
     def _is_parent_production(self):
         """Verifica se é OP pai"""
@@ -413,13 +429,58 @@ class MrpProduction(models.Model):
             })
 
     def write(self, vals):
-        if 'product_qty' in vals:
-            parent_mos = self.filtered(lambda m: m._is_parent_production())
-            if parent_mos:
-                _logger.info("🚫 OP PAI - bloqueando recálculo automático")
-                self = self.with_context(skip_set_qty_producing=True)
+        res = super().write(vals)
 
-        return super().write(vals)
+        if 'state' in vals:
+            sale_lines = self.mapped('cut_plan_id.sale_line_id')
+            pickings = self.env['stock.picking'].search([
+                ('move_ids_without_package.sale_line_id', 'in', sale_lines.ids)
+            ])
+            pickings._compute_production_status()
+
+        return res
+
+    def _on_production_done(self, mo):
+        # Só OP pai
+        if mo.parent_production_id:
+            return
+
+        cut_plan = mo.cut_plan_id
+        if not cut_plan or not cut_plan.sale_line_id:
+            return
+
+        sale_line = cut_plan.sale_line_id
+
+        moves = self.env['stock.move'].search([
+            ('sale_line_id', '=', sale_line.id),
+            ('picking_id.picking_type_id.code', '=', 'outgoing'),
+            ('state', 'not in', ('done', 'cancel')),
+        ])
+
+        _logger.info(
+            "OP %s FINALIZADA | Atualizando entrega | moves=%s",
+            mo.name,
+            moves.ids
+        )
+
+        for move in moves:
+            qty_done = move.product_uom_qty
+            if qty_done <= 0:
+                continue
+
+            if move.move_line_ids:
+                move.move_line_ids.write({'qty_done': qty_done})
+            else:
+                self.env['stock.move.line'].create({
+                    'move_id': move.id,
+                    'picking_id': move.picking_id.id,
+                    'product_id': move.product_id.id,
+                    'product_uom_id': move.product_uom.id,
+                    'qty_done': qty_done,
+                    'location_id': move.location_id.id,
+                    'location_dest_id': move.location_dest_id.id,
+                    'company_id': move.company_id.id,
+                })
 
     def _set_qty_producing(self):
 
@@ -441,6 +502,52 @@ class MrpProduction(models.Model):
             return
 
         return super()._set_qty_producing()
+
+    def _post_inventory(self, cancel_backorder=False):
+        """
+        Ao concluir OP PAI:
+        - atualiza qty_done nas entregas já existentes
+        - NÃO valida entrega
+        - NÃO cria novas entregas
+        - mantém fluxo padrão do stock
+        """
+        res = super()._post_inventory(cancel_backorder=cancel_backorder)
+
+        for production in self:
+
+            # 1️⃣ Apenas OP concluída
+            if production.state != 'done':
+                continue
+
+            # 2️⃣ Ignora OP filha
+            if production.parent_production_id:
+                continue
+
+            # 3️⃣ Precisa estar ligada a venda
+            cut_plan = production.cut_plan_id
+            if not cut_plan or not cut_plan.sale_line_id:
+                continue
+
+            sale_line = cut_plan.sale_line_id
+            sale_order = sale_line.order_id
+
+            # 4️⃣ Somente entregas já existentes
+            pickings = self.env['stock.picking'].search([
+                ('sale_id', '=', sale_order.id),
+                ('state', 'in', ('confirmed', 'assigned')),
+            ])
+
+            for picking in pickings:
+                moves = picking.move_ids.filtered(
+                    lambda m: m.sale_line_id == sale_line
+                )
+
+                for move in moves:
+                    if move.quantity_done < move.product_uom_qty:
+                        move._set_quantity_done(move.product_uom_qty)
+
+        return res
+
 
 
 

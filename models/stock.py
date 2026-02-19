@@ -23,6 +23,65 @@ class StockPicking(models.Model):
 
     customer = fields.Many2one('res.partner', string='Partner', compute="_compute_customer")
 
+    production_status = fields.Selection(
+        [
+            ('not_started', 'Não iniciado'),
+            ('started_partial', 'Iniciado parcialmente'),
+            ('started', 'Iniciado'),
+            ('partial', 'Parcialmente pronto'),
+            ('ready', 'Pronto'),
+        ],
+        string='Status da Produção',
+        compute='_compute_production_status',
+        default='not_started',
+        store=True,
+    )
+
+    def _compute_production_status(self):
+        MrpProduction = self.env['mrp.production']
+
+        for picking in self:
+            picking.production_status = 'not_started'
+
+            sale_lines = picking.move_ids_without_package.mapped('sale_line_id')
+            if not sale_lines:
+                continue
+
+            productions = MrpProduction.search([
+                ('cut_plan_id.sale_line_id', 'in', sale_lines.ids),
+                ('parent_production_id', '=', False),
+                ('state', '!=', 'cancel'),
+            ])
+
+            if not productions:
+                continue
+
+            confirmed = productions.filtered(
+                lambda p: p.state in ('confirmed', 'progress', 'done')
+            )
+
+            done = productions.filtered(lambda p: p.state == 'done')
+
+            # 1️⃣ Nada confirmado
+            if not confirmed:
+                picking.production_status = 'not_started'
+
+            # 2️⃣ Confirmado parcialmente
+            elif len(confirmed) < len(productions):
+                picking.production_status = 'started_partial'
+
+            # 3️⃣ Tudo confirmado, nada concluído
+            elif not done:
+                picking.production_status = 'started'
+
+            # 4️⃣ Concluído parcialmente
+            elif len(done) < len(productions):
+                picking.production_status = 'partial'
+
+            # 5️⃣ Tudo concluído
+            else:
+                picking.production_status = 'ready'
+
     def _compute_customer(self):
         """Computa o nome do cliente a partir do partner_id"""
         for picking in self:
@@ -85,9 +144,11 @@ class StockPicking(models.Model):
         return res
 
     def action_assign(self):
-        """
-        🔥 Bloqueia reserva se OP PAI não estiver concluída
-        """
+
+        # ✅ Libera reserva quando vier da OP pai
+        if self.env.context.get('from_mrp_production') or self.env.context.get('skip_op_check'):
+            return super().action_assign()
+
         for picking in self:
 
             sale_order = picking._get_related_sale_order()
@@ -95,22 +156,54 @@ class StockPicking(models.Model):
                 continue
 
             for move in picking.move_ids:
-                if not move.product_id:
+                if not move.product_id or not move.sale_line_id:
                     continue
 
-                # 🔎 Busca OP PAI pelo sale_id
-                parent_mo = self.env['mrp.production'].search([
-                    ('sale_id', '=', sale_order.id),
-                    ('parent_production_id', '=', False),
-                    ('product_id', '=', move.product_id.id),
-                    ('state', 'not in', ('cancel',)),
-                ], limit=1)
+                sale_line = move.sale_line_id
 
-                if parent_mo and parent_mo.state != 'done':
-                    # 🔥 Usa description_picking se existir
+                # --------------------------------------------------
+                # 1️⃣ Busca OPs PAI pela LINHA DE VENDA (correto)
+                # --------------------------------------------------
+                parent_mos = self.env['mrp.production'].search([
+                    ('cut_plan_id.sale_line_id', '=', sale_line.id),
+                    ('parent_production_id', '=', False),
+                    ('state', 'not in', ('cancel',)),
+                ])
+
+                if not parent_mos:
+                    continue
+
+                done_mos = parent_mos.filtered(lambda m: m.state == 'done')
+                pending_mos = parent_mos.filtered(lambda m: m.state != 'done')
+
+                # --------------------------------------------------
+                # 2️⃣ Se OP concluída → atualiza entrega
+                # --------------------------------------------------
+                if done_mos:
+                    qty = move.product_uom_qty
+
+                    # Atualiza quantidade feita
+                    if move.move_line_ids:
+                        move.move_line_ids.write({
+                            'qty_done': qty
+                        })
+                    else:
+                        move._set_quantity_done(qty)
+
+                    # Atualiza forecast
+                    move.write({
+                        'forecast_availability': qty
+                    })
+
+                # --------------------------------------------------
+                # 3️⃣ Se existir OP NÃO concluída → bloqueia
+                # --------------------------------------------------
+                if pending_mos:
+                    parent_mo = pending_mos[0]
+
                     description = (
                             move.description_picking
-                            or move.sale_line_id.name
+                            or sale_line.name
                             or move.product_id.display_name
                     )
 
@@ -155,6 +248,24 @@ class StockMove(models.Model):
         string='Calcular por Área',
         help='Indica que o consumo será calculado automaticamente (blue_m3)'
     )
+
+    is_produced_status = fields.Selection(
+        [
+            ('no', 'Não'),
+            ('started', 'Iniciado'),
+            ('yes', 'Sim'),
+        ],
+        string='Produzido',
+        compute='_compute_is_produced_status',
+        store=True,
+        readonly=True,
+        default='no'
+    )
+
+    @api.depends('sale_line_id', 'product_id')
+    def _compute_is_produced_status(self):
+        for move in self:
+            move.is_produced_status = 'yes' if move.is_produced_status else 'no'
 
     def _action_done(self, cancel_backorder=False):
         """Override para garantir atualização do consumo na OP pai"""
