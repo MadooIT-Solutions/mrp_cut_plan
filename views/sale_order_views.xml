@@ -27,11 +27,7 @@
                 />
             </xpath>
 
-            <field name="incoterm" position="replace"/>
 
-            <xpath expr="//field[@name='payment_term_id']" position="after">
-                <field name="incoterm" string="Frete"/>
-            </xpath>
         </field>
     </record>
 

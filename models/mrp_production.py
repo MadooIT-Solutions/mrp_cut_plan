@@ -42,6 +42,7 @@ class MrpProduction(models.Model):
         readonly=False
     )
 
+    sale_line = fields.Many2one('sale.order.line')
 
     # Flag para controle interno
     _parent_updating = False
@@ -192,7 +193,7 @@ class MrpProduction(models.Model):
                 'product_uom_id': product.uom_id.id,
                 'bom_id': bom.id,
                 'company_id': self.company_id.id,
-                'origin': f"{self.name}: {product.name}",
+                'origin': self.name,
                 'parent_production_id': self.id,
                 'cut_plan_id': self.cut_plan_id.id,
                 'sale_id': self.sale_id.id if self.sale_id else False,
@@ -251,7 +252,7 @@ class MrpProduction(models.Model):
                         'location_id': delivery.location_id.id,
                         'location_dest_id': delivery.location_dest_id.id,
                         'company_id': delivery.company_id.id,
-                        'sale_line_id': self.cut_plan_id.sale_line_id.id,
+                        'sale_line': self.sale_line.id,
                         'picking_id': delivery.id,
                         'description_picking': self.cut_plan_id.sale_line_id.name,
                     }
@@ -270,6 +271,52 @@ class MrpProduction(models.Model):
                 for c in mo.child_production_ids
             )
 
+    def _trigger_status_update(self):
+        """Dispara atualização dos campos de status relacionados usando a linha do pedido de venda"""
+        for production in self:
+            # Pega a linha do pedido de venda relacionada
+            sale_line = production.sale_line
+
+            if not sale_line:
+                _logger.info(f"⚠️ OP {production.name} sem linha de venda relacionada")
+                continue
+
+            _logger.info(f"🔄 Atualizando status para linha de venda: {sale_line.id} - {sale_line.name}")
+
+            # 1️⃣ Atualiza status nos stock.move relacionados à linha de venda
+            moves = self.env['stock.move'].search([
+                ('sale_line', '=', sale_line.id)
+            ])
+
+            if moves:
+                _logger.info(f"   📦 Atualizando {len(moves)} movimentos de estoque")
+                moves._compute_is_produced_status()
+
+            # 2️⃣ Atualiza status nos stock.picking relacionados à linha de venda
+            # Busca pickings que tenham movimentos com esta linha de venda
+            pickings = self.env['stock.picking'].search([
+                ('move_ids_without_package.sale_line_id', '=', sale_line.id)
+            ])
+
+            if pickings:
+                _logger.info(f"   📋 Atualizando {len(pickings)} entregas")
+                pickings._compute_production_status()
+
+            # 3️⃣ Também atualiza pickings diretamente ligados à venda (fallback)
+            if production.sale_id:
+                sale_pickings = self.env['stock.picking'].search([
+                    ('sale_id', '=', production.sale_id.id)
+                ])
+                if sale_pickings:
+                    _logger.info(f"   📋 Atualizando {len(sale_pickings)} entregas da venda")
+                    sale_pickings._compute_production_status()
+
+    def action_assign(self):
+        """Ao reservar OP, atualiza status"""
+        res = super().action_assign()
+        self._trigger_status_update()
+        return res
+
     def action_confirm(self):
         """
          Confirma a OP e suas respectivas OPs filhas
@@ -277,8 +324,11 @@ class MrpProduction(models.Model):
         _logger.info(f"🔍 action_confirm chamado para {len(self)} OPs")
         _logger.info(f"📋 IDs das OPs que estão sendo confirmadas AGORA: {self.ids}")
 
+
+
         res = super().action_confirm()
 
+        self._trigger_status_update()
         # Depois de confirmar, busca e confirma as filhas APENAS das OPs que foram confirmadas
         for mo in self:
             _logger.info(f"📋 Verificando filhas da OP: {mo.name} (ID: {mo.id})")
@@ -299,6 +349,14 @@ class MrpProduction(models.Model):
                     super(MrpProduction, child).action_confirm()
                     _logger.info(f"   - Filha {child.name} confirmada")
 
+
+
+        return res
+
+    def action_cancel(self):
+        """Ao cancelar OP, atualiza status"""
+        res = super().action_cancel()
+        self._trigger_status_update()
         return res
 
     def button_mark_done(self):
@@ -331,6 +389,8 @@ class MrpProduction(models.Model):
 
             for picking in pickings:
                 picking.action_assign()
+
+        self._trigger_status_update()
 
         return res
 
@@ -436,7 +496,7 @@ class MrpProduction(models.Model):
             pickings = self.env['stock.picking'].search([
                 ('move_ids_without_package.sale_line_id', 'in', sale_lines.ids)
             ])
-            pickings._compute_production_status()
+            self._trigger_status_update()
 
         return res
 
@@ -452,7 +512,7 @@ class MrpProduction(models.Model):
         sale_line = cut_plan.sale_line_id
 
         moves = self.env['stock.move'].search([
-            ('sale_line_id', '=', sale_line.id),
+            ('sale_line', '=', sale_line.id),
             ('picking_id.picking_type_id.code', '=', 'outgoing'),
             ('state', 'not in', ('done', 'cancel')),
         ])

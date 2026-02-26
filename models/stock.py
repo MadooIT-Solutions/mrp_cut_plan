@@ -37,50 +37,64 @@ class StockPicking(models.Model):
         store=True,
     )
 
+    @api.depends('move_ids_without_package.is_produced_status')
     def _compute_production_status(self):
-        MrpProduction = self.env['mrp.production']
-
+        """
+        Computa o status da produção baseado no is_produced_status das linhas de movimento
+        """
         for picking in self:
-            picking.production_status = 'not_started'
-
-            sale_lines = picking.move_ids_without_package.mapped('sale_line_id')
-            if not sale_lines:
-                continue
-
-            productions = MrpProduction.search([
-                ('cut_plan_id.sale_line_id', 'in', sale_lines.ids),
-                ('parent_production_id', '=', False),
-                ('state', '!=', 'cancel'),
-            ])
-
-            if not productions:
-                continue
-
-            confirmed = productions.filtered(
-                lambda p: p.state in ('confirmed', 'progress', 'done')
+            # Pega todos os moves que têm is_produced_status diferente de 'no'
+            moves_with_production = picking.move_ids_without_package.filtered(
+                lambda m: m.is_produced_status != 'no'
             )
 
-            done = productions.filtered(lambda p: p.state == 'done')
+            if not moves_with_production:
+                picking.production_status = 'not_started'
+                continue
 
-            # 1️⃣ Nada confirmado
-            if not confirmed:
+            # Contagem de status
+            total_moves = len(moves_with_production)
+            confirmed_moves = len(moves_with_production.filtered(
+                lambda m: m.is_produced_status == 'confirmed'
+            ))
+            started_moves = len(moves_with_production.filtered(
+                lambda m: m.is_produced_status == 'started'
+            ))
+            done_moves = len(moves_with_production.filtered(
+                lambda m: m.is_produced_status == 'yes'
+            ))
+
+            _logger.info(f"📋 Calculando status para picking {picking.name}")
+            _logger.info(f"   Total moves: {total_moves}")
+            _logger.info(f"   Confirmados: {confirmed_moves}")
+            _logger.info(f"   Iniciados: {started_moves}")
+            _logger.info(f"   Concluídos: {done_moves}")
+
+            # 1️⃣ Nada confirmado (só draft)
+            if confirmed_moves == 0 and started_moves == 0 and done_moves == 0:
                 picking.production_status = 'not_started'
 
-            # 2️⃣ Confirmado parcialmente
-            elif len(confirmed) < len(productions):
+            # 2️⃣ Confirmado parcialmente (alguns confirmados, outros não)
+            elif confirmed_moves > 0 and (confirmed_moves + started_moves + done_moves) < total_moves:
                 picking.production_status = 'started_partial'
 
-            # 3️⃣ Tudo confirmado, nada concluído
-            elif not done:
+            # 3️⃣ Tudo confirmado, nada iniciado nem concluído
+            elif confirmed_moves == total_moves:
                 picking.production_status = 'started'
 
-            # 4️⃣ Concluído parcialmente
-            elif len(done) < len(productions):
+            # 4️⃣ Concluído parcialmente (alguns concluídos, outros em andamento/confirmados)
+            elif done_moves > 0 and done_moves < total_moves:
                 picking.production_status = 'partial'
 
             # 5️⃣ Tudo concluído
-            else:
+            elif done_moves == total_moves:
                 picking.production_status = 'ready'
+
+            # 6️⃣ Caso padrão (mistura de iniciados com outros status)
+            else:
+                picking.production_status = 'started_partial'
+
+            _logger.info(f"   ✅ Status final: {picking.production_status}")
 
     def _compute_customer(self):
         """Computa o nome do cliente a partir do partner_id"""
@@ -144,13 +158,12 @@ class StockPicking(models.Model):
         return res
 
     def action_assign(self):
-
-        # ✅ Libera reserva quando vier da OP pai
-        if self.env.context.get('from_mrp_production') or self.env.context.get('skip_op_check'):
+        # ✅ Libera reserva quando vier da OP pai ou durante criação do pedido
+        if self.env.context.get('from_mrp_production') or self.env.context.get('skip_op_check') or self.env.context.get(
+                'from_sale_order_confirmation'):
             return super().action_assign()
 
         for picking in self:
-
             sale_order = picking._get_related_sale_order()
             if not sale_order:
                 continue
@@ -162,16 +175,50 @@ class StockPicking(models.Model):
                 sale_line = move.sale_line_id
 
                 # --------------------------------------------------
-                # 1️⃣ Busca OPs PAI pela LINHA DE VENDA (correto)
+                # 1️⃣ Busca OPs PAI pela LINHA DE VENDA (considerando plano de corte)
                 # --------------------------------------------------
-                parent_mos = self.env['mrp.production'].search([
-                    ('cut_plan_id.sale_line_id', '=', sale_line.id),
+                domain = [
+                    ('sale_id', '=', sale_order.id),
+                    ('product_id', '=', move.product_id.id),
                     ('parent_production_id', '=', False),
                     ('state', 'not in', ('cancel',)),
-                ])
+                ]
+
+                # 🔥 Se a linha de venda tem plano de corte, buscar pelo cut_plan_id
+                cut_plan = self.env['mrp_cut_plan.mrp_cut_plan'].search([
+                    ('sale_line_id', '=', sale_line.id),
+                    ('product_id', '=', move.product_id.id)
+                ], limit=1)
+
+                if cut_plan:
+                    # Para produtos com plano de corte, buscar OPs específicas deste plano
+                    domain.append(('cut_plan_id', '=', cut_plan.id))
+                    _logger.info(
+                        f"🔍 Buscando OP para produto com plano de corte: {move.product_id.name} - Plano: {cut_plan.name}")
+                else:
+                    # Para produtos sem plano de corte, buscar qualquer OP do produto
+                    _logger.info(f"🔍 Buscando OP para produto sem plano de corte: {move.product_id.name}")
+
+                parent_mos = self.env['mrp.production'].search(domain)
 
                 if not parent_mos:
+                    # 🔥 Se não encontrou pelo cut_plan, tenta buscar sem ele (para produtos sem plano)
+                    if not cut_plan:
+                        fallback_domain = [
+                            ('sale_id', '=', sale_order.id),
+                            ('product_id', '=', move.product_id.id),
+                            ('parent_production_id', '=', False),
+                            ('state', 'not in', ('cancel',)),
+                        ]
+                        parent_mos = self.env['mrp.production'].search(fallback_domain)
+                        if parent_mos:
+                            _logger.info(f"   ✅ Encontrada OP sem plano de corte: {parent_mos[0].name}")
                     continue
+
+                # Log para debug
+                for mo in parent_mos:
+                    _logger.info(
+                        f"   OP encontrada: {mo.name} - Estado: {mo.state} - Plano: {mo.cut_plan_id.name if mo.cut_plan_id else 'Sem plano'}")
 
                 done_mos = parent_mos.filtered(lambda m: m.state == 'done')
                 pending_mos = parent_mos.filtered(lambda m: m.state != 'done')
@@ -196,10 +243,12 @@ class StockPicking(models.Model):
                     })
 
                 # --------------------------------------------------
-                # 3️⃣ Se existir OP NÃO concluída → bloqueia
+                # 3️⃣ Só bloqueia se tiver OP CONFIRMADA (não em draft)
                 # --------------------------------------------------
-                if pending_mos:
-                    parent_mo = pending_mos[0]
+                confirmed_pending = pending_mos.filtered(lambda m: m.state in ['confirmed', 'progress'])
+
+                if confirmed_pending:
+                    parent_mo = confirmed_pending[0]
 
                     description = (
                             move.description_picking
@@ -207,19 +256,27 @@ class StockPicking(models.Model):
                             or move.product_id.display_name
                     )
 
+                    # 🔥 Incluir informação do plano de corte na mensagem de erro
+                    plan_info = f" - Plano: {parent_mo.cut_plan_id.name}" if parent_mo.cut_plan_id else ""
+
                     raise UserError(_(
                         "❌ Produto ainda não disponível para entrega.\n\n"
                         "Descrição: %(description)s\n"
-                        "Produto: %(product)s\n"
+                        "Produto: %(product)s%(plan_info)s\n"
                         "OP Pai: %(mo)s\n"
                         "Status da OP: %(state)s\n\n"
                         "A entrega só pode ser reservada após a conclusão da OP Pai."
                     ) % {
                                         'description': description,
                                         'product': move.product_id.display_name,
+                                        'plan_info': plan_info,
                                         'mo': parent_mo.name,
                                         'state': parent_mo.state,
                                     })
+                else:
+                    # 🔥 Se só tem OPs em draft, permite a reserva
+                    _logger.info(
+                        f"✅ Permitindo reserva para {move.product_id.name} - OPs em draft: {[mo.name for mo in pending_mos]}")
 
         return super().action_assign()
 
@@ -227,7 +284,7 @@ class StockPicking(models.Model):
 class StockMove(models.Model):
     _inherit = 'stock.move'
 
-    sale_order_line_id = fields.Many2one(
+    sale_line = fields.Many2one(
         'sale.order.line',
         string='Linha do Pedido de Venda',
         help='Relacionamento direto com a linha do pedido de venda'
@@ -249,9 +306,12 @@ class StockMove(models.Model):
         help='Indica que o consumo será calculado automaticamente (blue_m3)'
     )
 
+
+
     is_produced_status = fields.Selection(
         [
             ('no', 'Não'),
+            ('confirmed', 'Confirmado'),
             ('started', 'Iniciado'),
             ('yes', 'Sim'),
         ],
@@ -262,10 +322,34 @@ class StockMove(models.Model):
         default='no'
     )
 
-    @api.depends('sale_line_id', 'product_id')
+    @api.depends('sale_line')
     def _compute_is_produced_status(self):
+        """Computa se o produto já foi produzido baseado na OP relacionada"""
         for move in self:
-            move.is_produced_status = 'yes' if move.is_produced_status else 'no'
+            if not move.sale_line:
+                move.is_produced_status = 'no'
+                continue
+
+            producao = self.env['mrp.production'].search([
+                ('sale_line', '=', move.sale_line.id)
+            ], limit=1)
+
+            if not producao:
+                move.is_produced_status = 'no'
+                continue
+
+            status = producao.state
+            if status == 'draft':
+                move.is_produced_status = 'no'
+            elif status == 'confirmed':
+                move.is_produced_status = 'confirmed'
+            elif status == 'progress':
+                move.is_produced_status = 'started'
+            elif status == 'done':
+                move.is_produced_status = 'yes'
+            else:
+                move.is_produced_status = 'no'
+
 
     def _action_done(self, cancel_backorder=False):
         """Override para garantir atualização do consumo na OP pai"""
@@ -373,11 +457,11 @@ class StockMoveLine(models.Model):
         store=True
     )
 
-    @api.depends('move_id.sale_order_line_id', 'move_id.sale_order_line_id.name')
+    @api.depends('move_id.sale_line', 'move_id.sale_line.name')
     def _compute_sale_line_description(self):
         for move_line in self:
-            if move_line.move_id.sale_order_line_id:
-                move_line.sale_line_description = move_line.move_id.sale_order_line_id.name
+            if move_line.move_id.sale_line:
+                move_line.sale_line_description = move_line.move_id.sale_line.name
             else:
                 move_line.sale_line_description = move_line.product_id.display_name
 

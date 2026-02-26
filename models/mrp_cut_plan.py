@@ -279,7 +279,7 @@ class MrpCutPlan(models.Model):
             'product_uom_qty': self.blue_qty,
             'product_uom': self.product_uom_id.id,
             'picking_id': picking.id,
-            'sale_line_id': self.sale_line_id.id,
+            'sale_line': self.sale_line_id.id,
             'location_id': picking.location_id.id,
             'location_dest_id': picking.location_dest_id.id,
             'company_id': picking.company_id.id,
@@ -392,7 +392,7 @@ class MrpCutPlan(models.Model):
             'location_id': delivery.location_id.id,
             'location_dest_id': delivery.location_dest_id.id,
             'company_id': delivery.company_id.id,
-            'sale_line_id': self.sale_line_id.id,
+            'sale_line': self.sale_line_id.id,
             'picking_id': delivery.id,
             'description_picking': self.sale_line_id.name,  # 🔥 CAMPO ESPECÍFICO
         }
@@ -550,6 +550,7 @@ class MrpCutPlan(models.Model):
                 _logger.warning(f"   Sale Name: {record.sale_id.name if record.sale_id else 'None'}")
                 _logger.warning(f"   Product: {record.product_id.name}")
                 _logger.warning(f"   Qty: {record.blue_qty}")
+                _logger.warning(f"   Origin (blue_origin): {record.blue_origin}")  # 🔥 VERIFICAR
 
                 # 🔹 Criação da OP para o registro atual
                 production_data = {
@@ -563,8 +564,9 @@ class MrpCutPlan(models.Model):
                     'bom_id': record.blue_bom_template_id.id,
                     'product_qty': record.blue_qty,
                     'partner_id': record.partner_id.id,
-                    'origin': record.name,
+                    'origin': record.blue_origin,
                     'sale_id': record.sale_id.id if record.sale_id else False,
+                    'sale_line': record.sale_line_id.id,
                     'source_procurement_group_id': venda.id if venda else False,
                 }
 
