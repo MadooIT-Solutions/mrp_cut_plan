@@ -488,6 +488,9 @@ class MrpCutPlan(models.Model):
         return self.button_create_po_multi()
 
     def button_create_po_multi(self):
+        """
+        Cria ordens de produção para múltiplos planos de corte
+        """
         # 🔥 Verificar se temos registros no recordset OU no contexto
         if not self and not self.env.context.get('active_ids'):
             raise UserError(_("Por favor, selecione pelo menos um registro na listagem."))
@@ -507,30 +510,54 @@ class MrpCutPlan(models.Model):
         if not plans_without_mo:
             raise UserError(_("Todos os planos de corte selecionados já possuem ordens de produção."))
 
-        # 🔹 Preparar dados comuns apenas uma vez
-        company_matrix = self.env['res.company'].search([('name', '=', 'Polispan')], limit=1)
-        if not company_matrix:
-            raise UserError("❌ Empresa matriz (Polispan) não encontrada.")
+        # 🔥 VERIFICAR SE TODOS OS PLANOS TÊM A MESMA EMPRESA
+        companies = set()
+        for plan in plans_without_mo:
+            plan_company = plan.company_id or (plan.sale_id and plan.sale_id.company_id)
+            if plan_company:
+                companies.add(plan_company.id)
 
-        warehouse_matrix = self.env['stock.warehouse'].search([('company_id', '=', company_matrix.id)], limit=1)
-        if not warehouse_matrix:
-            raise UserError("❌ Nenhum armazém encontrado para a matriz (Polispan).")
+        if len(companies) > 1:
+            _logger.warning(f"⚠️ Planos de empresas diferentes detectados: {companies}")
+            # Opção 1: Usar a empresa do ambiente
+            company = self.env.company
+            _logger.warning(f"🏢 Usando empresa do ambiente: {company.name}")
+            # Opção 2: Levantar erro (descomente se preferir)
+            # raise UserError("Não é possível processar planos de empresas diferentes simultaneamente.")
+        elif len(companies) == 1:
+            company_id = list(companies)[0]
+            company = self.env['res.company'].browse(company_id)
+            _logger.warning(f"🏢 Todos os planos usam a mesma empresa: {company.name}")
+        else:
+            # Nenhuma empresa definida, usar empresa do ambiente
+            company = self.env.company
+            _logger.warning(f"🏢 Nenhuma empresa definida nos planos, usando empresa do ambiente: {company.name}")
 
-        # Encontrar o picking_type_id correto da matriz
-        picking_type_matrix = self.env['stock.picking.type'].search([
-            ('warehouse_id', '=', warehouse_matrix.id),
+        # 🔥 VERIFICAR SE A EMPRESA EXISTE
+        if not company:
+            raise UserError("❌ Nenhuma empresa válida encontrada para criar as ordens de produção.")
+
+        # 🔥 BUSCAR ARMAZÉM DA EMPRESA
+        warehouse = self.env['stock.warehouse'].search([('company_id', '=', company.id)], limit=1)
+        if not warehouse:
+            raise UserError(f"❌ Nenhum armazém encontrado para a empresa {company.name}.")
+
+        # 🔥 BUSCAR PICKING TYPE DE FABRICAÇÃO
+        picking_type = self.env['stock.picking.type'].search([
+            ('warehouse_id', '=', warehouse.id),
             ('code', '=', 'mrp_operation')
         ], limit=1)
 
-        if not picking_type_matrix:
-            picking_type_matrix = self.env['stock.picking.type'].search([
-                ('warehouse_id', '=', warehouse_matrix.id),
+        if not picking_type:
+            # Se não encontrar o específico, pega qualquer picking type do armazém
+            picking_type = self.env['stock.picking.type'].search([
+                ('warehouse_id', '=', warehouse.id),
             ], limit=1)
 
-        if not picking_type_matrix:
-            raise UserError("❌ Tipo de operação de fabricação não encontrado para a matriz.")
+        if not picking_type:
+            raise UserError(f"❌ Tipo de operação de fabricação não encontrado para a empresa {company.name}.")
 
-        _logger.warning(f"🔍 DEBUG: Usando picking_type_id da matriz: {picking_type_matrix.name}")
+        _logger.warning(f"🔍 Usando picking_type: {picking_type.name} para empresa {company.name}")
 
         created_orders = []
         deliveries_created = {}
@@ -538,6 +565,11 @@ class MrpCutPlan(models.Model):
         # 🔹 Iterar sobre TODOS os registros selecionados (apenas os sem OP)
         for record in plans_without_mo:
             try:
+                # 🔥 GARANTIR QUE O PLANO ESTÁ NA MESMA EMPRESA
+                if record.company_id and record.company_id.id != company.id:
+                    _logger.warning(f"⚠️ Ajustando empresa do plano {record.name} para {company.name}")
+                    record.write({'company_id': company.id})
+
                 # Atualizar estado do registro atual
                 record.state = 'prod_order'
 
@@ -550,14 +582,15 @@ class MrpCutPlan(models.Model):
                 _logger.warning(f"   Sale Name: {record.sale_id.name if record.sale_id else 'None'}")
                 _logger.warning(f"   Product: {record.product_id.name}")
                 _logger.warning(f"   Qty: {record.blue_qty}")
-                _logger.warning(f"   Origin (blue_origin): {record.blue_origin}")  # 🔥 VERIFICAR
+                _logger.warning(f"   Origin (blue_origin): {record.blue_origin}")
+                _logger.warning(f"   Empresa: {company.name} (ID: {company.id})")
 
                 # 🔹 Criação da OP para o registro atual
                 production_data = {
-                    'company_id': company_matrix.id,
-                    'location_src_id': warehouse_matrix.lot_stock_id.id,
-                    'location_dest_id': warehouse_matrix.lot_stock_id.id,
-                    'picking_type_id': picking_type_matrix.id,
+                    'company_id': company.id,
+                    'location_src_id': warehouse.lot_stock_id.id,
+                    'location_dest_id': warehouse.lot_stock_id.id,
+                    'picking_type_id': picking_type.id,
                     'cut_plan_id': record.id,
                     'product_id': record.product_id.id,
                     'product_uom_id': record.product_id.uom_id.id,
@@ -573,10 +606,10 @@ class MrpCutPlan(models.Model):
                 if data_plan:
                     production_data['date_planned_start'] = data_plan
 
-                # Criar OP pai
-                production_order = self.env['mrp.production'].with_company(company_matrix).with_context(
-                    allowed_company_ids=[company_matrix.id],
-                    company_id=company_matrix.id
+                # Criar OP pai com contexto da empresa correta
+                production_order = self.env['mrp.production'].with_company(company).with_context(
+                    allowed_company_ids=[company.id],
+                    company_id=company.id
                 ).create(production_data)
 
                 # 🔥 LOG para confirmar que sale_id foi salvo
@@ -655,7 +688,8 @@ class MrpCutPlan(models.Model):
                         existing_delivery = self.env['stock.picking'].search([
                             ('sale_id', '=', sale.id),
                             ('picking_type_id.code', '=', 'outgoing'),
-                            ('state', 'not in', ['cancel'])
+                            ('state', 'not in', ['cancel']),
+                            ('company_id', '=', company.id)  # Filtrar por empresa
                         ], limit=1)
 
                         if not existing_delivery:
