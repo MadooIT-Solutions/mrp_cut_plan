@@ -146,45 +146,36 @@ class SaleOrderLine(models.Model):
             'target': 'new',
         }
 
-    @api.model
-    def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
-        """Sobrescreve read_group para somar subcategorias dentro das categorias pai"""
-
-        # Verifica se estamos agrupando por categoria no pivô
-        is_category_group = any('categ_id' in g for g in groupby)
-
-        if not is_category_group:
-            return super().read_group(domain, fields, groupby, offset, limit, orderby, lazy)
-
-        # 1. Executa o agrupamento original
-        res = super().read_group(domain, fields, groupby, offset, limit, orderby, lazy)
-
-        # 2. Se agrupamento for por categoria, processa hierarquia
-        category_group = [g for g in groupby if 'categ_id' in g]
-        if category_group and 'complete_name_store' in str(category_group):
-            return self._process_category_hierarchy(res, fields)
-
-        return res
 
     def _process_category_hierarchy(self, read_group_results, fields):
         """Processa os resultados do read_group para somar pais com filhos"""
+
+        # Verifica se read_group_results é válido
+        if not read_group_results:
+            return []
 
         # Mapeia cada caminho completo para seu total
         category_totals = {}
         category_names = {}
 
         for result in read_group_results:
-            # Extrai o caminho completo
+            # Verifica se result existe
+            if not result:
+                continue
+
+            # Extrai o caminho completo com verificação segura
             path = result.get('product_id.categ_id.complete_name_store')
-            if not path:
+            if not path or not isinstance(path, str):
                 continue
 
             category_totals[path] = result.get('price_subtotal', 0)
             category_names[path] = result.get('product_id.categ_id.complete_name_store_display_name', path)
 
-        # Calcula totais para pais (soma de todos os filhos)
+        # Calcula totais para pais
         parent_totals = {}
         for path, total in category_totals.items():
+            if not path:
+                continue
             parts = path.split(' / ')
             for i in range(len(parts)):
                 parent_path = ' / '.join(parts[:i + 1])
@@ -195,26 +186,26 @@ class SaleOrderLine(models.Model):
         processed_paths = set()
 
         for path, total in parent_totals.items():
-            if path not in processed_paths:
+            if path and path not in processed_paths:
                 # Cria um resultado fictício para o pai
                 parent_result = {
                     'product_id.categ_id.complete_name_store': path,
                     'product_id.categ_id.complete_name_store_display_name': path,
                     'price_subtotal': total,
-                    '__count': 0,  # Pode não ser preciso
-                    '__domain': [],  # Será preenchido automaticamente
+                    '__count': 0,
+                    '__domain': [],
                 }
 
-                # Adiciona campos adicionais que existirem nos fields
+                # Adiciona campos adicionais
                 for field in fields:
-                    if field not in parent_result:
+                    if field and field not in parent_result:
                         parent_result[field] = 0
 
                 new_results.append(parent_result)
                 processed_paths.add(path)
 
-        # Ordena por hierarquia (pais primeiro)
-        new_results.sort(key=lambda x: x['product_id.categ_id.complete_name_store'])
+        # Ordena por hierarquia
+        new_results.sort(key=lambda x: x.get('product_id.categ_id.complete_name_store', ''))
 
         return new_results
 
@@ -256,33 +247,36 @@ class SaleOrderLine(models.Model):
     @api.model
     def read_group(self, domain, fields, groupby, offset=0, limit=None, orderby=False, lazy=True):
         """Soma valores dos filhos nas categorias pai"""
-        if 'categ_display_name' in str(groupby):
-            res = super().read_group(domain, fields, groupby, offset, limit, orderby, lazy)
 
-            # Soma os filhos nos pais
-            parent_totals = {}
-            for line in res:
-                path = line.get('categ_display_name')
-                if path:
-                    parts = path.split(' / ')
-                    for i in range(len(parts)):
-                        parent_path = ' / '.join(parts[:i + 1])
-                        parent_totals[parent_path] = parent_totals.get(parent_path, 0) + line.get('price_subtotal', 0)
+        if 'categ_display_name' not in str(groupby):
+            return super().read_group(domain, fields, groupby, offset, limit, orderby, lazy)
 
-            # Recria resultados
-            new_res = []
-            seen = set()
-            for path, total in parent_totals.items():
-                if path not in seen:
-                    new_res.append({
-                        'categ_display_name': path,
-                        'categ_display_name_display_name': path,
+        # Obtém resultados originais
+        result = super().read_group(domain, fields, groupby, offset, limit, orderby, lazy)
+
+        if not result:
+            return result
+
+        # Calcula totais dos pais (primeiro nível apenas)
+        parent_totals = {}
+        for line in result:
+            path = line.get('categ_display_name')
+            if path and ' / ' in path:
+                parent = path.split(' / ')[0]
+                parent_totals[parent] = parent_totals.get(parent, 0) + line.get('price_subtotal', 0)
+
+        # Adiciona totais dos pais como novas linhas
+        added_parents = set()
+        for parent, total in parent_totals.items():
+            if parent not in added_parents:
+                # Verifica se já existe linha para este pai
+                parent_exists = any(r.get('categ_display_name') == parent for r in result)
+                if not parent_exists:
+                    result.append({
+                        'categ_display_name': parent,
                         'price_subtotal': total,
                         '__count': 0,
                     })
-                    seen.add(path)
+                added_parents.add(parent)
 
-            new_res.sort(key=lambda x: x['categ_display_name'])
-            return new_res
-
-        return super().read_group(domain, fields, groupby, offset, limit, orderby, lazy)
+        return result
