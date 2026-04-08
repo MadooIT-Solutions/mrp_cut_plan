@@ -452,18 +452,6 @@ class MrpCutPlan(models.Model):
         sale.mrp_production_count = len(mrp_production_ids)
         sale.mrp_production_ids = mrp_production_ids
 
-    def _calculate_component_quantity(self, bom_line):
-        """Calculate component quantity based on BOM line and cut plan"""
-        if bom_line.product_id.blue_area_calc in ['llh', 'm']:
-            if bom_line.blue_multiplier:
-                return bom_line.product_qty
-            else:
-                return self.blue_m3
-        else:
-            if bom_line.blue_multiplier:
-                return bom_line.product_qty
-            else:
-                return (self.blue_qty / self.blue_bom_template_id.product_qty) * bom_line.product_qty
 
     def _prepare_child_production_vals(self, bom_line, quantity):
         vals = super()._prepare_child_production_vals(bom_line, quantity)
@@ -576,14 +564,7 @@ class MrpCutPlan(models.Model):
                 venda = record.sale_id.procurement_group_id if record.sale_id else False
                 data_plan = record.sale_id.commitment_date if record.sale_id else False
 
-                # 🔥 LOG para debug
-                _logger.warning(f"🔍 Criando OP para plano {record.name}")
-                _logger.warning(f"   Sale ID: {record.sale_id.id if record.sale_id else 'None'}")
-                _logger.warning(f"   Sale Name: {record.sale_id.name if record.sale_id else 'None'}")
-                _logger.warning(f"   Product: {record.product_id.name}")
-                _logger.warning(f"   Qty: {record.blue_qty}")
-                _logger.warning(f"   Origin (blue_origin): {record.blue_origin}")
-                _logger.warning(f"   Empresa: {company.name} (ID: {company.id})")
+
 
                 # 🔹 Criação da OP para o registro atual
                 production_data = {
@@ -600,6 +581,8 @@ class MrpCutPlan(models.Model):
                     'origin': record.blue_origin,
                     'sale_id': record.sale_id.id if record.sale_id else False,
                     'sale_line_id': record.sale_line_id.id,
+                    'blue_m2': record.sale_line_id.blue_m2,
+                    'blue_m3': record.sale_line_id.blue_m3,
                     'source_procurement_group_id': venda.id if venda else False,
                 }
 
@@ -630,11 +613,20 @@ class MrpCutPlan(models.Model):
                 for bom_line in record.blue_bom_template_id.bom_line_ids:
                     for move in production_order.move_raw_ids:
                         if move.product_id == bom_line.product_id:
-                            if move.product_id.blue_area_calc in ['llh', 'm']:
+                            # Nova lógica: Se OP é 'llh' ou 'm' e componente é 'massa', calcular quantidade como blue_m2 / cement
+                            if production_order.product_id.blue_area_calc in ['llh', 'm'] and bom_line.product_id.blue_area_calc == 'massa':
+                                cement = bom_line.product_id.cement
+                                if cement > 0:
+                                    move.product_uom_qty = production_order.blue_m2 * cement
+                                else:
+                                    move.product_uom_qty = 0
+                                    _logger.warning(
+                                        f"Cement <= 0 para produto {bom_line.product_id.name}, definindo quantidade como 0")
+                            elif move.product_id.blue_area_calc in ['llh', 'm']:
                                 if bom_line.blue_multiplier:
                                     move.product_uom_qty = bom_line.product_qty
                                 else:
-                                    move.product_uom_qty = record.blue_m3
+                                    move.product_uom_qty = production_order.blue_m3
                             else:
                                 if bom_line.blue_multiplier:
                                     move.product_uom_qty = bom_line.product_qty
@@ -646,16 +638,16 @@ class MrpCutPlan(models.Model):
 
                             # Usar record.related_type (que existe no cut plan)
                             if record.related_type == 'm':
-                                if move.product_id.boolean_coefficient_or_screen == 'tl':
-                                    move.product_uom_qty = record.blue_m2
-                                elif move.product_id.boolean_coefficient_or_screen == 'coe':
+                                if move.product_id.boolean_coefficient_or_screen == 'tl' and move.product_id.blue_area_calc != 'massa':
+                                    move.product_uom_qty = production_order.blue_m2
+                                elif move.product_id.boolean_coefficient_or_screen == 'coe' and move.product_id.blue_area_calc != 'massa':
                                     template_price_config_id = self.env['mrp_cut_plan.template_price_config'].search([
                                         ('product_id', '=', record.product_id.id)
                                     ], limit=1)
                                     if template_price_config_id:
-                                        move.product_uom_qty = record.blue_m2 * template_price_config_id.mortar_coefficient
+                                        move.product_uom_qty = production_order.blue_m2 * template_price_config_id.mortar_coefficient
                                     else:
-                                        move.product_uom_qty = record.blue_m2 * 0
+                                        move.product_uom_qty = 0
 
                 # 🔥 CRIAR OPs FILHAS
                 production_order._create_child_productions_from_components()
@@ -782,73 +774,6 @@ class MrpCutPlan(models.Model):
                             'sale_id': self.sale_id.id
                         })
                         _logger.info(f"      ✅ OP filha {child.name} vinculada ao pedido {self.sale_id.name}")
-
-    def _verify_and_fix_parent_quantities(self):
-        """
-        Verifica e corrige quantidades na OP pai
-        """
-        self.ensure_one()
-
-        if not self.cut_plan_id or not self.bom_id:
-            return
-
-        _logger.info(f"🔍 _verify_and_fix_parent_quantities para {self.name}")
-        _logger.info(f"   Product Qty: {self.product_qty}")
-        _logger.info(f"   BOM Product Qty: {self.bom_id.product_qty}")
-
-        fixed_count = 0
-        for move in self.move_raw_ids:
-            # Busca linha da BOM
-            bom_line = self.bom_id.bom_line_ids.filtered(
-                lambda l: l.product_id == move.product_id
-            )
-
-            if not bom_line:
-                continue
-
-            bom_qty = bom_line.product_qty
-            actual_qty = move.product_uom_qty
-
-            # 🔥 CALCULA O QUE DEVERIA SER - CORREÇÃO CRÍTICA!
-            if bom_line.blue_multiplier:
-                expected_qty = bom_qty
-            elif bom_line.calc:
-                # 🔥 CRÍTICO: OP PAI NÃO USA blue_m3! Usa quantidade proporcional
-                if self.bom_id.product_qty > 0:
-                    expected_qty = (self.product_qty / self.bom_id.product_qty) * bom_qty
-                else:
-                    expected_qty = bom_qty
-                _logger.warning(f"   ⚠️  Componente {move.product_id.name} tem calc=True na OP pai")
-                _logger.warning(f"     Usando quantidade PROPORCIONAL: {expected_qty}")
-            else:
-                # Proporcional
-                if self.bom_id.product_qty > 0:
-                    expected_qty = (self.product_qty / self.bom_id.product_qty) * bom_qty
-                else:
-                    expected_qty = bom_qty
-
-            # Se a quantidade está errada, corrige
-            if abs(actual_qty - expected_qty) > 0.0001:  # Tolerância pequena
-                _logger.warning(f"   ❌ Quantidade errada para {move.product_id.name}")
-                _logger.warning(f"     Esperado: {expected_qty}")
-                _logger.warning(f"     Atual: {actual_qty}")
-                _logger.warning(f"     Diferença: {actual_qty - expected_qty}")
-
-                # Corrige
-                move.with_context(
-                    force_allow_write=True,
-                    skip_consumption_check=True,
-                    fixing_parent_quantity=True,
-                ).write({
-                    'product_uom_qty': expected_qty,
-                    'calc': False,  # 🔥 Garante calc=False na OP pai
-                })
-                fixed_count += 1
-            else:
-                _logger.info(f"   ✅ {move.product_id.name} correto: {actual_qty}")
-
-        if fixed_count > 0:
-            _logger.warning(f"⚠️  {fixed_count} quantidade(s) corrigida(s) na OP pai {self.name}")
 
     def button_cancel(self):
         self.state = 'canceled'

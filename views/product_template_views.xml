@@ -7,9 +7,9 @@
         <field name="arch" type="xml">
             <xpath expr="//group[@name='stock_property']" position="after">   
                 <group string="Calculation">
-                    <field name="force_manufacture"/>
                     <field name="blue_area_calc" widget="radio"/>
-                    <field name="boolean_coefficient_or_screen" widget="radio"/>
+                    <field name="cement" string="Kg/m²" attrs="{'invisible': [('blue_area_calc','!=','massa')]}"/>
+                    <field name="boolean_coefficient_or_screen" widget="radio" attrs="{'readonly': [('blue_area_calc', '=', 'massa')]}"/>
                 </group>
             </xpath>
         </field>

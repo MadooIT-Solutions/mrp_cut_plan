@@ -7,12 +7,15 @@ class BlueProductTemplate(models.Model):
         selection=[
             ("n", "None"),
             ("llh", "LLH Calculation"),
-            ("m", "Mold Calculation")
+            ("m", "Mold Calculation"),
+            ("massa", "Cement Calculation"),
         ],
         string="Calculation Type",
         default='n',
     )
-
+    cement = fields.Float(
+        string="Cement",
+    )
     boolean_coefficient_or_screen = fields.Selection(
         selection=[
             ("n", "None"),
@@ -29,7 +32,7 @@ class BlueProductTemplate(models.Model):
         help="If checked, uses Make To Order strategy without creating production orders"
     )
 
-    force_manufacture = fields.Boolean(
-        string="Fabricar sempre",
-        help="Sempre cria OP quando usado como componente"
-    )
+    @api.onchange('blue_area_calc')
+    def _onchange_blue_area_calc(self):
+        if self.blue_area_calc == 'massa':
+            self.boolean_coefficient_or_screen = 'n'
