@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-04-06 14:33+0000\n"
-"PO-Revision-Date: 2026-04-06 11:34-0300\n"
+"POT-Creation-Date: 2026-04-08 03:43+0000\n"
+"PO-Revision-Date: 2026-04-08 00:44-0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: pt\n"
@@ -524,6 +524,11 @@ msgid "Cancel Workorder"
 msgstr "Cancelar Ordem de Serviço"
 
 #. module: mrp_cut_plan
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__stock_picking__production_status__cancelled
+msgid "Cancelado"
+msgstr ""
+
+#. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.view_wizard_create_all_production_orders_form
 msgid "Cancelar"
 msgstr ""
@@ -542,6 +547,17 @@ msgstr "Produto Tela/Argamassa"
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_sale_order_line__categ_display_name
 msgid "Categoria (Hierárquica)"
 msgstr ""
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_product_product__cement
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_product_template__cement
+msgid "Cement"
+msgstr "Argamassa"
+
+#. module: mrp_cut_plan
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__product_template__blue_area_calc__massa
+msgid "Cement Calculation"
+msgstr "Cálculo Argamassa"
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_purchase_order__chave_pix
@@ -823,12 +839,6 @@ msgid "Existem OPs filhas pendentes."
 msgstr ""
 
 #. module: mrp_cut_plan
-#: model:ir.model.fields,field_description:mrp_cut_plan.field_product_product__force_manufacture
-#: model:ir.model.fields,field_description:mrp_cut_plan.field_product_template__force_manufacture
-msgid "Fabricar sempre"
-msgstr ""
-
-#. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_invoice_document_polispan
 msgid "Fatura"
 msgstr ""
@@ -985,7 +995,7 @@ msgstr ""
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields.selection,name:mrp_cut_plan.selection__stock_picking__production_status__started_partial
-msgid "Iniciado parcialmente"
+msgid "Iniciado Parcialmente"
 msgstr ""
 
 #. module: mrp_cut_plan
@@ -1054,9 +1064,9 @@ msgstr "Última Atualização em"
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__sale_line_id
-#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_move__sale_line
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_move__sale_line_id
 msgid "Linha do Pedido de Venda"
-msgstr ""
+msgstr "Linha de Venda"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.os_web_external_layout_boxed
@@ -1199,13 +1209,13 @@ msgid "Number of messages with delivery error"
 msgstr "Número de mensagens com erro de entrega"
 
 #. module: mrp_cut_plan
-#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__stock_move__is_produced_status__no
-msgid "Não"
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__stock_picking__production_status__not_started
+msgid "Não Iniciado"
 msgstr ""
 
 #. module: mrp_cut_plan
-#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__stock_picking__production_status__not_started
-msgid "Não iniciado"
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__stock_move__is_produced_status__no
+msgid "Não Produzido"
 msgstr ""
 
 #. module: mrp_cut_plan
@@ -1271,7 +1281,7 @@ msgstr ""
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields.selection,name:mrp_cut_plan.selection__stock_picking__production_status__partial
-msgid "Parcialmente pronto"
+msgid "Parcialmente Produzido"
 msgstr ""
 
 #. module: mrp_cut_plan
@@ -1452,13 +1462,13 @@ msgid "Produto é Tela"
 msgstr ""
 
 #. module: mrp_cut_plan
-#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_move__is_produced_status
+#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__stock_move__is_produced_status__yes
 msgid "Produzido"
 msgstr ""
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields.selection,name:mrp_cut_plan.selection__stock_picking__production_status__ready
-msgid "Pronto"
+msgid "Pronto para Entrega"
 msgstr ""
 
 #. module: mrp_cut_plan
@@ -1483,7 +1493,7 @@ msgid "Quantity"
 msgstr "Quantidade"
 
 #. module: mrp_cut_plan
-#: model:ir.model.fields,help:mrp_cut_plan.field_stock_move__sale_line
+#: model:ir.model.fields,help:mrp_cut_plan.field_stock_move__sale_line_id
 msgid "Relacionamento direto com a linha do pedido de venda"
 msgstr ""
 
@@ -1494,7 +1504,7 @@ msgid "SMS Delivery error"
 msgstr "Erro de Entrega SMS"
 
 #. module: mrp_cut_plan
-#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__sale_line
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__sale_line_id
 msgid "Sale Line"
 msgstr ""
 
@@ -1517,12 +1527,12 @@ msgstr "Linha do Pedido de Venda"
 #. module: mrp_cut_plan
 #: model:ir.model,name:mrp_cut_plan.model_sale_order
 msgid "Sales Order"
-msgstr "Pedido de Vendas"
+msgstr "Pedido de venda"
 
 #. module: mrp_cut_plan
 #: model:ir.model,name:mrp_cut_plan.model_sale_order_line
 msgid "Sales Order Line"
-msgstr "Linha de pedidos de venda"
+msgstr "Linha do pedido de vendas"
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_mrp_cut_plan__blue_origin
@@ -1552,17 +1562,6 @@ msgid "Se pago antes"
 msgstr ""
 
 #. module: mrp_cut_plan
-#: model:ir.model.fields,help:mrp_cut_plan.field_product_product__force_manufacture
-#: model:ir.model.fields,help:mrp_cut_plan.field_product_template__force_manufacture
-msgid "Sempre cria OP quando usado como componente"
-msgstr ""
-
-#. module: mrp_cut_plan
-#: model:ir.model.fields.selection,name:mrp_cut_plan.selection__stock_move__is_produced_status__yes
-msgid "Sim"
-msgstr ""
-
-#. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_wall
 msgid "Standard Wall"
 msgstr "Parede Padrão"
@@ -1574,19 +1573,20 @@ msgid "State"
 msgstr "Estado"
 
 #. module: mrp_cut_plan
+#: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_move__is_produced_status
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_stock_picking__production_status
-msgid "Status da Produção"
+msgid "Status de Produção"
 msgstr ""
 
 #. module: mrp_cut_plan
 #: model:ir.model,name:mrp_cut_plan.model_stock_move
 msgid "Stock Move"
-msgstr "Movimentação do Estoque"
+msgstr "Movimento de Estoque"
 
 #. module: mrp_cut_plan
 #: model:ir.model,name:mrp_cut_plan.model_stock_rule
 msgid "Stock Rule"
-msgstr "Regra do Estoque"
+msgstr "Regra de estoque"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_invoice_document_polispan
@@ -1783,28 +1783,7 @@ msgstr "Parede"
 #: code:addons/mrp_cut_plan/models/stock.py:0
 #, python-format
 msgid ""
-"❌ Edição manual de consumo bloqueada.\n"
-"\n"
-"Produto: %(product_name)s\n"
-"Este componente tem consumo calculado automaticamente (calc=True).\n"
-"Existe OP filha relacionada.\n"
-"\n"
-"OPs filhas: %(child_ops)s\n"
-"\n"
-"O consumo é atualizado automaticamente ao concluir a OP filha."
-msgstr ""
-
-#. module: mrp_cut_plan
-#. odoo-python
-#: code:addons/mrp_cut_plan/models/stock.py:0
-#, python-format
-msgid ""
-"❌ Produto ainda não disponível para entrega.\n"
-"\n"
-"Descrição: %(description)s\n"
-"Produto: %(product)s%(plan_info)s\n"
-"OP Pai: %(mo)s\n"
-"Status da OP: %(state)s\n"
-"\n"
-"A entrega só pode ser reservada após a conclusão da OP Pai."
+"🔒 Edição manual de consumo bloqueada.Produto: %(product_name)sEste componente tem consumo calculado automaticamente "
+"(calc=True).Existe OP filha relacionada.OPs filhas: %(child_ops)sO consumo é atualizado automaticamente ao concluir a OP "
+"filha."
 msgstr ""
