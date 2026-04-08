@@ -62,7 +62,6 @@ class SaleOrder(models.Model):
             'context': {'create': False},
         }
 
-
     def open_linked_po(self):
         domain = [('blue_origin', '=', self.name)]
         return {
@@ -211,7 +210,7 @@ class SaleOrder(models.Model):
                             'location_id': delivery.location_id.id,
                             'location_dest_id': delivery.location_dest_id.id,
                             'company_id': delivery.company_id.id,
-                            'sale_line_id': line.id,
+                            'sale_line': line.id,
                             'picking_id': delivery.id,
                             'description_picking': line.name,
                         }

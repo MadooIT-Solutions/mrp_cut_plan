@@ -6,8 +6,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-03-11 04:07+0000\n"
-"PO-Revision-Date: 2026-03-11 01:10-0300\n"
+"POT-Creation-Date: 2026-04-06 14:33+0000\n"
+"PO-Revision-Date: 2026-04-06 11:34-0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: pt\n"
@@ -72,7 +72,7 @@ msgid ""
 "<br/>\n"
 "                    <strong>E-mail: </strong>"
 msgstr ""
-"<br/>\r\n"
+"<br/>&#13;\n"
 "                    <strong>E-mail: </strong>"
 
 #. module: mrp_cut_plan
@@ -81,7 +81,7 @@ msgid ""
 "<br/>\n"
 "                    <strong>Telefone: </strong>"
 msgstr ""
-"<br/>\r\n"
+"<br/>&#13;\n"
 "                    <strong>Telefone: </strong>"
 
 #. module: mrp_cut_plan
@@ -145,12 +145,12 @@ msgstr "<span>Pedir confirmação</span>"
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_saleorder_document_os
 msgid "<span>Atenciosamente,</span><br/><br/>"
-msgstr "<span>Atenciosamente,</span><br/><br/>"
+msgstr ""
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.os_web_external_layout_boxed
 msgid "<span>Celular/Whatsapp: </span>"
-msgstr "<span>Celular/Whatsapp: </span>"
+msgstr ""
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_invoice_document_polispan
@@ -166,7 +166,7 @@ msgstr ""
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.os_web_external_layout_boxed
 msgid "<span>E-mail: </span>"
-msgstr "<span>E-mail: </span>"
+msgstr ""
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_invoice_document_polispan
@@ -191,7 +191,7 @@ msgstr ""
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.os_web_external_layout_boxed
 msgid "<span>Telefone: </span>"
-msgstr "<span>Telefone: </span>"
+msgstr ""
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_invoice_document_polispan
@@ -486,7 +486,7 @@ msgstr ""
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_bom_line__calc
 msgid "Calculated"
-msgstr ""
+msgstr "Calculado"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.product_template_form_view_inherit
@@ -1077,7 +1077,7 @@ msgstr "Anexo Principal"
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_bom_line__mandatory
 msgid "Mandatory"
-msgstr ""
+msgstr "Obrigatório"
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_cut_plan_template_price_config__blue_margin_percent

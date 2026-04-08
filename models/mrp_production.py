@@ -42,7 +42,7 @@ class MrpProduction(models.Model):
         readonly=False
     )
 
-    sale_line = fields.Many2one('sale.order.line')
+    sale_line_id = fields.Many2one('sale.order.line')
 
     # Flag para controle interno
     _parent_updating = False
@@ -131,6 +131,10 @@ class MrpProduction(models.Model):
                 }
 
         return super()._onchange_product_qty()
+
+    @api.onchange('state')
+    def _onchange_state(self):
+        self._trigger_status_update()
 
     def _generate_moves(self):
         """
@@ -252,7 +256,7 @@ class MrpProduction(models.Model):
                         'location_id': delivery.location_id.id,
                         'location_dest_id': delivery.location_dest_id.id,
                         'company_id': delivery.company_id.id,
-                        'sale_line': self.sale_line.id,
+                        'sale_line_id': self.sale_line_id.id,
                         'picking_id': delivery.id,
                         'description_picking': self.cut_plan_id.sale_line_id.name,
                     }
@@ -271,45 +275,6 @@ class MrpProduction(models.Model):
                 for c in mo.child_production_ids
             )
 
-    def _trigger_status_update(self):
-        """Dispara atualização dos campos de status relacionados usando a linha do pedido de venda"""
-        for production in self:
-            # Pega a linha do pedido de venda relacionada
-            sale_line = production.sale_line
-
-            if not sale_line:
-                _logger.info(f"⚠️ OP {production.name} sem linha de venda relacionada")
-                continue
-
-            _logger.info(f"🔄 Atualizando status para linha de venda: {sale_line.id} - {sale_line.name}")
-
-            # 1️⃣ Atualiza status nos stock.move relacionados à linha de venda
-            moves = self.env['stock.move'].search([
-                ('sale_line', '=', sale_line.id)
-            ])
-
-            if moves:
-                _logger.info(f"   📦 Atualizando {len(moves)} movimentos de estoque")
-                moves._compute_is_produced_status()
-
-            # 2️⃣ Atualiza status nos stock.picking relacionados à linha de venda
-            # Busca pickings que tenham movimentos com esta linha de venda
-            pickings = self.env['stock.picking'].search([
-                ('move_ids_without_package.sale_line_id', '=', sale_line.id)
-            ])
-
-            if pickings:
-                _logger.info(f"   📋 Atualizando {len(pickings)} entregas")
-                pickings._compute_production_status()
-
-            # 3️⃣ Também atualiza pickings diretamente ligados à venda (fallback)
-            if production.sale_id:
-                sale_pickings = self.env['stock.picking'].search([
-                    ('sale_id', '=', production.sale_id.id)
-                ])
-                if sale_pickings:
-                    _logger.info(f"   📋 Atualizando {len(sale_pickings)} entregas da venda")
-                    sale_pickings._compute_production_status()
 
     def action_assign(self):
         """Ao reservar OP, atualiza status"""
@@ -349,7 +314,7 @@ class MrpProduction(models.Model):
                     super(MrpProduction, child).action_confirm()
                     _logger.info(f"   - Filha {child.name} confirmada")
 
-
+        self._trigger_status_update()
 
         return res
 
@@ -488,17 +453,7 @@ class MrpProduction(models.Model):
                 'mrp_production_ids': [(6, 0, all_ops.ids)]
             })
 
-    def write(self, vals):
-        res = super().write(vals)
 
-        if 'state' in vals:
-            sale_lines = self.mapped('cut_plan_id.sale_line_id')
-            pickings = self.env['stock.picking'].search([
-                ('move_ids_without_package.sale_line_id', 'in', sale_lines.ids)
-            ])
-            self._trigger_status_update()
-
-        return res
 
     def _on_production_done(self, mo):
         # Só OP pai
@@ -512,7 +467,7 @@ class MrpProduction(models.Model):
         sale_line = cut_plan.sale_line_id
 
         moves = self.env['stock.move'].search([
-            ('sale_line', '=', sale_line.id),
+            ('sale_line_id', '=', sale_line.id),
             ('picking_id.picking_type_id.code', '=', 'outgoing'),
             ('state', 'not in', ('done', 'cancel')),
         ])
@@ -607,6 +562,63 @@ class MrpProduction(models.Model):
                         move._set_quantity_done(move.product_uom_qty)
 
         return res
+
+        # Sobrescreve o método para disparar sincronização, evitando loops infinitos com context flag
+
+    def _get_root_production(self):
+        self.ensure_one()
+        production = self
+        while production.parent_production_id:
+            production = production.parent_production_id
+        return production
+
+    def _trigger_status_update(self):
+        """Dispara atualização do stock sempre pela OP raiz."""
+        for production in self:
+            root = production._get_root_production()
+            root._update_stock_status()
+
+    def _update_stock_status(self):
+        """Recalcula status no stock usando apenas a OP raiz."""
+        self.ensure_one()
+
+        moves = self.env['stock.move'].search([
+            '|', '|', '|',
+            ('sale_line_id', '=', self.sale_line_id.id),
+            ('group_id', '=', self.procurement_group_id.id),
+            ('production_id', '=', self.id),
+            ('raw_material_production_id', '=', self.id),
+        ])
+
+        if moves:
+            moves.invalidate_cache(['is_produced_status'])
+            moves._compute_is_produced_status()
+
+        pickings = self.env['stock.picking'].search([
+            ('sale_id', '=', self.sale_id.id),
+            ('picking_type_id.code', '=', 'outgoing'),
+            ('state', 'not in', ['done', 'cancel']),
+        ])
+
+        if pickings:
+            pickings.invalidate_cache(['production_status'])
+            pickings._compute_production_status()
+
+    def write(self, vals):
+        res = super().write(vals)
+
+        if {'state', 'qty_producing', 'product_qty'}.intersection(vals) and not self.env.context.get(
+                'skip_status_update'):
+            children = self.filtered(lambda mo: mo.parent_production_id)
+            if children:
+                children.mapped('parent_production_id')._trigger_status_update()
+
+        return res
+
+
+
+
+
 
 
 
