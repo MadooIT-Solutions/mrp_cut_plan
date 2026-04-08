@@ -123,9 +123,9 @@ class StockPicking(models.Model):
 
         # 3. Tenta buscar pelos movimentos
         if self.move_ids:
-            moves_with_sale = self.move_ids.filtered(lambda m: m.sale_line)  # Usar 'sale_line' em vez de 'sale_line_id'
+            moves_with_sale = self.move_ids.filtered(lambda m: m.sale_line_id)  # Usar 'sale_line' em vez de 'sale_line_id'
             if moves_with_sale:
-                return moves_with_sale[0].sale_line.order_id  # Usar 'sale_line'
+                return moves_with_sale[0].sale_line_id.order_id  # Usar 'sale_line'
 
         # 4. Tenta buscar pelo grupo de procurement
         if self.group_id:
