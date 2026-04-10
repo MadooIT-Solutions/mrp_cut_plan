@@ -23,7 +23,7 @@
                     class="btn-secondary"
                     type="object"
                     string="Configure"
-                    attrs="{'invisible': ['|', ('related_blue_area_calc', '=', 'n'), ('related_blue_area_calc', '=', False)]}"
+                    attrs="{'invisible': ['|','|',('related_blue_area_calc', '=', 'n'), ('related_blue_area_calc', '=', 'massa'), ('related_blue_area_calc', '=', False)]}"
                 />
             </xpath>
 
