@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: Odoo Server 16.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2026-04-08 03:43+0000\n"
-"PO-Revision-Date: 2026-04-08 00:44-0300\n"
+"PO-Revision-Date: 2026-04-09 23:08-0300\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: pt\n"
@@ -450,12 +450,12 @@ msgstr ""
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__blue_m2
 msgid "Blue M2"
-msgstr ""
+msgstr "Total M²"
 
 #. module: mrp_cut_plan
 #: model:ir.model.fields,field_description:mrp_cut_plan.field_mrp_production__blue_m3
 msgid "Blue M3"
-msgstr ""
+msgstr "Total M³"
 
 #. module: mrp_cut_plan
 #: model_terms:ir.ui.view,arch_db:mrp_cut_plan.report_mrp_cut_plan_mrp_cut_plan_document_pdf

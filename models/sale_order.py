@@ -208,7 +208,7 @@ class SaleOrder(models.Model):
                             'location_id': delivery.location_id.id,
                             'location_dest_id': delivery.location_dest_id.id,
                             'company_id': delivery.company_id.id,
-                            'sale_line': line.id,
+                            'sale_line_id': line.id,
                             'picking_id': delivery.id,
                             'description_picking': line.name,
                         }
