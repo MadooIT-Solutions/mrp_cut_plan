@@ -209,6 +209,9 @@ class SaleOrderLine(models.Model):
 
         return new_results
 
+
+
+
     # ---------------------------------------------
     # Computes para medidas (blue_m3 e blue_m2)
     # ---------------------------------------------

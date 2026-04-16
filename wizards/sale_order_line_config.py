@@ -82,6 +82,21 @@ class BlueSaleOrderLineConfig(models.TransientModel):
         digits='Product Unit of Measure',
     )
 
+    blue_m3_unit = fields.Float(
+        string="m³",
+        readonly=True,
+        compute="_compute_blue_m3_unit",
+        store=True,
+        digits='Product Unit of Measure',
+    )
+    blue_m2_unit = fields.Float(
+        string="m²",
+        readonly=True,
+        compute="_compute_blue_m2_unit",
+        store=True,
+        digits='Product Unit of Measure',
+    )
+
     blue_advance = fields.Float(
         string="Advance",
         digits='Product Unit of Measure',
@@ -208,6 +223,55 @@ class BlueSaleOrderLineConfig(models.TransientModel):
             else:
                 record.blue_m3 = 0
 
+    @api.depends('blue_I', 'blue_I_uom', 'blue_h', 'blue_h_uom', 'blue_II', 'blue_II_uom', 'quantity', 'blue_advance',
+                 'blue_advance_uom')
+    def _compute_blue_m3_unit(self):
+        for record in self:
+
+            meter_uom_id = self.env.ref('uom.product_uom_meter')
+            height = record.blue_h
+
+            if record.product_id.blue_area_calc == 'llh':
+                if all(getattr(record, field) for field in [
+                    'blue_I', 'blue_II', 'blue_h', 'blue_I_uom', 'blue_II_uom', 'blue_h_uom']
+                       ):
+                    side1 = record.blue_I
+                    side2 = record.blue_II
+
+                    if record.blue_I_uom != meter_uom_id:
+                        side1 = record.blue_I_uom._compute_quantity(record.blue_I, meter_uom_id, round=False)
+
+                    if record.blue_II_uom != meter_uom_id:
+                        side2 = record.blue_II_uom._compute_quantity(record.blue_II, meter_uom_id, round=False)
+
+                    if record.blue_h_uom != meter_uom_id:
+                        height = record.blue_h_uom._compute_quantity(record.blue_h, meter_uom_id, round=False)
+
+                    record.blue_m3_unit = side1 * side2 * height
+                else:
+                    record.blue_m3_unit = 0
+
+            elif record.product_id.blue_area_calc == 'm':
+                if all(getattr(record, field) for field in [
+                    'blue_advance', 'blue_advance_uom', 'blue_h', 'blue_h_uom']
+                       ):
+                    advance = record.blue_advance
+
+                    if record.blue_advance_uom != meter_uom_id:
+                        advance = record.blue_advance_uom._compute_quantity(record.blue_advance, meter_uom_id,
+                                                                            round=False)
+
+                    if record.blue_h_uom != meter_uom_id:
+                        height = record.blue_h_uom._compute_quantity(record.blue_h, meter_uom_id, round=False)
+                    if record.quantity == 1:
+                        record.blue_m3_unit = advance * height
+                    else:
+                        record.blue_m3_unit = advance * height
+                else:
+                    record.blue_m3 = 0
+            else:
+                record.blue_m3 = 0
+
     @api.depends('blue_I', 'blue_II', 'blue_I_uom', 'blue_h', 'blue_h_uom', 'blue_II_uom', 'quantity', 'blue_advance', 'blue_wall', 'blue_wall_uom', 'blue_advance_uom')
     def _compute_blue_m2(self):
         for record in self:
@@ -249,12 +313,56 @@ class BlueSaleOrderLineConfig(models.TransientModel):
             else:
                 record.blue_m2 = 0
 
+    @api.depends('blue_I', 'blue_II', 'blue_I_uom', 'blue_h', 'blue_h_uom', 'blue_II_uom', 'quantity', 'blue_advance',
+                 'blue_wall', 'blue_wall_uom', 'blue_advance_uom')
+    def _compute_blue_m2_unit(self):
+        for record in self:
+            meter_uom_id = self.env.ref('uom.product_uom_meter')
+
+            if record.product_id.blue_area_calc == 'llh':
+                if all(getattr(record, field) for field in ['blue_I', 'blue_II', 'blue_I_uom', 'blue_II_uom']):
+                    side1 = record.blue_I
+                    side2 = record.blue_II
+
+                    if record.blue_I_uom != meter_uom_id:
+                        side1 = record.blue_I_uom._compute_quantity(record.blue_I, meter_uom_id, round=False)
+
+                    if record.blue_II_uom != meter_uom_id:
+                        side2 = record.blue_II_uom._compute_quantity(record.blue_II, meter_uom_id, round=False)
+
+                    record.blue_m2_unit = side1 * side2
+                else:
+                    record.blue_m2_unit = 0
+
+            elif record.product_id.blue_area_calc == 'm':
+                if all(getattr(record, field) for field in
+                       ['blue_wall', 'blue_advance', 'blue_wall_uom', 'blue_advance_uom', 'blue_h', 'blue_h_uom']):
+                    wall = record.blue_wall
+                    advance = record.blue_advance
+                    height = record.blue_h
+
+                    if record.blue_wall_uom != meter_uom_id:
+                        wall = record.blue_wall_uom._compute_quantity(record.blue_wall, meter_uom_id, round=False)
+
+                    if record.blue_advance_uom != meter_uom_id:
+                        advance = record.blue_advance_uom._compute_quantity(record.blue_advance, meter_uom_id,
+                                                                            round=False)
+
+                    if record.blue_h_uom != meter_uom_id:
+                        height = record.blue_h_uom._compute_quantity(record.blue_h, meter_uom_id, round=False)
+
+                    record.blue_m2_unit = wall + height + advance + advance
+                else:
+                    record.blue_m2_unit = 0
+            else:
+                record.blue_m2_unit = 0
+
     @api.depends('blue_m2', 'blue_eps_cost', 'blue_m3')
     def _compute_blue_tela_cost(self):
         for record in self:
             template_price_config = record.template_price_config_id
             if template_price_config:
-                record.blue_tela_cost = ((template_price_config.blue_tela_cost * record.blue_m2) * template_price_config.blue_tela_multi * template_price_config.blue_tela_multi2) + record.blue_eps_cost
+                record.blue_tela_cost = ((template_price_config.blue_tela_cost * record.blue_m2_unit) * template_price_config.blue_tela_multi * template_price_config.blue_tela_multi2) + record.blue_eps_cost
             else:
                 record.blue_tela_cost = 0
     

@@ -488,9 +488,9 @@ class MrpCutPlan(models.Model):
 
         # Se veio de outro lugar com active_ids no contexto, usa o contexto
         if not records and self.env.context.get('active_ids'):
-            records = self.env[self.env.context.get('active_model')].browse(
-                self.env.context.get('active_ids')
-            )
+            records = self.env[self._name].browse(self.env.context.get('active_ids'))
+        created_orders = []
+        failed_plans = []
 
         # Filtrar apenas planos SEM OP
         plans_without_mo = records.filtered(lambda p: not p.mo_id)
