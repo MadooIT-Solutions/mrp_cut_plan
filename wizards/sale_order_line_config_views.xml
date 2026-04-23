@@ -10,29 +10,21 @@
                     <bold>Model price configuration not configured for this product: <field name="product_id"/></bold>
                 </div>
                 <sheet>
-                    <group>
-                    <group col="6" colspan="3" attrs="{'invisible': [('related_type', '=', 'm')]}">
-                            <field name="product_template_id" />
-                            <field name="quantity" options='{"type": "number", "step":1}'/>
-                            <field name="price_unit" widget="monetary" attrs="{'required': [('related_type', '=', 'llh')]}"/>
-                            <field name="pricelist_id" invisible="1"/>
-                            <field name="currency_id" invisible="1"/>
-                    </group>
+                     <group>
                         <group>
-                            <field name="blue_m3_unit"/>
-                            <field name="blue_m2_unit"/>
+                                <field name="product_template_id"/>
+                                <field name="quantity" options="{&quot;type&quot;: &quot;number&quot;, &quot;step&quot;:1}"/>
+                                <field name="price_unit" widget="monetary" attrs="{'required': [('related_type', '=', 'llh')], 'invisible': [('related_type', '=', 'm')]}"/>
+                                <field name="price_unit_m" widget="monetary" attrs="{'required': [('related_type', '=', 'm')], 'invisible': [('related_type', '=', 'llh')]}"/>
+                                <field name="pricelist_id" invisible="1"/>
+                                <field name="currency_id" invisible="1"/>
                         </group>
-                    </group>
 
-                    <group col="6" colspan="3" attrs="{'invisible': [('related_type', '=', 'llh')]}">
-                            <field name="product_template_id" />
-                            <field name="quantity" options='{"type": "number", "step":1}'/>
-                            <field name="price_unit_m" widget="monetary" attrs="{'required': [('related_type', '=', 'm')]}"/>
-                            <field name="pricelist_id" invisible="1"/>
-                            <field name="currency_id" invisible="1"/>
-                    </group>
-
-                    <group>
+                            <group>
+                                <field name="blue_m3_unit"/>
+                                <field name="blue_m2_unit"/>
+                          </group>
+                      </group>
                         <group string="Dimentions">
                             <field name="blue_I" attrs="{'invisible': [('related_type', '!=', 'llh')], 'required': [('related_type', '=', 'llh')]}"/>
                             <field name="blue_II" attrs="{'invisible': [('related_type', '!=', 'llh')], 'required': [('related_type', '=', 'llh')]}"/>

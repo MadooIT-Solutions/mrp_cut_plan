@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from odoo import models, fields, api
 from odoo.exceptions import UserError, ValidationError
 
@@ -130,7 +131,7 @@ class BlueSaleOrderLineConfig(models.TransientModel):
     )
 
     blue_curve_cost = fields.Float(
-        string="Curve Cost",
+        string="CNC Cost Lost",
         compute="_compute_blue_curve_cost",
         digits='Product Unit of Measure',
     )
@@ -165,7 +166,7 @@ class BlueSaleOrderLineConfig(models.TransientModel):
             if template_price_config_id:
                 blue_margin_percent = template_price_config_id.blue_margin_percent
             else:
-                blue_margin_percent = 0
+                blue_margin_percent = 1
             record.price_unit_m = ((record.blue_tela_cost * blue_margin_percent) / 100) + record.blue_tela_cost
 
     @api.depends('price_unit', 'price_unit_llh', 'price_unit_m', 'blue_m2', 'blue_m3', 'blue_I', 'blue_I_uom', 'blue_h', 'blue_h_uom', 'blue_II', 'blue_II_uom', 'quantity', 'blue_advance', 'blue_advance_uom')
@@ -175,6 +176,7 @@ class BlueSaleOrderLineConfig(models.TransientModel):
                 record.price_total = record.price_unit * record.blue_m3
             else:
                 record.price_total = record.price_unit_m * record.quantity
+                record.price_unit = record.price_total / record.quantity
     
     @api.depends('blue_I', 'blue_I_uom', 'blue_h', 'blue_h_uom', 'blue_II', 'blue_II_uom', 'quantity', 'blue_advance', 'blue_advance_uom')
     def _compute_blue_m3(self):
