@@ -402,9 +402,9 @@ class BlueSaleOrderLineConfig(models.TransientModel):
     def action_save(self):
         description = ''
         if self.related_type == 'llh':
-            description = f'{self.product_id.name} / M³: {self.blue_m3} / M²: {self.blue_m2} / L: {self.blue_I} {self.blue_I_uom.name} / L: {self.blue_II} {self.blue_II_uom.name}/ H: {self.blue_h} {self.blue_h_uom.name}'
+            description = f'{self.product_id.name} / M\u00b3: {self.blue_m3} / M\u00b2: {self.blue_m2} / L: {self.blue_I} {self.blue_I_uom.name} / L: {self.blue_II} {self.blue_II_uom.name}/ H: {self.blue_h} {self.blue_h_uom.name}'
         elif self.related_type == 'm':
-            description = f'{self.product_id.name} / M³: {self.blue_m3} / M²: {self.blue_m2} / Avanço: {self.blue_advance} {self.blue_advance_uom.name}/ H: {self.blue_h} {self.blue_h_uom.name}'
+            description = f'{self.product_id.name} / M\u00b3: {self.blue_m3} / M\u00b2: {self.blue_m2} / Avanço: {self.blue_advance} {self.blue_advance_uom.name}/ H: {self.blue_h} {self.blue_h_uom.name}'
 
         self.order_line_id.update({
             'product_uom_qty': self.quantity,
