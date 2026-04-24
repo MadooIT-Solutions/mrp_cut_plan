@@ -26,8 +26,8 @@ class SaleOrderLine(models.Model):
     blue_I = fields.Float(string="L")
     blue_II = fields.Float(string="L")
     blue_h = fields.Float(string="H")
-    blue_m3 = fields.Float(string="Total in m³", compute="_compute_blue_m3", store=True)
-    blue_m2 = fields.Float(string="Total in m²", compute="_compute_blue_m2", store=True)
+    blue_m3 = fields.Float(string="Total in m³", store=True)
+    blue_m2 = fields.Float(string="Total in m²", store=True)
     is_llh_calculation = fields.Boolean(string="Is LLH Calculation", compute="_compute_is_llh_calculation")
 
     price_unit_2 = fields.Float(string="Price Unit 2")

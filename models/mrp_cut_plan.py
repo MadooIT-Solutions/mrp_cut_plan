@@ -617,7 +617,7 @@ class MrpCutPlan(models.Model):
                             if production_order.product_id.blue_area_calc in ['llh', 'm'] and bom_line.product_id.blue_area_calc == 'massa':
                                 cement = bom_line.product_id.cement
                                 if cement > 0:
-                                    move.product_uom_qty = production_order.blue_m2 * cement * production_order.product_qty
+                                    move.product_uom_qty = production_order.blue_m2 * cement
                                 else:
                                     move.product_uom_qty = 0
                                     _logger.warning(

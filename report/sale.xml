@@ -201,6 +201,8 @@
                 <div id="total" class="row text-end float-end" name="total">
                     <div t-attf-class="#{'col-4' if report_type != 'html' else 'col-sm-7 col-md-5'} ml-auto">
                         <table class="table table-sm">
+                            <t t-set="tax_totals" t-value="doc.tax_totals"/>
+                            <t t-call="account.document_tax_totals"/>
                             <tr class="border-black o_subtotal" style="">
                                 <td name="td_amount_untaxed_label"><strong>Subtotal</strong></td>
                                 <td name="td_amount_untaxed" class="text-end">

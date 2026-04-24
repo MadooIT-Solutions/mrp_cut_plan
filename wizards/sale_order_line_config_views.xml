@@ -24,7 +24,7 @@
                                 <field name="blue_m3_unit"/>
                                 <field name="blue_m2_unit"/>
                           </group>
-                      </group>
+
                         <group string="Dimentions">
                             <field name="blue_I" attrs="{'invisible': [('related_type', '!=', 'llh')], 'required': [('related_type', '=', 'llh')]}"/>
                             <field name="blue_II" attrs="{'invisible': [('related_type', '!=', 'llh')], 'required': [('related_type', '=', 'llh')]}"/>
