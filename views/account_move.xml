@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+
+
+   <record id="account_move_tree_mrp_cut_plan" model="ir.ui.view">
+        <field name="name">account.move.tree.mrp.cut.plan.inherit</field>
+        <field name="model">account.move</field>
+        <field name="inherit_id" ref="account.view_invoice_tree"/>
+        <field name="arch" type="xml">
+            <xpath expr="//field[@name='invoice_date_due']" position="attributes">
+              <attribute name="widget"></attribute>
+            </xpath>
+        </field>
+   </record>
+
+    </data>
+</odoo>
